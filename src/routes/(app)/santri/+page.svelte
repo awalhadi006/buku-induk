@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { IconUsers, IconSearch } from '@tabler/icons-svelte';
+	import { page } from '$app/state';
+	import { IconUsers, IconSearch, IconPlus } from '@tabler/icons-svelte';
 
 	const STATUS_LABEL: Record<string, string> = {
 		aktif: 'Aktif',
@@ -13,6 +14,8 @@
 	let { data } = $props();
 
 	const santri = $derived(data.santri ?? []);
+	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
+	const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
 	let query = $state('');
 
@@ -39,15 +42,23 @@
 			<span class="font-mono">{santri.length}</span> baris pertama.
 		</p>
 	</div>
-	<label class="relative sm:w-72">
-		<span class="sr-only">Cari santri</span>
-		<IconSearch class="pointer-events-none absolute inset-y-0 left-3 my-auto size-4 text-base-content/50" />
-		<input
-			type="search"
-			bind:value={query}
-			class="input input-bordered w-full pl-9"
-			placeholder="Cari nama atau NISN" />
-	</label>
+	<div class="flex items-center gap-3">
+		<label class="relative flex-1 sm:w-72 sm:flex-none">
+			<span class="sr-only">Cari santri</span>
+			<IconSearch class="pointer-events-none absolute inset-y-0 left-3 my-auto size-4 text-base-content/50" />
+			<input
+				type="search"
+				bind:value={query}
+				class="input input-bordered w-full pl-9"
+				placeholder="Cari nama atau NISN" />
+		</label>
+		{#if canCreate}
+			<a class="btn btn-primary btn-sm" href="/santri/baru">
+				<IconPlus class="size-4" stroke-width={2} />
+				Tambah
+			</a>
+		{/if}
+	</div>
 </header>
 
 {#if santri.length === 0}
@@ -55,10 +66,13 @@
 		<IconUsers class="mx-auto size-10 text-base-content/40" stroke-width={1.5} />
 		<h2 class="mt-4 text-lg font-semibold">Belum ada data santri</h2>
 		<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">
-			Data diisi lewat import Excel dari halaman Import, atau input manual (tahap berikutnya).
+			Data diisi lewat import Excel dari halaman Import, atau ditambahkan manual.
 		</p>
 		<div class="mt-5">
 			<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
+			{#if canCreate}
+				<a class="btn btn-outline btn-sm" href="/santri/baru">Tambah manual</a>
+			{/if}
 		</div>
 	</div>
 {:else if filtered.length === 0}
@@ -81,7 +95,9 @@
 			<tbody>
 				{#each filtered as s}
 					<tr class="hover:bg-base-200/50">
-						<td class="font-medium">{s.nama_lengkap}</td>
+						<td class="font-medium">
+							<a class="link link-hover" href="/santri/{s.id}">{s.nama_lengkap}</a>
+						</td>
 						<td class="font-mono">{s.nisn ?? '-'}</td>
 						<td class="hidden sm:table-cell">{s.jenis_kelamin ?? '-'}</td>
 						<td>{s.kamar ? `Kamar ${s.kamar.nomor}` : '-'}</td>
