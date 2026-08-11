@@ -1,0 +1,162 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import type { ComponentType } from 'svelte';
+	import {
+		IconLayoutDashboard,
+		IconUsers,
+		IconUserHeart,
+		IconBed,
+		IconSchool,
+		IconFileImport,
+		IconSettings,
+		IconMenu,
+		IconX,
+		IconLogout
+	} from '@tabler/icons-svelte';
+	import { supabase } from '$lib/supabase';
+	import { PERAN_LABEL, type Profile } from '$lib/types';
+
+	let { children } = $props();
+
+	const profile = $derived((page.data.profile as Profile | null) ?? null);
+
+	type NavItem = { href: string; label: string; icon: ComponentType; roles: string[] | 'all' };
+	const items: NavItem[] = [
+		{ href: '/', label: 'Rekapitulasi', icon: IconLayoutDashboard, roles: 'all' },
+		{ href: '/santri', label: 'Santri', icon: IconUsers, roles: 'all' },
+		{ href: '/wali', label: 'Wali Santri', icon: IconUserHeart, roles: ['superadmin', 'admin_tu'] },
+		{ href: '/kamar', label: 'Kamar', icon: IconBed, roles: ['superadmin', 'admin_tu'] },
+		{ href: '/kelas', label: 'Kelas', icon: IconSchool, roles: ['superadmin', 'admin_tu'] },
+		{ href: '/import', label: 'Import Excel', icon: IconFileImport, roles: ['superadmin', 'admin_tu'] },
+		{ href: '/pengaturan', label: 'Pengaturan', icon: IconSettings, roles: ['superadmin'] }
+	];
+
+	const visible = $derived(
+		items.filter((i) => i.roles === 'all' || (profile && i.roles.includes(profile.peran)))
+	);
+
+	const initial = $derived(
+		(profile?.nama ?? '').trim().charAt(0).toUpperCase() ||
+			((page.data.user as { email?: string } | null)?.email ?? '?').charAt(0).toUpperCase()
+	);
+	const peranLabel = $derived(profile ? PERAN_LABEL[profile.peran] ?? profile.peran : '');
+
+	let open = $state(false);
+	let theme = $state('');
+
+	function isActive(href: string) {
+		const path = page.url.pathname;
+		return href === '/' ? path === '/' : path.startsWith(href);
+	}
+
+	onMount(() => {
+		theme = localStorage.getItem('buku-induk-theme') ?? '';
+		apply();
+	});
+
+	function apply() {
+		if (theme) document.documentElement.dataset.theme = theme;
+		else delete document.documentElement.dataset.theme;
+		localStorage.setItem('buku-induk-theme', theme);
+	}
+
+	async function logout() {
+		await supabase.auth.signOut();
+		goto('/login');
+	}
+</script>
+
+<div class="min-h-[100dvh] bg-base-100 text-base-content">
+	{#if open}
+		<button
+			class="fixed inset-0 z-30 bg-black/40 lg:hidden motion-reduce:transition-none"
+			aria-label="Tutup menu"
+			onclick={() => (open = false)}></button>
+	{/if}
+
+	<aside
+		class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-transform duration-200 lg:translate-x-0 motion-reduce:transition-none
+		{open ? 'translate-x-0' : ''}">
+		<div class="flex items-center justify-between px-5 pb-4 pt-6">
+			<div class="flex items-center gap-3">
+				<span
+					class="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary"
+					>BI</span
+				>
+				<span class="font-semibold tracking-tight">Buku Induk</span>
+			</div>
+			<button
+				class="btn btn-ghost btn-square btn-sm lg:hidden"
+				aria-label="Tutup menu"
+				onclick={() => (open = false)}>
+				<IconX class="size-5" stroke-width={1.75} />
+			</button>
+		</div>
+
+		<nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
+			{#each visible as item}
+				{@const active = isActive(item.href)}
+				<a
+					href={item.href}
+					onclick={() => (open = false)}
+					class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors
+						{active ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}">
+					<item.icon class="size-5" stroke-width={1.75} />
+					<span>{item.label}</span>
+				</a>
+			{/each}
+		</nav>
+
+		<div class="space-y-4 border-t border-base-300 p-4">
+			<label class="block">
+				<span class="mb-1 block text-xs font-medium text-base-content/60">Tema</span>
+				<select class="select select-bordered select-sm w-full" bind:value={theme} onchange={apply}>
+					<option value="">Ikut perangkat</option>
+					<option value="emerald">Emerald</option>
+					<option value="dim">Dim (gelap)</option>
+					<option value="forest">Forest</option>
+					<option value="corporate">Corporate</option>
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+				</select>
+			</label>
+
+			<div class="flex items-center gap-3">
+				<span
+					class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary"
+					>{initial}</span
+				>
+				<div class="min-w-0 flex-1">
+					<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
+					<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+				</div>
+				<button
+					class="btn btn-ghost btn-square btn-sm"
+					aria-label="Keluar"
+					title="Keluar"
+					onclick={logout}>
+					<IconLogout class="size-5" stroke-width={1.75} />
+				</button>
+			</div>
+		</div>
+	</aside>
+
+	<div class="lg:pl-72">
+		<header
+			class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-base-300 bg-base-100/90 px-4 backdrop-blur lg:hidden">
+			<button
+				class="btn btn-ghost btn-square btn-sm"
+				aria-label="Buka menu"
+				onclick={() => (open = true)}>
+				<IconMenu class="size-5" stroke-width={1.75} />
+			</button>
+			<span class="font-semibold tracking-tight">Buku Induk</span>
+		</header>
+
+		<main class="mx-auto w-full max-w-[1400px] px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:py-8">
+			{@render children()}
+		</main>
+	</div>
+</div>
