@@ -25,6 +25,7 @@
 		"wrangler": "^4.97.0"
 	},
 	"dependencies": {
+		"@supabase/supabase-js": "^2.112.2",
 		"daisyui": "^5.7.16"
 	}
 }
