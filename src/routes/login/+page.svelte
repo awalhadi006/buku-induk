@@ -15,13 +15,19 @@
 		submitting = true;
 		error = '';
 
-		const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-		if (err) {
-			error = err.message;
+		try {
+			const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+			if (err) {
+				error = err.message;
+				password = '';
+				return;
+			}
+			goto('/');
+		} catch {
+			error = 'Terjadi kesalahan. Coba lagi.';
+		} finally {
 			submitting = false;
-			return;
 		}
-		goto('/');
 	}
 </script>
 
