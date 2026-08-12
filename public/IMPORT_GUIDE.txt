@@ -1,0 +1,42 @@
+# Panduan Import Santri
+
+Download template Excel dan isi data sesuai kolom. File harus `.xlsx` atau `.xls`.
+
+## Kolom-kolom (38 kolom total):
+
+### Identitas Santri
+- Nama lengkap (*wajib*)
+- NISN, NIK, NIS, NIPD
+- Nama panggilan
+- Tempat lahir, Tanggal lahir
+- Jenis kelamin (L/P)
+- Agama, Kewarganegaraan
+
+### Alamat & Kontak
+- Tempat tinggal, Transportasi
+- Anak ke
+- No. HP
+- Alamat (lengkap)
+- RT, RW, Desa/kelurahan, Kecamatan, Kabupaten
+- No. akta, No. KK
+- Bantuan (KIP/PIP/KPS/PKH)
+
+### Status
+- Status keluarga (yatim/yatim_piatu/dhuafa/umum)
+- Status santri (aktif/khusus/mutasi_keluar/lulus/wafat/drop_out)
+- Tanggal masuk
+- Asal sekolah
+- Jalur masuk
+
+### Penempatan
+- Kamar (isi nomor kamar, misal: 3)
+- Kelas (isi tingkat+rombel, misal: 7A)
+
+### Wali Santri
+- Nama ayah, Nama ibu, Nama wali
+- Pekerjaan ayah, Pekerjaan ibu
+- Penghasilan
+- Alamat wali
+- No. HP wali
+
+**Catatan**: Nama ayah/ibu/wali yang diisi akan otomatis dicatat sebagai wali santri jika belum ada.
