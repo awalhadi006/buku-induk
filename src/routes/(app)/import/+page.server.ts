@@ -1,14 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { buildTemplateBuffer, parseImportRows, IMPORT_COLUMNS } from '$lib/excel';
+import * as XLSX from 'xlsx';
+import { IMPORT_COLUMNS } from '$lib/excel';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
-
-async function isAdmin(locals: App.Locals): Promise<boolean> {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
-	return ADMIN_ROLES.includes(profile?.peran ?? '');
-}
 
 const STATUS_SANTRI_VALUES = new Set(['aktif', 'khusus', 'mutasi_keluar', 'lulus', 'wafat', 'drop_out']);
 const STATUS_KELUARGA_VALUES = new Set(['yatim', 'yatim_piatu', 'dhuafa', 'umum']);
@@ -33,6 +27,32 @@ function toIsoDate(v: unknown): string {
 	return 'invalid';
 }
 
+async function findOrCreateWali(supabase: App.Locals['supabase'], w: Record<string, unknown>) {
+	const hasName = ['nama_ayah', 'nama_ibu', 'nama_wali'].some((k) => w[k]);
+	if (!hasName) return null;
+
+	const { data: existing } = await supabase
+		.from('wali_santri')
+		.select('id')
+		.eq('nama_ayah', w.nama_ayah ?? null)
+		.eq('nama_ibu', w.nama_ibu ?? null)
+		.eq('nama_wali', w.nama_wali ?? null)
+		.limit(1)
+		.maybeSingle();
+	if (existing) return existing.id;
+
+	const { data, error } = await supabase.from('wali_santri').insert(w).select('id').single();
+	if (error) throw error;
+	return data.id;
+}
+
+async function isAdmin(locals: App.Locals): Promise<boolean> {
+	const { user, supabase } = locals;
+	if (!user) throw redirect(303, '/login');
+	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
+	return ADMIN_ROLES.includes(profile?.peran ?? '');
+}
+
 export async function load({ locals }) {
 	if (!(await isAdmin(locals))) throw redirect(303, '/');
 	return {};
@@ -41,8 +61,27 @@ export async function load({ locals }) {
 export const actions = {
 	template: async ({ locals }) => {
 		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin.' });
-		const buffer = buildTemplateBuffer();
-		return new Response(new Uint8Array(buffer), {
+		const ws = XLSX.utils.aoa_to_sheet([IMPORT_COLUMNS.map((c) => c.header)]);
+		const guide = XLSX.utils.aoa_to_sheet([
+			['Panduan import data santri'],
+			[''],
+			['1. Isi sheet "santri". Baris pertama adalah header — jangan diubah. Data mulai baris 2.'],
+			['2. Kolom "Nama lengkap" wajib diisi; kolom lain opsional.'],
+			['3. Jenis kelamin: L atau P'],
+			['4. Status santri: aktif, khusus, mutasi_keluar, lulus, wafat, drop_out'],
+			['5. Status keluarga: yatim, yatim_piatu, dhuafa, umum'],
+			['6. Kamar: nomor kamar (contoh: 3). Kelas: tingkat+rombel (contoh: 7A).'],
+			['7. Isi nama ayah/ibu/wali agar wali santri ikut tercatat.'],
+			[''],
+			['Contoh:'],
+			['Nama lengkap', 'NISN', 'Jenis kelamin (L/P)', 'Status santri', 'Kamar (nomor)', 'Kelas (mis. 7A)', 'Nama ayah'],
+			['Ahmad Fauzi', '0012345678', 'L', 'aktif', '3', '7A', 'Haji Salim']
+		]);
+		const wb = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(wb, ws, 'santri');
+		XLSX.utils.book_append_sheet(wb, guide, 'Panduan');
+		const buf = new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
+		return new Response(buf, {
 			headers: {
 				'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 				'Content-Disposition': 'attachment; filename="template-import-santri.xlsx"'
@@ -55,15 +94,18 @@ export const actions = {
 		const supabase = locals.supabase;
 
 		const fd = await request.formData();
-		const rowsStr = fd.get('rows');
-		if (!rowsStr) return fail(400, { error: 'Data rows tidak ditemukan.' });
-		let rows: Record<string, unknown>[];
-		try {
-			rows = JSON.parse(rowsStr as string);
-		} catch {
-			return fail(400, { error: 'Data rows tidak valid.' });
+		const file = fd.get('file');
+		if (!(file instanceof File)) return fail(400, { error: 'Pilih file Excel dulu.' });
+		if (!/\.(xlsx|xls)$/i.test(file.name)) {
+			return fail(400, { error: 'Hanya file .xlsx atau .xls yang didukung.' });
 		}
-		if (!rows || rows.length === 0) return fail(400, { error: 'Tidak ada data untuk di-import.' });
+
+		const buf = await file.arrayBuffer();
+		const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+		const ws = wb.Sheets[wb.SheetNames[0]];
+		if (!ws) return fail(400, { error: 'Sheet tidak ditemukan.' });
+		const rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, string>[];
+		if (rows.length === 0) return fail(400, { error: 'File kosong.' });
 
 		const [{ data: kamar }, { data: kelas }] = await Promise.all([
 			supabase.from('kamar').select('id,nomor').eq('aktif', true),
@@ -166,22 +208,3 @@ export const actions = {
 		return { berhasil, gagal: errors.length, errors: errors.slice(0, 50) };
 	}
 };
-
-async function findOrCreateWali(supabase: App.Locals['supabase'], w: Record<string, unknown>) {
-	const hasName = ['nama_ayah', 'nama_ibu', 'nama_wali'].some((k) => w[k]);
-	if (!hasName) return null;
-
-	const { data: existing } = await supabase
-		.from('wali_santri')
-		.select('id')
-		.eq('nama_ayah', w.nama_ayah ?? null)
-		.eq('nama_ibu', w.nama_ibu ?? null)
-		.eq('nama_wali', w.nama_wali ?? null)
-		.limit(1)
-		.maybeSingle();
-	if (existing) return existing.id;
-
-	const { data, error } = await supabase.from('wali_santri').insert(w).select('id').single();
-	if (error) throw error;
-	return data.id;
-}
