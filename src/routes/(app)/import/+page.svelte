@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconFileDownload, IconFileUpload, IconFileImport } from '@tabler/icons-svelte';
 	import * as XLSX from 'xlsx';
+	import { IMPORT_COLUMNS } from '$lib/excel';
 
 	type ImportError = { row: number; nama: string; reason: string };
 
@@ -19,7 +20,7 @@
 	function downloadTemplate() {
 		busyTemplate = true;
 		try {
-			const ws = XLSX.utils.aoa_to_sheet([['Nama lengkap', 'NISN', 'Jenis kelamin', 'Status santri', 'Kamar', 'Kelas', 'Nama ayah']]);
+			const ws = XLSX.utils.aoa_to_sheet([IMPORT_COLUMNS.map((c) => c.header)]);
 			const wb = XLSX.utils.book_new();
 			XLSX.utils.book_append_sheet(wb, ws, 'santri');
 			XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
