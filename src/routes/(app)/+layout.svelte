@@ -14,7 +14,8 @@
 		IconMenu,
 		IconX,
 		IconLogout,
-		IconChevronDown
+		IconChevronDown,
+		IconCheck
 	} from '@tabler/icons-svelte';
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
@@ -163,12 +164,13 @@
 					tabindex="0"
 					role="menu"
 					class="dropdown-content fixed bottom-32 left-4 z-[60] w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
-					<div class="grid max-h-64 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
+					<p class="mb-2 text-xs font-medium text-base-content/50">Pilih tema</p>
+					<div class="grid max-h-64 grid-cols-3 gap-1.5 overflow-y-auto p-0.5 pr-1">
 						<button
 							type="button"
 							onclick={() => setTheme('')}
 							class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200
-							{theme === '' ? 'ring-2 ring-primary' : ''}">
+							{theme === '' ? 'ring-1 ring-primary' : ''}">
 							<span
 								class="flex size-8 w-full items-center justify-center rounded-lg border border-dashed border-base-content/30 text-[10px] font-medium"
 								style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)"
@@ -181,11 +183,17 @@
 								type="button"
 								onclick={() => setTheme(t.value)}
 								class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200
-								{theme === t.value ? 'ring-2 ring-primary' : ''}">
+								{theme === t.value ? 'ring-1 ring-primary' : ''}">
 								<span
-									class="size-8 w-full rounded-lg ring-1 ring-base-content/15"
+									class="relative size-8 w-full rounded-lg ring-1 ring-base-content/15"
 									data-theme={t.value}
-									style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)"></span>
+									style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)">
+									{#if theme === t.value}
+										<IconCheck
+											class="absolute inset-0 m-auto size-4 text-base-content mix-blend-difference"
+											stroke-width={3} />
+									{/if}
+								</span>
 								<span class="w-full truncate text-center">{t.label}</span>
 							</button>
 						{/each}
