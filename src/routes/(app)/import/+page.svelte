@@ -69,7 +69,8 @@
 
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
 	<a
-		href="/template-import-santri.xlsx"
+		href="/template-import-santri.xlsx?v=2"
+		download="template-import-santri.xlsx"
 		class="rounded-2xl border border-base-300 bg-base-100 p-5">
 		<span class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 			<IconFileDownload class="size-5" stroke-width={1.75} />
