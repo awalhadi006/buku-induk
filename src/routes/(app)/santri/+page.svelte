@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconUsers, IconSearch, IconPlus } from '@tabler/icons-svelte';
+	import { IconUsers, IconSearch, IconPlus, IconDownload } from '@tabler/icons-svelte';
 
 	const STATUS_LABEL: Record<string, string> = {
 		aktif: 'Aktif',
@@ -53,6 +53,12 @@
 				placeholder="Cari nama atau NISN" />
 		</label>
 		{#if canCreate}
+			<form method="POST" action="?/exportExcel">
+				<button class="btn btn-outline btn-sm" type="submit">
+					<IconDownload class="size-4" stroke-width={2} />
+					Ekspor
+				</button>
+			</form>
 			<a class="btn btn-primary btn-sm" href="/santri/baru">
 				<IconPlus class="size-4" stroke-width={2} />
 				Tambah
