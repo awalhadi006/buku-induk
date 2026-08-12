@@ -46,6 +46,41 @@
 	let open = $state(false);
 	let theme = $state('');
 
+	const THEMES = [
+		{ value: 'light', label: 'Light' },
+		{ value: 'dark', label: 'Dark' },
+		{ value: 'cupcake', label: 'Cupcake' },
+		{ value: 'bumblebee', label: 'Bumblebee' },
+		{ value: 'emerald', label: 'Emerald' },
+		{ value: 'corporate', label: 'Corporate' },
+		{ value: 'synthwave', label: 'Synthwave' },
+		{ value: 'retro', label: 'Retro' },
+		{ value: 'cyberpunk', label: 'Cyberpunk' },
+		{ value: 'valentine', label: 'Valentine' },
+		{ value: 'halloween', label: 'Halloween' },
+		{ value: 'garden', label: 'Garden' },
+		{ value: 'forest', label: 'Forest' },
+		{ value: 'aqua', label: 'Aqua' },
+		{ value: 'lofi', label: 'Lofi' },
+		{ value: 'pastel', label: 'Pastel' },
+		{ value: 'fantasy', label: 'Fantasy' },
+		{ value: 'wireframe', label: 'Wireframe' },
+		{ value: 'black', label: 'Black' },
+		{ value: 'luxury', label: 'Luxury' },
+		{ value: 'dracula', label: 'Dracula' },
+		{ value: 'cmyk', label: 'CMYK' },
+		{ value: 'autumn', label: 'Autumn' },
+		{ value: 'business', label: 'Business' },
+		{ value: 'acid', label: 'Acid' },
+		{ value: 'lemonade', label: 'Lemonade' },
+		{ value: 'night', label: 'Night' },
+		{ value: 'coffee', label: 'Coffee' },
+		{ value: 'winter', label: 'Winter' },
+		{ value: 'dim', label: 'Dim (gelap)' },
+		{ value: 'nord', label: 'Nord' },
+		{ value: 'sunset', label: 'Sunset' }
+	];
+
 	function isActive(href: string) {
 		const path = page.url.pathname;
 		return href === '/' ? path === '/' : path.startsWith(href);
@@ -114,12 +149,9 @@
 				<span class="mb-1 block text-xs font-medium text-base-content/60">Tema</span>
 				<select class="select select-bordered select-sm w-full" bind:value={theme} onchange={apply}>
 					<option value="">Ikut perangkat</option>
-					<option value="emerald">Emerald</option>
-					<option value="dim">Dim (gelap)</option>
-					<option value="forest">Forest</option>
-					<option value="corporate">Corporate</option>
-					<option value="light">Light</option>
-					<option value="dark">Dark</option>
+					{#each THEMES as t (t.value)}
+						<option value={t.value}>{t.label}</option>
+					{/each}
 				</select>
 			</label>
 
