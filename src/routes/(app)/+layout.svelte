@@ -139,7 +139,7 @@
 		</nav>
 
 		<div class="space-y-4 border-t border-base-300 p-4">
-			<div class="dropdown dropdown-top dropdown-end">
+			<div class="dropdown">
 				<div tabindex="0" role="button" class="btn btn-ghost btn-sm w-full justify-between">
 					<span class="text-xs font-medium text-base-content/60">Tema</span>
 					<IconChevronDown class="size-4 text-base-content/50" stroke-width={1.75} />
@@ -147,8 +147,8 @@
 				<div
 					tabindex="0"
 					role="menu"
-					class="dropdown-content z-[60] mb-2 w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
-					<div class="grid max-h-80 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
+					class="dropdown-content fixed bottom-4 left-4 z-[60] w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
+					<div class="grid max-h-72 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
 						<button
 							type="button"
 							class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200"
