@@ -54,10 +54,16 @@ export const actions = {
 		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin import.' });
 		const supabase = locals.supabase;
 
-		const body = await request.json<{ rows: Record<string, unknown>[] }>();
-		const rows = body.rows;
+		const fd = await request.formData();
+		const rowsStr = fd.get('rows');
+		if (!rowsStr) return fail(400, { error: 'Data rows tidak ditemukan.' });
+		let rows: Record<string, unknown>[];
+		try {
+			rows = JSON.parse(rowsStr as string);
+		} catch {
+			return fail(400, { error: 'Data rows tidak valid.' });
+		}
 		if (!rows || rows.length === 0) return fail(400, { error: 'Tidak ada data untuk di-import.' });
-		if (rows.length === 0) return fail(400, { error: 'File kosong atau tidak terbaca.' });
 
 		const [{ data: kamar }, { data: kelas }] = await Promise.all([
 			supabase.from('kamar').select('id,nomor').eq('aktif', true),

@@ -50,10 +50,11 @@
 			if (!ws) throw new Error('Sheet tidak ditemukan.');
 			const rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, string>[];
 			if (rows.length === 0) throw new Error('File kosong.');
+			const fd = new FormData();
+			fd.append('rows', JSON.stringify(rows));
 			const response = await fetch('/import?/upload', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rows })
+				body: fd
 			});
 			if (!response.ok) {
 				let err: { error?: string } | { error: string } = { error: 'Gagal upload' };
