@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { supabase } from '$lib/supabase';
 	import { uploadSantriPdf } from '$lib/storage';
-	import { IconDownload, IconTrash, IconPrinter } from '@tabler/icons-svelte';
+	import { IconDownload, IconTrash, IconPrinter, IconIdBadge } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
 	import {
 		GENDER_LABEL,
@@ -181,6 +181,10 @@
 			<a class="btn btn-outline btn-sm" href="/santri/{s.id}/cetak" target="_blank" rel="noopener">
 				<IconPrinter class="size-4" stroke-width={1.75} />
 				Cetak Buku Induk
+			</a>
+			<a class="btn btn-outline btn-sm" href="/santri/{s.id}/kartu" target="_blank" rel="noopener">
+				<IconIdBadge class="size-4" stroke-width={1.75} />
+				Cetak Kartu
 			</a>
 			<button class="btn btn-outline btn-sm" onclick={() => (editing = true)}>Edit</button>
 			{#if canDelete}
