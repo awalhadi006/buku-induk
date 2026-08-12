@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { ComponentType } from 'svelte';
-	import { themeChange } from 'theme-change';
 	import {
 		IconLayoutDashboard,
 		IconUsers,
@@ -46,6 +45,26 @@
 	const peranLabel = $derived(profile ? PERAN_LABEL[profile.peran] ?? profile.peran : '');
 
 	let open = $state(false);
+	let theme = $state('');
+
+	onMount(() => {
+		const saved = localStorage.getItem('theme');
+		if (saved) {
+			theme = saved;
+			document.documentElement.setAttribute('data-theme', saved);
+		}
+	});
+
+	function setTheme(value: string) {
+		theme = value;
+		if (value) {
+			document.documentElement.setAttribute('data-theme', value);
+			localStorage.setItem('theme', value);
+		} else {
+			document.documentElement.removeAttribute('data-theme');
+			localStorage.removeItem('theme');
+		}
+	}
 
 	const THEMES = [
 		{ value: 'light', label: 'Light' },
@@ -86,10 +105,6 @@
 		const path = page.url.pathname;
 		return href === '/' ? path === '/' : path.startsWith(href);
 	}
-
-	onMount(() => {
-		themeChange(false);
-	});
 
 	async function logout() {
 		await supabase.auth.signOut();
@@ -147,15 +162,16 @@
 				<div
 					tabindex="0"
 					role="menu"
-					class="dropdown-content fixed bottom-4 left-4 z-[60] w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
-					<div class="grid max-h-72 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
+					class="dropdown-content fixed bottom-32 left-4 z-[60] w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
+					<div class="grid max-h-64 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
 						<button
 							type="button"
-							class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200"
-							data-set-theme=""
-							data-act-class="ring-2 ring-primary">
+							onclick={() => setTheme('')}
+							class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200
+							{theme === '' ? 'ring-2 ring-primary' : ''}">
 							<span
-								class="flex size-8 w-full items-center justify-center rounded-lg border border-dashed border-base-content/30 text-[10px]"
+								class="flex size-8 w-full items-center justify-center rounded-lg border border-dashed border-base-content/30 text-[10px] font-medium"
+								style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)"
 								>Auto</span
 							>
 							<span class="w-full truncate text-center">Ikut perangkat</span>
@@ -163,13 +179,13 @@
 						{#each THEMES as t (t.value)}
 							<button
 								type="button"
-								class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200"
-								data-set-theme={t.value}
-								data-act-class="ring-2 ring-primary">
+								onclick={() => setTheme(t.value)}
+								class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200
+								{theme === t.value ? 'ring-2 ring-primary' : ''}">
 								<span
 									class="size-8 w-full rounded-lg ring-1 ring-base-content/15"
 									data-theme={t.value}
-									style="background: linear-gradient(135deg, var(--p) 50%, var(--b1) 50%)"></span>
+									style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)"></span>
 								<span class="w-full truncate text-center">{t.label}</span>
 							</button>
 						{/each}
