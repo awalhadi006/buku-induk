@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconFileDownload, IconFileUpload, IconFileImport } from '@tabler/icons-svelte';
+	import * as XLSX from 'xlsx';
 
 	type ImportError = { row: number; nama: string; reason: string };
 
@@ -12,6 +13,66 @@
 			: null
 	);
 	let fileName = $state('');
+	let busyTemplate = $state(false);
+	let busyUpload = $state(false);
+
+	function downloadTemplate() {
+		busyTemplate = true;
+		try {
+			const ws = XLSX.utils.aoa_to_sheet([['Nama lengkap', 'NISN', 'Jenis kelamin', 'Status santri', 'Kamar', 'Kelas', 'Nama ayah']]);
+			const wb = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(wb, ws, 'santri');
+			XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+				['Panduan', 'Kolom wajib: Nama lengkap'],
+				['L/P untuk jenis kelamin'],
+				['aktif/khusus/mutasi_keluar/lulus/wafat/drop_out'],
+				['Contoh: Ahmad, 0012345678, L, aktif, 3, 7A, Haji Salim']
+			]), 'Panduan');
+			XLSX.writeFile(wb, 'template-import-santri.xlsx');
+		} finally {
+			busyTemplate = false;
+		}
+	}
+
+	async function uploadFile(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		if (!/\.(xlsx|xls)$/i.test(file.name)) {
+			form = { error: 'Hanya file .xlsx atau .xls yang didukung.' };
+			return;
+		}
+		busyUpload = true;
+		try {
+			const buf = await file.arrayBuffer();
+			const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
+			const ws = wb.Sheets[wb.SheetNames[0]];
+			if (!ws) throw new Error('Sheet tidak ditemukan.');
+			const rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, string>[];
+			if (rows.length === 0) throw new Error('File kosong.');
+			const response = await fetch('/import?/upload', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ rows })
+			});
+			if (!response.ok) {
+				let err: { error?: string } | { error: string } = { error: 'Gagal upload' };
+				try {
+					err = await response.json();
+				} catch {
+					// ignore, keep default error
+				}
+				form = { error: err.error || 'Gagal upload.' };
+			} else {
+				form = await response.json();
+			}
+		} catch (err: unknown) {
+			form = { error: err instanceof Error ? err.message : 'Gagal membaca file.' };
+		} finally {
+			busyUpload = false;
+			input.value = '';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -69,7 +130,7 @@
 {/if}
 
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
-	<form method="POST" action="?/template" class="rounded-2xl border border-base-300 bg-base-100 p-5">
+	<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
 		<span class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 			<IconFileDownload class="size-5" stroke-width={1.75} />
 		</span>
@@ -77,14 +138,15 @@
 		<p class="mt-1 text-sm text-base-content/60">
 			Template berisi sheet "santri" (kolom data) dan sheet "Panduan" (contoh & aturan pengisian).
 		</p>
-		<button type="submit" class="btn btn-outline btn-sm mt-4">Unduh template (.xlsx)</button>
-	</form>
+		<button type="button" class="btn btn-outline btn-sm mt-4" onclick={downloadTemplate} disabled={busyTemplate}>
+			{#if busyTemplate}
+				<span class="loading loading-spinner loading-sm"></span>
+			{/if}
+			Unduh template (.xlsx)
+		</button>
+	</div>
 
-	<form
-		method="POST"
-		action="?/upload"
-		enctype="multipart/form-data"
-		class="rounded-2xl border border-base-300 bg-base-100 p-5">
+	<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
 		<span class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 			<IconFileUpload class="size-5" stroke-width={1.75} />
 		</span>
@@ -97,17 +159,15 @@
 			<input
 				class="file-input file-input-bordered w-full"
 				type="file"
-				name="file"
 				accept=".xlsx,.xls"
 				required
-				onchange={(e) => {
-					const input = e.currentTarget as HTMLInputElement;
-					fileName = input.files?.[0]?.name ?? '';
-				}} />
+				onchange={uploadFile} />
 		</label>
-		<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={!fileName}>
-			<IconFileImport class="size-4" stroke-width={2} />
+		<button type="button" class="btn btn-primary btn-sm mt-4" onclick={uploadFile} disabled={busyUpload}>
+			{#if busyUpload}
+				<span class="loading loading-spinner loading-sm"></span>
+			{/if}
 			Import
 		</button>
-	</form>
+	</div>
 </div>

@@ -54,14 +54,9 @@ export const actions = {
 		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin import.' });
 		const supabase = locals.supabase;
 
-		const fd = await request.formData();
-		const file = fd.get('file');
-		if (!(file instanceof File)) return fail(400, { error: 'Pilih file Excel dulu.' });
-		if (!/\.(xlsx|xls)$/i.test(file.name)) {
-			return fail(400, { error: 'Hanya file .xlsx atau .xls yang didukung.' });
-		}
-
-		const rows = parseImportRows(await file.arrayBuffer());
+		const body = await request.json<{ rows: Record<string, unknown>[] }>();
+		const rows = body.rows;
+		if (!rows || rows.length === 0) return fail(400, { error: 'Tidak ada data untuk di-import.' });
 		if (rows.length === 0) return fail(400, { error: 'File kosong atau tidak terbaca.' });
 
 		const [{ data: kamar }, { data: kelas }] = await Promise.all([
@@ -159,7 +154,7 @@ export const actions = {
 		await supabase.from('audit_logs').insert({
 			action: 'import',
 			entity: 'santri',
-			after: { file: file.name, berhasil, gagal: errors.length }
+			after: { rows: rows.length, berhasil, gagal: errors.length }
 		});
 
 		return { berhasil, gagal: errors.length, errors: errors.slice(0, 50) };
