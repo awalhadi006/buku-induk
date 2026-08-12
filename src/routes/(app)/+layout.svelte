@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { ComponentType } from 'svelte';
+	import { themeChange } from 'theme-change';
 	import {
 		IconLayoutDashboard,
 		IconUsers,
@@ -13,7 +14,8 @@
 		IconSettings,
 		IconMenu,
 		IconX,
-		IconLogout
+		IconLogout,
+		IconChevronDown
 	} from '@tabler/icons-svelte';
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
@@ -44,7 +46,6 @@
 	const peranLabel = $derived(profile ? PERAN_LABEL[profile.peran] ?? profile.peran : '');
 
 	let open = $state(false);
-	let theme = $state('');
 
 	const THEMES = [
 		{ value: 'light', label: 'Light' },
@@ -87,15 +88,8 @@
 	}
 
 	onMount(() => {
-		theme = localStorage.getItem('buku-induk-theme') ?? '';
-		apply();
+		themeChange(false);
 	});
-
-	function apply() {
-		if (theme) document.documentElement.dataset.theme = theme;
-		else delete document.documentElement.dataset.theme;
-		localStorage.setItem('buku-induk-theme', theme);
-	}
 
 	async function logout() {
 		await supabase.auth.signOut();
@@ -145,15 +139,43 @@
 		</nav>
 
 		<div class="space-y-4 border-t border-base-300 p-4">
-			<label class="block">
-				<span class="mb-1 block text-xs font-medium text-base-content/60">Tema</span>
-				<select class="select select-bordered select-sm w-full" bind:value={theme} onchange={apply}>
-					<option value="">Ikut perangkat</option>
-					{#each THEMES as t (t.value)}
-						<option value={t.value}>{t.label}</option>
-					{/each}
-				</select>
-			</label>
+			<div class="dropdown dropdown-end">
+				<div tabindex="0" role="button" class="btn btn-ghost btn-sm w-full justify-between">
+					<span class="text-xs font-medium text-base-content/60">Tema</span>
+					<IconChevronDown class="size-4 text-base-content/50" stroke-width={1.75} />
+				</div>
+				<div
+					tabindex="0"
+					role="menu"
+					class="dropdown-content z-[60] mt-2 w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
+					<div class="grid max-h-80 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
+						<button
+							type="button"
+							class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200"
+							data-set-theme=""
+							data-act-class="ring-2 ring-primary">
+							<span
+								class="flex size-8 w-full items-center justify-center rounded-lg border border-dashed border-base-content/30 text-[10px]"
+								>Auto</span
+							>
+							<span class="w-full truncate text-center">Ikut perangkat</span>
+						</button>
+						{#each THEMES as t (t.value)}
+							<button
+								type="button"
+								class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200"
+								data-set-theme={t.value}
+								data-act-class="ring-2 ring-primary">
+								<span
+									class="size-8 w-full rounded-lg ring-1 ring-base-content/15"
+									data-theme={t.value}
+									style="background: linear-gradient(135deg, var(--p) 50%, var(--b1) 50%)"></span>
+								<span class="w-full truncate text-center">{t.label}</span>
+							</button>
+						{/each}
+					</div>
+				</div>
+			</div>
 
 			<div class="flex items-center gap-3">
 				<span

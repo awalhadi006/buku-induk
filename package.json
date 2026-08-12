@@ -28,6 +28,7 @@
 		"@supabase/ssr": "^0.12.4",
 		"@supabase/supabase-js": "^2.112.2",
 		"@tabler/icons-svelte": "^3.46.0",
-		"daisyui": "^5.7.16"
+		"daisyui": "^5.7.16",
+		"theme-change": "^3.0.4"
 	}
 }
