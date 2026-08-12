@@ -12,16 +12,22 @@ export async function load({ params, locals }) {
 		.maybeSingle();
 	if (!santri) throw error(404, 'Santri tidak ditemukan');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }] = await Promise.all([
-		supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
-		supabase
-			.from('kelas')
-			.select('id,tingkat,rombel')
-			.eq('aktif', true)
-			.order('tingkat')
-			.order('rombel'),
-		supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at')
-	]);
+	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }] =
+		await Promise.all([
+			supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
+			supabase
+				.from('kelas')
+				.select('id,tingkat,rombel')
+				.eq('aktif', true)
+				.order('tingkat')
+				.order('rombel'),
+			supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at'),
+			supabase
+				.from('santri_documents')
+				.select('id,jenis,nama_file,file_url,uploaded_at')
+				.eq('santri_id', params.id)
+				.order('uploaded_at', { ascending: false })
+		]);
 
 	return {
 		santri,
@@ -30,7 +36,8 @@ export async function load({ params, locals }) {
 		wali: (wali ?? []).map((w) => ({
 			id: w.id,
 			label: w.nama_wali || w.nama_ayah || w.nama_ibu || '(wali tanpa nama)'
-		}))
+		})),
+		documents: documents ?? []
 	};
 }
 

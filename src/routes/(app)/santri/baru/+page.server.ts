@@ -1,5 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { parseSantriForm } from '$lib/santri';
+import { redirect } from '@sveltejs/kit';
 
 export async function load({ locals }) {
 	const { user, supabase } = locals;
@@ -27,18 +26,3 @@ export async function load({ locals }) {
 		}))
 	};
 }
-
-export const actions = {
-	create: async ({ locals, request }) => {
-		const { user, supabase } = locals;
-		if (!user) throw redirect(303, '/login');
-
-		const payload = parseSantriForm(await request.formData());
-		if (!payload.nama_lengkap) return fail(400, { error: 'Nama lengkap wajib diisi.' });
-
-		const { error: err } = await supabase.from('santri').insert(payload);
-		if (err) return fail(400, { error: err.message });
-
-		throw redirect(303, '/santri');
-	}
-};

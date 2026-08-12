@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import type { Snippet } from 'svelte';
 	import { GENDER_OPTIONS, STATUS_KELUARGA_OPTIONS, STATUS_SANTRI_OPTIONS } from '$lib/santri';
 
 	type Field = {
@@ -20,20 +21,39 @@
 		wali,
 		action,
 		submitLabel,
-		cancelHref
+		cancelHref,
+		onSubmit,
+		error,
+		submitting,
+		extra
 	}: {
 		values: Record<string, string>;
 		kamar: { id: number; nomor: number }[];
 		kelas: { id: number; tingkat: string; rombel: string }[];
 		wali: { id: string; label: string }[];
-		action: string;
+		action?: string;
 		submitLabel: string;
 		cancelHref: string;
+		onSubmit?: (el: HTMLFormElement) => void;
+		error?: string | null;
+		submitting?: boolean;
+		extra?: Snippet;
 	} = $props();
 
+	// svelte-ignore state_referenced_locally (nilai awal sengaja: form selalu di-mount ulang)
 	let v = $state({ ...values });
 
-	const form = $derived(page.form as { error?: string } | null);
+	const form = $derived(
+		error ?? ((page.form as { error?: string } | null)?.error ?? null)
+	);
+	const busy = $derived(submitting ?? false);
+
+	async function handleSubmit(e: SubmitEvent) {
+		if (onSubmit) {
+			e.preventDefault();
+			await onSubmit(e.currentTarget as HTMLFormElement);
+		}
+	}
 
 	const groups = $derived<Group[]>([
 		{
@@ -112,24 +132,21 @@
 				},
 				{ key: 'foto_url', label: 'Foto (URL)' }
 			]
-		},
-		{
-			label: 'Kelengkapan dokumen',
-			fields: [
-				{ key: 'no_akta', label: 'Nomor akta' },
-				{ key: 'no_kk', label: 'Nomor KK' }
-			]
 		}
 	]);
 </script>
 
-{#if form?.error}
+{#if form}
 	<div class="alert alert-error mb-6" role="alert">
-		<span>{form.error}</span>
+		<span>{form}</span>
 	</div>
 {/if}
 
-<form method="POST" action={action} class="space-y-6">
+<form
+	method="POST"
+	action={onSubmit ? undefined : action}
+	onsubmit={handleSubmit}
+	class="space-y-6">
 	{#each groups as g (g.label)}
 		<fieldset class="rounded-2xl border border-base-300 bg-base-100 p-5">
 			<legend class="px-2 text-sm font-semibold">{g.label}</legend>
@@ -178,8 +195,17 @@
 		</fieldset>
 	{/each}
 
+	{#if extra}
+		{@render extra()}
+	{/if}
+
 	<div class="flex items-center gap-3">
-		<button type="submit" class="btn btn-primary">{submitLabel}</button>
+		<button type="submit" class="btn btn-primary" disabled={busy}>
+			{#if busy}
+				<span class="loading loading-spinner loading-sm"></span>
+			{/if}
+			{submitLabel}
+		</button>
 		<a class="btn btn-ghost" href={cancelHref}>Batal</a>
 	</div>
 </form>

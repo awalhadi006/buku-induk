@@ -31,6 +31,18 @@ export const GENDER_LABEL: Record<string, string> = Object.fromEntries(
 	GENDER_OPTIONS.map((o) => [o.value, o.label])
 );
 
+export const JENIS_DOKUMEN_OPTIONS = [
+	{ value: 'kk', label: 'Kartu Keluarga (KK)' },
+	{ value: 'akta', label: 'Akta Kelahiran' },
+	{ value: 'ijazah', label: 'Ijazah' },
+	{ value: 'skl', label: 'SKL' },
+	{ value: 'lainnya', label: 'Lainnya' }
+];
+
+export const JENIS_DOKUMEN_LABEL: Record<string, string> = Object.fromEntries(
+	JENIS_DOKUMEN_OPTIONS.map((o) => [o.value, o.label])
+);
+
 export const SANTRI_COLUMNS = [
 	'nisn',
 	'nik',

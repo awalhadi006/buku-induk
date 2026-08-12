@@ -1,11 +1,29 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { supabase } from '$lib/supabase';
+	import { uploadSantriPdf } from '$lib/storage';
+	import { IconDownload, IconTrash } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
-	import { GENDER_LABEL, STATUS_KELUARGA_LABEL, STATUS_SANTRI_LABEL } from '$lib/santri';
+	import {
+		GENDER_LABEL,
+		JENIS_DOKUMEN_LABEL,
+		JENIS_DOKUMEN_OPTIONS,
+		STATUS_KELUARGA_LABEL,
+		STATUS_SANTRI_LABEL
+	} from '$lib/santri';
+
+	type Doc = { id: string; jenis: string; nama_file: string | null; file_url: string };
 
 	let { data } = $props();
 
 	let editing = $state(false);
+	// svelte-ignore state_referenced_locally (nilai awal dokumen dari loader)
+	let docs = $state<Doc[]>(data.documents as Doc[]);
+	let upFile = $state<File>();
+	let upJenis = $state('kk');
+	let upBusy = $state(false);
+	let upError = $state('');
+	let fileInput = $state<HTMLInputElement>();
 
 	const s = $derived(data.santri as Record<string, any>);
 	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
@@ -29,6 +47,62 @@
 		const out: Record<string, string> = {};
 		for (const k of Object.keys(s)) out[k] = s[k] == null ? '' : String(s[k]);
 		return out;
+	}
+
+	async function downloadDoc(d: Doc) {
+		const { data: urlData, error } = await supabase.storage
+			.from('santri')
+			.createSignedUrl(d.file_url, 60);
+		if (error || !urlData?.signedUrl) return;
+		const a = document.createElement('a');
+		a.href = urlData.signedUrl;
+		a.target = '_blank';
+		a.rel = 'noopener';
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+	}
+
+	async function deleteDoc(d: Doc) {
+		if (!confirm(`Hapus dokumen ${d.nama_file ?? 'ini'}?`)) return;
+		await supabase.storage.from('santri').remove([d.file_url]);
+		const { error } = await supabase.from('santri_documents').delete().eq('id', d.id);
+		if (error) {
+			upError = error.message;
+		} else {
+			docs = docs.filter((x) => x.id !== d.id);
+		}
+	}
+
+	async function uploadDoc() {
+		if (!upFile) {
+			upError = 'Pilih file PDF dulu.';
+			return;
+		}
+		if (upFile.type !== 'application/pdf' && !upFile.name.toLowerCase().endsWith('.pdf')) {
+			upError = 'Hanya file PDF yang bisa di-upload.';
+			return;
+		}
+		upBusy = true;
+		upError = '';
+		try {
+			const path = await uploadSantriPdf(s.id, upFile);
+
+			const { data: row, error: insErr } = await supabase
+				.from('santri_documents')
+				.insert({ santri_id: s.id, jenis: upJenis, nama_file: upFile.name, file_url: path })
+				.select('id,jenis,nama_file,file_url')
+				.single();
+			if (insErr) throw new Error(insErr.message);
+
+			docs = [row as Doc, ...docs];
+			upFile = undefined;
+			if (fileInput) fileInput.value = '';
+		} catch (e) {
+			upError = e instanceof Error ? e.message : 'Gagal meng-upload dokumen.';
+		} finally {
+			upBusy = false;
+		}
 	}
 
 	const detailSections = $derived([
@@ -82,13 +156,6 @@
 				['Kelas', kelasLabel ? `${kelasLabel.tingkat} ${kelasLabel.rombel}` : null],
 				['Wali santri', waliLabel],
 				['Foto', s.foto_url]
-			] as [string, string | null][]
-		},
-		{
-			label: 'Kelengkapan dokumen',
-			rows: [
-				['Nomor akta', s.no_akta],
-				['Nomor KK', s.no_kk]
 			] as [string, string | null][]
 		}
 	]);
@@ -152,5 +219,79 @@
 				</dl>
 			</section>
 		{/each}
+
+		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+			<h2 class="text-sm font-semibold">Dokumen santri</h2>
+
+			{#if docs.length === 0}
+				<p class="mt-2 text-sm text-base-content/60">Belum ada dokumen.</p>
+			{:else}
+				<ul class="mt-2 divide-y divide-base-200">
+					{#each docs as d (d.id)}
+						<li class="flex items-center gap-3 py-2">
+							<div class="min-w-0 flex-1">
+								<p class="truncate text-sm font-medium">
+									{JENIS_DOKUMEN_LABEL[d.jenis] ?? d.jenis}
+								</p>
+								<p class="truncate text-xs text-base-content/60">{d.nama_file ?? '—'}</p>
+							</div>
+							<button
+								class="btn btn-ghost btn-square btn-sm"
+								aria-label="Unduh dokumen"
+								title="Unduh"
+								onclick={() => downloadDoc(d)}>
+								<IconDownload class="size-4" stroke-width={1.75} />
+							</button>
+							{#if canDelete}
+								<button
+									class="btn btn-ghost btn-square btn-sm text-error"
+									aria-label="Hapus dokumen"
+									title="Hapus"
+									onclick={() => deleteDoc(d)}>
+									<IconTrash class="size-4" stroke-width={1.75} />
+								</button>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			{/if}
+
+			<form
+				class="mt-4 flex flex-col gap-3 border-t border-base-200 pt-4 sm:flex-row sm:items-end"
+				onsubmit={(e) => {
+					e.preventDefault();
+					uploadDoc();
+				}}>
+				<label class="flex-1">
+					<span class="mb-1.5 block text-sm font-medium">Tambah dokumen (PDF)</span>
+					<input
+						class="file-input file-input-bordered w-full"
+						type="file"
+						accept=".pdf,application/pdf"
+						bind:this={fileInput}
+						onchange={(e) => {
+							const input = e.currentTarget as HTMLInputElement;
+							upFile = input.files?.[0];
+						}} />
+				</label>
+				<label class="sm:w-52">
+					<span class="mb-1.5 block text-sm font-medium">Jenis</span>
+					<select class="select select-bordered w-full" bind:value={upJenis}>
+						{#each JENIS_DOKUMEN_OPTIONS as o (o.value)}
+							<option value={o.value}>{o.label}</option>
+						{/each}
+					</select>
+				</label>
+				<button type="submit" class="btn btn-outline btn-sm" disabled={upBusy}>
+					{#if upBusy}
+						<span class="loading loading-spinner loading-sm"></span>
+					{/if}
+					Unggah
+				</button>
+			</form>
+			{#if upError}
+				<p class="mt-2 text-sm text-error">{upError}</p>
+			{/if}
+		</section>
 	</div>
 {/if}
