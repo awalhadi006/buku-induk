@@ -12,7 +12,7 @@ export async function load({ params, locals }) {
 		.maybeSingle();
 	if (!santri) throw error(404, 'Santri tidak ditemukan');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }] =
+	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }, { data: history }] =
 		await Promise.all([
 			supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
 			supabase
@@ -26,7 +26,12 @@ export async function load({ params, locals }) {
 				.from('santri_documents')
 				.select('id,jenis,nama_file,file_url,uploaded_at')
 				.eq('santri_id', params.id)
-				.order('uploaded_at', { ascending: false })
+				.order('uploaded_at', { ascending: false }),
+			supabase
+				.from('status_history')
+				.select('*')
+				.eq('santri_id', params.id)
+				.order('tanggal_efektif', { ascending: false })
 		]);
 
 	return {
@@ -37,7 +42,8 @@ export async function load({ params, locals }) {
 			id: w.id,
 			label: w.nama_wali || w.nama_ayah || w.nama_ibu || '(wali tanpa nama)'
 		})),
-		documents: documents ?? []
+		documents: documents ?? [],
+		_status_history: history ?? []
 	};
 }
 

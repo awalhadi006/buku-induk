@@ -227,6 +227,38 @@
 				</dl>
 			</section>
 		{/each}
+		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+			<h2 class="text-sm font-semibold">Histori</h2>
+			{#if data._status_history.length > 0}
+				<div class="overflow-x-auto text-sm">
+					<table class="table caption-top">
+						<thead>
+							<tr class="text-xs uppercase tracking-wide text-base-content/60">
+								<th>Tgl Efektif</th>
+								<th>Jenis</th>
+								<th>Dari</th>
+								<th>Ke</th>
+								<th>Oleh</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each data._status_history as h (h.id)}
+								<tr class="hover:bg-base-200/50">
+									<td class="font-mono text-xs">{h.tanggal_efektif}</td>
+									<td class="text-base-content/60">{h.jenis}</td>
+									<td class="font-mono text-xs">{h.nilai_lama ?? '—'}</td>
+									<td class="font-mono text-xs">{h.nilai_baru ?? '—'}</td>
+									<td class="text-base-content/60"
+										>{h.created_by ? h.created_by.slice(0, 8) : '(sistem)'}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else}
+				<p class="mt-2 text-sm text-base-content/60">Belum ada catatan histori.</p>
+			{/if}
+		</section>
 
 		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
 			<h2 class="text-sm font-semibold">Dokumen santri</h2>
