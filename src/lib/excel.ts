@@ -107,9 +107,12 @@ export function buildTemplateBuffer(): Uint8Array {
 }
 
 export function buildExportBuffer(rows: Record<string, unknown>[]): Uint8Array {
+	const aoa: unknown[][] = [EXPORT_HEADERS.map((h) => h.header)];
+	for (const r of rows) {
+		aoa.push(EXPORT_HEADERS.map((h) => r[h.key] ?? ''));
+	}
+	const ws = XLSX.utils.aoa_to_sheet(aoa);
 	const wb = XLSX.utils.book_new();
-	const ws = XLSX.utils.json_to_sheet(rows, { header: EXPORT_HEADERS.map((h) => h.key) });
 	XLSX.utils.book_append_sheet(wb, ws, 'santri');
-	XLSX.utils.sheet_add_aoa(ws, [EXPORT_HEADERS.map((h) => h.header)], { origin: 'A1' });
 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }
