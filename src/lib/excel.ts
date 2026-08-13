@@ -1,3 +1,5 @@
+import * as XLSX from 'xlsx';
+
 export type ImportColumn = {
 	header: string;
 	field: string;
@@ -114,15 +116,3 @@ export function buildExportBuffer(rows: Record<string, unknown>[]): Uint8Array {
 	XLSX.utils.book_append_sheet(wb, ws, 'santri');
 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }
-
-// NOTE: Tidak lagi menggunakan EXPORT_HEADERS, langsung bikin CSV di page.server.ts
-// export function buildExportBuffer(rows: Record<string, unknown>[]): Uint8Array {
-// 	const aoa: unknown[][] = [EXPORT_HEADERS.map((h) => h.header)];
-// 	for (const r of rows) {
-// 		aoa.push(EXPORT_HEADERS.map((h) => r[h.key] ?? ''));
-// 	}
-// 	const ws = XLSX.utils.aoa_to_sheet(aoa);
-// 	const wb = XLSX.utils.book_new();
-// 	XLSX.utils.book_append_sheet(wb, ws, 'santri');
-// 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
-// }
