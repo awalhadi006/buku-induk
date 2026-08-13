@@ -15,7 +15,8 @@
 		IconX,
 		IconLogout,
 		IconChevronDown,
-		IconCheck
+		IconCheck,
+		IconSparkles
 	} from '@tabler/icons-svelte';
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
@@ -29,6 +30,7 @@
 		{ href: '/', label: 'Rekapitulasi', icon: IconLayoutDashboard, roles: 'all' },
 		{ href: '/santri', label: 'Santri', icon: IconUsers, roles: 'all' },
 		{ href: '/rekap', label: 'Rekap Kamar/Kelas', icon: IconChevronDown, roles: ['superadmin', 'admin_tu'] },
+		{ href: '/updates', label: 'Apa yang Baru', icon: IconSparkles, roles: 'all' },
 		{ href: '/wali', label: 'Wali Santri', icon: IconUserHeart, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/kamar', label: 'Kamar', icon: IconBed, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/kelas', label: 'Kelas', icon: IconSchool, roles: ['superadmin', 'admin_tu'] },
