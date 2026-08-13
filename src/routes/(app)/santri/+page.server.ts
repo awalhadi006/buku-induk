@@ -1,5 +1,4 @@
 import { redirect } from '@sveltejs/kit';
-import { buildExportBuffer } from '$lib/excel';
 
 export async function load({ locals }) {
 	const [{ data: santriData }, { data: kamarData }, { data: kelasData }] = await Promise.all([
@@ -75,3 +74,4 @@ export const actions = {
 			}
 		});
 	}
+};
