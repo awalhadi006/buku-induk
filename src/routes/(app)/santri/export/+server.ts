@@ -1,11 +1,23 @@
 import type { RequestHandler } from './$types';
 import { redirect } from '@sveltejs/kit';
-import { IMPORT_HEADERS, buildExportBuffer } from '$lib/excel';
+import { IMPORT_HEADERS } from '$lib/excel';
+import * as XLSX from 'xlsx';
 
-export const GET: RequestHandler = async ({ locals }) => {
+export const GET: RequestHandler = async ({ locals, url }) => {
 	const { user, supabase } = locals;
 	if (!user) throw redirect(303, '/login');
 
+	// 1. Ambil template yang sudah ada warnanya (dari folder static)
+	const templateUrl = new URL('/template-import-santri.xlsx', url.origin);
+	const templateRes = await fetch(templateUrl.href);
+	if (!templateRes.ok) return new Response('Template not found', { status: 500 });
+	const templateBuf = await templateRes.arrayBuffer();
+
+	// 2. Baca workbook template
+	const wb = XLSX.read(new Uint8Array(templateBuf), { type: 'array' });
+	const ws = wb.Sheets[wb.SheetNames[0]];
+
+	// 3. Ambil data santri
 	const { data, error: qErr } = await supabase
 		.from('santri')
 		.select(
@@ -15,6 +27,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 	if (qErr) return new Response(`DB Error: ${qErr.message}`, { status: 500 });
 
+	// 4. Susun data (tanpa header, karena header sudah ada di template)
 	const rows = (data ?? []).map((s: any) => {
 		const k = Array.isArray(s.kamar) ? (s.kamar[0] ?? {}) : (s.kamar ?? {});
 		const cl = Array.isArray(s.kelas) ? (s.kelas[0] ?? {}) : (s.kelas ?? {});
@@ -33,7 +46,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 		];
 	});
 
-	const buffer = buildExportBuffer(IMPORT_HEADERS, rows);
+	// 5. Timpa/tambahkan data mulai dari baris ke-2 (A2)
+	XLSX.utils.sheet_add_aoa(ws, rows, { origin: 'A2' });
+
+	const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 	const date = new Date().toISOString().slice(0, 10);
 	return new Response(buffer, {
 		headers: {
