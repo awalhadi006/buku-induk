@@ -1,5 +1,6 @@
 import type { RequestHandler } from './$types';
 import { redirect } from '@sveltejs/kit';
+import { buildExportBuffer } from '$lib/excel';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { user, supabase } = locals;
@@ -14,35 +15,53 @@ export const GET: RequestHandler = async ({ locals }) => {
 		return new Response(`DB Error: ${qErr.message}`, { status: 500 });
 	}
 
-	const headers = [
-		'Nama Lengkap', 'NISN', 'NIK', 'NIS', 'NIPD', 'Nama Panggilan', 'Tempat Lahir', 'Tanggal Lahir',
-		'JK', 'Agama', 'Kewarganegaraan', 'Tempat Tinggal', 'Transportasi', 'Anak Ke', 'HP', 'Alamat',
-		'RT', 'RW', 'Desa', 'Kecamatan', 'Kabupaten', 'Akta', 'KK', 'Bantuan', 'Status Keluarga',
-		'Status Santri', 'Tgl Masuk', 'Asal Sekolah', 'Jalur Masuk', 'Kamar', 'Kelas', 'Wali'
-	];
-	const csvRows = [headers.join(',')];
+	const rows = (data ?? []).map((s: any) => {
+		const kamar = Array.isArray(s.kamar) ? (s.kamar[0] ?? null) : (s.kamar ?? null);
+		const kelas = Array.isArray(s.kelas) ? (s.kelas[0] ?? null) : (s.kelas ?? null);
+		const wali = Array.isArray(s.wali_santri) ? (s.wali_santri[0] ?? null) : (s.wali_santri ?? null);
+		const waliLabel = wali ? wali.nama_wali || wali.nama_ayah || wali.nama_ibu || '' : '';
+		return {
+			nama_lengkap: s.nama_lengkap ?? '',
+			nisn: s.nisn ?? '',
+			nik: s.nik ?? '',
+			nis: s.nis ?? '',
+			nipd: s.nipd ?? '',
+			nama_panggilan: s.nama_panggilan ?? '',
+			tempat_lahir: s.tempat_lahir ?? '',
+			tanggal_lahir: s.tanggal_lahir ?? '',
+			jenis_kelamin: s.jenis_kelamin ?? '',
+			agama: s.agama ?? '',
+			kewarganegaraan: s.kewarganegaraan ?? '',
+			tempat_tinggal: s.tempat_tinggal ?? '',
+			transportasi: s.transportasi ?? '',
+			anak_ke: s.anak_ke ?? '',
+			no_hp: s.no_hp ?? '',
+			alamat: s.alamat ?? '',
+			rt: s.rt ?? '',
+			rw: s.rw ?? '',
+			desa: s.desa ?? '',
+			kecamatan: s.kecamatan ?? '',
+			kabupaten: s.kabupaten ?? '',
+			no_akta: s.no_akta ?? '',
+			no_kk: s.no_kk ?? '',
+			bantuan_kip: s.bantuan_kip ?? '',
+			status_keluarga: s.status_keluarga ?? '',
+			status_santri: s.status_santri ?? '',
+			tanggal_masuk: s.tanggal_masuk ?? '',
+			asal_sekolah: s.asal_sekolah ?? '',
+			jalur_masuk: s.jalur_masuk ?? '',
+			kamar: kamar ? `Kamar ${kamar.nomor}` : '',
+			kelas: kelas ? `${kelas.tingkat} ${kelas.rombel}` : '',
+			wali: waliLabel
+		};
+	});
 
-	for (const santri of data ?? []) {
-		const kamar = Array.isArray(santri.kamar) ? (santri.kamar[0]?.nomor ?? '') : (santri.kamar?.nomor ?? '');
-		const kelas = Array.isArray(santri.kelas) ? (santri.kelas[0] ? `${santri.kelas[0].tingkat} ${santri.kelas[0].rombel}` : '') : (santri.kelas ? `${santri.kelas.tingkat} ${santri.kelas.rombel}` : '');
-		const wali = Array.isArray(santri.wali_santri) ? (santri.wali_santri[0] ?? {}) : (santri.wali_santri ?? {});
-		const waliLabel = (wali.nama_wali || wali.nama_ayah || wali.nama_ibu || '').replace(/,/g, ' ');
-
-		const row = [
-			santri.nama_lengkap, santri.nisn, santri.nik, santri.nis, santri.nipd, santri.nama_panggilan, santri.tempat_lahir, santri.tanggal_lahir,
-			santri.jenis_kelamin, santri.agama, santri.kewarganegaraan, santri.tempat_tinggal, santri.transportasi, santri.anak_ke, santri.no_hp,
-			(santri.alamat || '').replace(/,/g, ' '), santri.rt, santri.rw, santri.desa, santri.kecamatan, santri.kabupaten, santri.no_akta, santri.no_kk,
-			santri.bantuan_kip, santri.status_keluarga, santri.status_santri, santri.tanggal_masuk, santri.asal_sekolah, santri.jalur_masuk,
-			kamar, kelas, waliLabel
-		];
-		csvRows.push(row.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
-	}
-
+	const buffer = buildExportBuffer(rows);
 	const date = new Date().toISOString().slice(0, 10);
-	return new Response(csvRows.join('\n'), {
+	return new Response(buffer, {
 		headers: {
-			'Content-Type': 'text/csv; charset=utf-8',
-			'Content-Disposition': `attachment; filename="santri-${date}.csv"`
+			'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'Content-Disposition': `attachment; filename="santri-${date}.xlsx"`
 		}
 	});
-}
+};

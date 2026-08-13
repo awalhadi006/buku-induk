@@ -66,6 +66,7 @@ Catatan: seluruh izin di atas **dapat diubah** Superadmin di menu **Peran & Izin
 ### 7. Histori & audit log
 - **Histori santri**: status, perpindahan kamar/kelas, perubahan penting — otomatis tercatat "dari apa ke apa, kapan".
 - **Audit log** (append-only, khusus Superadmin): semua perubahan data santri & wali, import Excel, perubahan pengguna/peran/izin/field — siapa, apa, dari ke, kapan.
+- **Catatan Pembaruan (Apa yang Baru)**: Halaman khusus yang menampilkan riwayat pembaruan aplikasi secara otomatis berdasarkan aktivitas pengembangan, disajikan dengan bahasa yang mudah dipahami oleh pengguna.
 
 ### 8. Import Excel
 - Template siap unduh; import data santri + wali dari Excel.
