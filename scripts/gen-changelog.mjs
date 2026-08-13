@@ -2,7 +2,7 @@
 import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 
-const TYPE_LABELS: Record<string, string> = {
+const TYPE_LABELS = {
 	feat: 'Fitur',
 	fix: 'Perbaikan',
 	docs: 'Dokumentasi',
@@ -15,7 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
 	build: 'Build'
 };
 
-function humanize(subject: string): string {
+function humanize(subject) {
 	const m = subject.match(/^(feat|fix|docs|style|refactor|perf|test|chore|ci|build)(?:\([^)]+\))?!?:\s*(.*)$/i);
 	if (m) {
 		const type = m[1].toLowerCase();
@@ -33,7 +33,7 @@ try {
 	out = '';
 }
 
-const commits: Array<{ short: string; date: string; subject: string; label: string }> = [];
+const commits = [];
 if (out) {
 	for (const line of out.split('\n')) {
 		const parts = line.split('\x1f');
