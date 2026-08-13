@@ -82,12 +82,10 @@
 		</button>
 
 		{#if canCreate}
-			<form method="POST" action="?/exportExcel">
-				<button class="btn btn-outline btn-sm" type="submit" title="Ekspor semua data santri ke Excel">
-					<IconDownload class="size-4" stroke-width={2} />
-					Ekspor
-				</button>
-			</form>
+			<a class="btn btn-outline btn-sm" href="/santri/export" title="Ekspor semua data santri ke CSV">
+				<IconDownload class="size-4" stroke-width={2} />
+				Ekspor
+			</a>
 			<a class="btn btn-primary btn-sm" href="/santri/baru">
 				<IconPlus class="size-4" stroke-width={2} />
 				Tambah
