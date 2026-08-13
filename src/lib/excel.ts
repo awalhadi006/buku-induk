@@ -66,22 +66,21 @@ export function buildTemplateBuffer(): Uint8Array {
 		['Ahmad Fauzi', '0012345678', 'L', 'aktif', '3', '7A', 'Haji Salim']
 	]);
 
-	// Apply dark grey header styling (matching static template)
-	const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-	for (let C = range.s.c; C <= range.e.c; ++C) {
-		const cell = ws[XLSX.utils.encode_cell({ r: range.s.r, c: C })];
-		if (cell && cell.t) {
-			cell.s = {
-				font: { bold: true, color: { rgb: 'FFFFFF' } },
-				fill: { fgColor: { rgb: '6B7280' } }
-			};
-		}
-	}
+	// Apply Table (ListObject) definition for header styling
+	const ref = ws['!ref'] || 'A1:AM1';
+	const range = XLSX.utils.decode_range(ref);
+	const tableRange = { s: range.s, e: { r: range.e.r, c: range.e.c } };
+
+	ws['!tbls'] = [{
+		name: 'ImportTemplate',
+		ref: XLSX.utils.encode_range(tableRange),
+		style: { theme: 'TableStyleMedium2', showRowStripes: true }
+	}];
 
 	const wb = XLSX.utils.book_new();
 	XLSX.utils.book_append_sheet(wb, ws, 'data');
 	XLSX.utils.book_append_sheet(wb, guide, 'panduan');
-	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx', cellStyles: true }));
+	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }
 
 export const IMPORT_HEADERS = IMPORT_COLUMNS.map((c) => c.header);
@@ -90,21 +89,19 @@ export function buildExportBuffer(headers: string[], rows: unknown[][]): Uint8Ar
 	const aoa: unknown[][] = [headers, ...rows];
 	const ws = XLSX.utils.aoa_to_sheet(aoa);
 
-	// Apply styles only if the workbook supports it (e.g. not plain CSV)
-	if (!ws['!ref']) return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
+	// Define the table range
+	const ref = ws['!ref'] || 'A1:AM1';
+	const range = XLSX.utils.decode_range(ref);
+	const tableRange = { s: range.s, e: { r: rows.length, c: range.e.c } };
 
-	const range = XLSX.utils.decode_range(ws['!ref']);
-	for (let C = range.s.c; C <= range.e.c; ++C) {
-		const cell = ws[XLSX.utils.encode_cell({ r: range.s.r, c: C })];
-		if (cell && cell.t) {
-			cell.s = {
-				font: { bold: true, color: { rgb: 'FFFFFF' } },
-				fill: { fgColor: { rgb: '6B7280' } } // Tailwind gray-500 for consistency with the screenshot
-			};
-		}
-	}
+	// Define Table (ListObject)
+	ws['!tbls'] = [{
+		name: 'SantriTable',
+		ref: XLSX.utils.encode_range(tableRange),
+		style: { theme: 'TableStyleMedium2', showRowStripes: true }
+	}];
 
 	const wb = XLSX.utils.book_new();
 	XLSX.utils.book_append_sheet(wb, ws, 'santri');
-	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx', cellStyles: true }));
+	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }
