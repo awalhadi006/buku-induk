@@ -1,6 +1,7 @@
+import type { RequestHandler } from './$types';
 import { redirect } from '@sveltejs/kit';
 
-export async function GET({ locals }) {
+export const GET: RequestHandler = async ({ locals }) => {
 	const { user, supabase } = locals;
 	if (!user) throw redirect(303, '/login');
 
@@ -21,17 +22,17 @@ export async function GET({ locals }) {
 	];
 	const csvRows = [headers.join(',')];
 
-	for (const s of data ?? []) {
-		const kamar = Array.isArray(s.kamar) ? (s.kamar[0]?.nomor ?? '') : (s.kamar?.nomor ?? '');
-		const kelas = Array.isArray(s.kelas) ? (s.kelas[0] ? `${s.kelas[0].tingkat} ${s.kelas[0].rombel}` : '') : (s.kelas ? `${s.kelas.tingkat} ${s.kelas.rombel}` : '');
-		const wali = Array.isArray(s.wali_santri) ? (s.wali_santri[0] ?? {}) : (s.wali_santri ?? {});
+	for (const santri of data ?? []) {
+		const kamar = Array.isArray(santri.kamar) ? (santri.kamar[0]?.nomor ?? '') : (santri.kamar?.nomor ?? '');
+		const kelas = Array.isArray(santri.kelas) ? (santri.kelas[0] ? `${santri.kelas[0].tingkat} ${santri.kelas[0].rombel}` : '') : (santri.kelas ? `${santri.kelas.tingkat} ${santri.kelas.rombel}` : '');
+		const wali = Array.isArray(santri.wali_santri) ? (santri.wali_santri[0] ?? {}) : (santri.wali_santri ?? {});
 		const waliLabel = (wali.nama_wali || wali.nama_ayah || wali.nama_ibu || '').replace(/,/g, ' ');
 
 		const row = [
-			s.nama_lengkap, s.nisn, s.nik, s.nis, s.nipd, s.nama_panggilan, s.tempat_lahir, s.tanggal_lahir,
-			s.jenis_kelamin, s.agama, s.kewarganegaraan, s.tempat_tinggal, s.transportasi, s.anak_ke, s.no_hp,
-			(s.alamat || '').replace(/,/g, ' '), s.rt, s.rw, s.desa, s.kecamatan, s.kabupaten, s.no_akta, s.no_kk,
-			s.bantuan_kip, s.status_keluarga, s.status_santri, s.tanggal_masuk, s.asal_sekolah, s.jalur_masuk,
+			santri.nama_lengkap, santri.nisn, santri.nik, santri.nis, santri.nipd, santri.nama_panggilan, santri.tempat_lahir, santri.tanggal_lahir,
+			santri.jenis_kelamin, santri.agama, santri.kewarganegaraan, santri.tempat_tinggal, santri.transportasi, santri.anak_ke, santri.no_hp,
+			(santri.alamat || '').replace(/,/g, ' '), santri.rt, santri.rw, santri.desa, santri.kecamatan, santri.kabupaten, santri.no_akta, santri.no_kk,
+			santri.bantuan_kip, santri.status_keluarga, santri.status_santri, santri.tanggal_masuk, santri.asal_sekolah, santri.jalur_masuk,
 			kamar, kelas, waliLabel
 		];
 		csvRows.push(row.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
