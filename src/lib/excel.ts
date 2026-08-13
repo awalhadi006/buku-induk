@@ -71,47 +71,23 @@ export function buildTemplateBuffer(): Uint8Array {
 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }
 
-export const EXPORT_HEADERS: { header: string; key: string }[] = [
-	{ header: 'Nama lengkap', key: 'nama_lengkap' },
-	{ header: 'NISN', key: 'nisn' },
-	{ header: 'NIK', key: 'nik' },
-	{ header: 'NIS', key: 'nis' },
-	{ header: 'NIPD', key: 'nipd' },
-	{ header: 'Nama panggilan', key: 'nama_panggilan' },
-	{ header: 'Tempat lahir', key: 'tempat_lahir' },
-	{ header: 'Tanggal lahir', key: 'tanggal_lahir' },
-	{ header: 'Jenis kelamin', key: 'jenis_kelamin' },
-	{ header: 'Agama', key: 'agama' },
-	{ header: 'Kewarganegaraan', key: 'kewarganegaraan' },
-	{ header: 'Tempat tinggal', key: 'tempat_tinggal' },
-	{ header: 'Transportasi', key: 'transportasi' },
-	{ header: 'Anak ke', key: 'anak_ke' },
-	{ header: 'No. HP', key: 'no_hp' },
-	{ header: 'Alamat', key: 'alamat' },
-	{ header: 'RT', key: 'rt' },
-	{ header: 'RW', key: 'rw' },
-	{ header: 'Desa/kelurahan', key: 'desa' },
-	{ header: 'Kecamatan', key: 'kecamatan' },
-	{ header: 'Kabupaten', key: 'kabupaten' },
-	{ header: 'No. akta', key: 'no_akta' },
-	{ header: 'No. KK', key: 'no_kk' },
-	{ header: 'Bantuan (KIP/PIP/KPS/PKH)', key: 'bantuan_kip' },
-	{ header: 'Status keluarga', key: 'status_keluarga' },
-	{ header: 'Status santri', key: 'status_santri' },
-	{ header: 'Tanggal masuk', key: 'tanggal_masuk' },
-	{ header: 'Asal sekolah', key: 'asal_sekolah' },
-	{ header: 'Jalur masuk', key: 'jalur_masuk' },
-	{ header: 'Kamar', key: 'kamar' },
-	{ header: 'Kelas', key: 'kelas' },
-	{ header: 'Wali', key: 'wali' }
-];
+export const IMPORT_HEADERS = IMPORT_COLUMNS.map((c) => c.header);
 
-export function buildExportBuffer(rows: Record<string, unknown>[]): Uint8Array {
-	const aoa: unknown[][] = [EXPORT_HEADERS.map((h) => h.header)];
-	for (const r of rows) {
-		aoa.push(EXPORT_HEADERS.map((h) => r[h.key] ?? ''));
-	}
+export function buildExportBuffer(headers: string[], rows: unknown[][]): Uint8Array {
+	const aoa: unknown[][] = [headers, ...rows];
 	const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+	// Styling header row: bold and light blue background
+	const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+	const headerStyle = {
+		font: { bold: true, color: { rgb: 'FFFFFF' } },
+		fill: { fgColor: { rgb: '2563EB' } } // Tailwind blue-600
+	};
+	for (let c = range.s.c; c <= range.e.c; c++) {
+		const cell = ws[XLSX.utils.encode_cell({ r: range.s.r, c })];
+		if (cell) cell.s = headerStyle;
+	}
+
 	const wb = XLSX.utils.book_new();
 	XLSX.utils.book_append_sheet(wb, ws, 'santri');
 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
