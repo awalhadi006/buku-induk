@@ -11,11 +11,11 @@ export async function load({ locals }) {
 		.maybeSingle();
 	if (!['superadmin', 'admin_tu'].includes(profile?.peran ?? '')) throw redirect(303, '/santri');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }] = await Promise.all([
-		supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
-		supabase.from('kelas').select('id,tingkat,rombel').eq('aktif', true).order('tingkat').order('rombel'),
-		supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at')
-	]);
+		const [{ data: kamar }, { data: kelas }, { data: wali }] = await Promise.all([
+			supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
+			supabase.from('kelas').select('id,tingkat,rombel,tahun_ajaran').eq('aktif', true).order('tahun_ajaran', { ascending: false }).order('tingkat').order('rombel'),
+			supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at')
+		]);
 
 	return {
 		kamar: kamar ?? [],

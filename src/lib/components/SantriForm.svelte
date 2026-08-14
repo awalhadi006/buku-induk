@@ -29,7 +29,7 @@
 	}: {
 		values: Record<string, string>;
 		kamar: { id: number; nomor: number }[];
-		kelas: { id: number; tingkat: string; rombel: string }[];
+		kelas: { id: number; tingkat: string; rombel: string; tahun_ajaran?: string | null }[];
 		wali: { id: string; label: string }[];
 		action?: string;
 		submitLabel: string;
@@ -122,7 +122,10 @@
 					key: 'kelas_id',
 					label: 'Kelas',
 					type: 'select',
-					options: kelas.map((k) => ({ value: String(k.id), label: `${k.tingkat} ${k.rombel}` }))
+					options: kelas.map((k) => ({
+						value: String(k.id),
+						label: `${k.tingkat} ${k.rombel}` + (k.tahun_ajaran ? ` (${k.tahun_ajaran})` : '')
+					}))
 				},
 				{
 					key: 'wali_santri_id',

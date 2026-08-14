@@ -14,11 +14,11 @@ export async function load({ params, locals }) {
 
 	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }, { data: history }] =
 		await Promise.all([
-			supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
+			supabase.from('kamar').select('id,nomor,aktif').order('nomor'),
 			supabase
 				.from('kelas')
-				.select('id,tingkat,rombel')
-				.eq('aktif', true)
+				.select('id,tingkat,rombel,tahun_ajaran,aktif')
+				.order('tahun_ajaran', { ascending: false, nullsFirst: false })
 				.order('tingkat')
 				.order('rombel'),
 			supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at'),

@@ -29,9 +29,15 @@
 	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
 	const canDelete = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
-	const kamar = $derived(data.kamar as { id: number; nomor: number }[]);
-	const kelas = $derived(data.kelas as { id: number; tingkat: string; rombel: string }[]);
+	const kamar = $derived(data.kamar as { id: number; nomor: number; aktif: boolean }[]);
+	const kelas = $derived(data.kelas as { id: number; tingkat: string; rombel: string; tahun_ajaran?: string | null; aktif: boolean }[]);
 	const wali = $derived(data.wali as { id: string; label: string }[]);
+
+	const kamarAktif = $derived(kamar.filter((k) => k.aktif));
+	const kelasAktif = $derived(kelas.filter((k) => k.aktif));
+	const kamarById = $derived(Object.fromEntries(kamar.map((k) => [k.id, k])));
+	const kelasById = $derived(Object.fromEntries(kelas.map((k) => [k.id, k])));
+	const waliById = $derived(Object.fromEntries(wali.map((w) => [w.id, w])));
 
 	const kamarNomor = $derived(kamar.find((k) => k.id === s.kamar_id)?.nomor ?? null);
 	const kelasLabel = $derived(kelas.find((k) => k.id === s.kelas_id) ?? null);
@@ -42,6 +48,28 @@
 		const date = new Date(`${v}T00:00:00`);
 		return Number.isNaN(date.getTime()) ? v : date.toLocaleDateString('id-ID');
 	};
+
+	function kelasLabelStr(k: { tingkat: string; rombel: string; tahun_ajaran?: string | null } | null) {
+		if (!k) return null;
+		return `${k.tingkat} ${k.rombel}` + (k.tahun_ajaran ? ` (${k.tahun_ajaran})` : '');
+	}
+
+	function histVal(jenis: string, val: unknown) {
+		const v = typeof val === 'string' ? val : val == null ? '' : String(val);
+		if (!v) return '—';
+		if (jenis === 'kamar') {
+			const k = kamarById[v];
+			return k ? `Kamar ${k.nomor}` : v;
+		}
+		if (jenis === 'kelas') {
+			const k = kelasById[v];
+			return k ? kelasLabelStr(k) : v;
+		}
+		if (jenis === 'wali') {
+			return waliById[v]?.label ?? v;
+		}
+		return v;
+	}
 
 	function toEdit(): Record<string, string> {
 		const out: Record<string, string> = {};
@@ -153,7 +181,7 @@
 			label: 'Penempatan',
 			rows: [
 				['Kamar', kamarNomor != null ? `Kamar ${kamarNomor}` : null],
-				['Kelas', kelasLabel ? `${kelasLabel.tingkat} ${kelasLabel.rombel}` : null],
+				['Kelas', kelasLabel ? kelasLabelStr(kelasLabel) : null],
 				['Wali santri', waliLabel],
 				['Foto', s.foto_url]
 			] as [string, string | null][]
@@ -201,10 +229,10 @@
 
 {#if editing}
 	<div class="mt-6">
-		<SantriForm
+				<SantriForm
 			values={toEdit()}
-			kamar={kamar}
-			kelas={kelas}
+			kamar={kamarAktif}
+			kelas={kelasAktif}
 			wali={wali}
 			action="?/update"
 			submitLabel="Simpan perubahan"
@@ -244,10 +272,10 @@
 						<tbody>
 							{#each data._status_history as h (h.id)}
 								<tr class="hover:bg-base-200/50">
-									<td class="font-mono text-xs">{h.tanggal_efektif}</td>
+									<td class="font-mono text-xs">{d(h.tanggal_efektif)}</td>
 									<td class="text-base-content/60">{h.jenis}</td>
-									<td class="font-mono text-xs">{h.nilai_lama ?? '—'}</td>
-									<td class="font-mono text-xs">{h.nilai_baru ?? '—'}</td>
+									<td class="font-mono text-xs">{histVal(h.jenis, h.nilai_lama)}</td>
+									<td class="font-mono text-xs">{histVal(h.jenis, h.nilai_baru)}</td>
 									<td class="text-base-content/60"
 										>{h.created_by ? h.created_by.slice(0, 8) : '(sistem)'}</td>
 								</tr>

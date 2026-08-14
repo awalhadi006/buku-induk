@@ -5,21 +5,23 @@
 		id: number;
 		tingkat: string;
 		rombel: string;
+		tahun_ajaran: string | null;
 		aktif: boolean;
 	};
 
 	let { data, form } = $props();
 
 	const kelas = $derived(data.kelas as Kelas[]);
+	const taAktif = $derived(data.tahunAjaranAktif as string);
 	const isAdmin = $derived(!!data.isAdmin);
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 
 	let editingId = $state<number | null>(null);
-	let editForm = $state({ tingkat: '7', rombel: 'A', aktif: true });
+	let editForm = $state({ tingkat: '7', rombel: 'A', tahun_ajaran: '', aktif: true });
 
 	function startEdit(k: Kelas) {
 		editingId = k.id;
-		editForm = { tingkat: k.tingkat, rombel: k.rombel, aktif: k.aktif };
+		editForm = { tingkat: k.tingkat, rombel: k.rombel, tahun_ajaran: k.tahun_ajaran ?? '', aktif: k.aktif };
 	}
 </script>
 
@@ -54,6 +56,10 @@
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Rombel *</span>
 				<input name="rombel" type="text" required class="input input-bordered w-full" placeholder="A" />
+			</label>
+			<label class="block">
+				<span class="mb-1.5 block text-sm font-medium">Tahun Ajaran</span>
+				<input name="tahun_ajaran" type="text" class="input input-bordered w-full" placeholder={taAktif || '202X/202Y'} />
 			</label>
 			<label class="flex items-end gap-2 pb-1.5">
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary" />
@@ -91,6 +97,14 @@
 							class="input input-bordered w-36"
 							bind:value={editForm.rombel} />
 					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Tahun Ajaran</span>
+						<input
+							name="tahun_ajaran"
+							type="text"
+							class="input input-bordered w-36"
+							bind:value={editForm.tahun_ajaran} />
+					</label>
 					<label class="flex items-end gap-2 pb-1.5">
 						<input name="aktif" type="checkbox" class="toggle toggle-primary" bind:checked={editForm.aktif} />
 						<span class="text-sm font-medium">Aktif</span>
@@ -110,6 +124,9 @@
 						<p class="font-medium">
 							{k.tingkat}
 							{k.rombel}
+							{#if k.tahun_ajaran && k.tahun_ajaran !== '—'}
+								<span class="badge badge-ghost badge-sm ml-2 font-normal">{k.tahun_ajaran}</span>
+							{/if}
 						</p>
 					</div>
 					<span class={`badge badge-sm ${k.aktif ? 'badge-success' : 'badge-neutral'}`}>

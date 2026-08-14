@@ -15,12 +15,17 @@ async function isAdmin(locals: App.Locals): Promise<boolean> {
 
 export async function load({ locals }) {
 	const admin = await isAdmin(locals);
-	const { data } = await locals.supabase
-		.from('kelas')
-		.select('*')
-		.order('tingkat')
-		.order('rombel');
-	return { kelas: data ?? [], isAdmin: admin };
+	const [{ data }, { data: settings }] = await Promise.all([
+		locals.supabase
+			.from('kelas')
+			.select('*')
+			.order('tahun_ajaran', { ascending: false, nullsFirst: false })
+			.order('tingkat')
+			.order('rombel'),
+		locals.supabase.from('settings').select('key,value')
+	]);
+	const taAktif = (settings ?? []).find((s) => s.key === 'tahun_ajaran_aktif')?.value ?? '';
+	return { kelas: data ?? [], isAdmin: admin, tahunAjaranAktif: taAktif };
 }
 
 export const actions = {
@@ -29,9 +34,10 @@ export const actions = {
 		const fd = await request.formData();
 		const tingkat = (fd.get('tingkat') as string | null)?.trim() ?? '';
 		const rombel = (fd.get('rombel') as string | null)?.trim() ?? '';
+		const tahun = (fd.get('tahun_ajaran') as string | null)?.trim() || null;
 		if (!tingkat || !rombel) return fail(400, { error: 'Tingkat dan rombel wajib diisi.' });
 
-		const payload = { tingkat, rombel, aktif: fd.get('aktif') === 'on' };
+		const payload = { tingkat, rombel, tahun_ajaran: tahun, aktif: fd.get('aktif') === 'on' };
 		const { error } = await locals.supabase.from('kelas').insert(payload);
 		if (error) return fail(400, { error: error.message });
 		throw redirect(303, '/kelas');
@@ -42,10 +48,11 @@ export const actions = {
 		const id = Number(fd.get('id') ?? '');
 		const tingkat = (fd.get('tingkat') as string | null)?.trim() ?? '';
 		const rombel = (fd.get('rombel') as string | null)?.trim() ?? '';
+		const tahun = (fd.get('tahun_ajaran') as string | null)?.trim() || null;
 		if (!Number.isInteger(id) || !tingkat || !rombel)
 			return fail(400, { error: 'Data kelas tidak valid.' });
 
-		const payload = { tingkat, rombel, aktif: fd.get('aktif') === 'on' };
+		const payload = { tingkat, rombel, tahun_ajaran: tahun, aktif: fd.get('aktif') === 'on' };
 		const { error } = await locals.supabase.from('kelas').update(payload).eq('id', id);
 		if (error) return fail(400, { error: error.message });
 		throw redirect(303, '/kelas');
