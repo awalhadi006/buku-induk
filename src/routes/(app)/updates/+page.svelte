@@ -7,7 +7,7 @@
 	<title>Apa yang Baru | Buku Induk</title>
 </svelte:head>
 
-<header class="sticky top-0 z-10 flex items-center gap-3 bg-base-100 pb-4 pt-2">
+<header class="sticky top-16 lg:top-0 z-10 flex items-center gap-3 bg-base-100/95 backdrop-blur pb-4 pt-4 border-b border-base-200">
 	<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
 		<IconSparkles class="size-5" stroke-width={1.75} />
 	</span>

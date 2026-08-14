@@ -1,6 +1,24 @@
 /* Auto-generated — jangan diedit manual. Regenerasi lewat: npm run changelog */
 export const changelog = [
   {
+    "short": "401cbe5",
+    "date": "2026-08-14",
+    "subject": "fix: sticky header halaman Apa yang Baru (hapus overflow body, offset mobile)",
+    "label": "Perbaikan: Sticky header halaman Apa yang Baru (hapus overflow body, offset mobile)"
+  },
+  {
+    "short": "87455eb",
+    "date": "2026-08-14",
+    "subject": "chore: automatisasi changelog via prebuild hook",
+    "label": "Pemeliharaan: Automatisasi changelog via prebuild hook"
+  },
+  {
+    "short": "8aa12a4",
+    "date": "2026-08-14",
+    "subject": "feat: sticky header updates, pencarian NIK/NISN & filter asal daerah",
+    "label": "Fitur: Sticky header updates, pencarian NIK/NISN & filter asal daerah"
+  },
+  {
     "short": "4a0941a",
     "date": "2026-08-14",
     "subject": "feat: gunakan live-template.xlsx untuk konsistensi header ekspor dengan impor",
