@@ -6,7 +6,7 @@ function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
 	try {
 		const arr = JSON.parse(v);
-		if (Array.isArray(arr)) return arr.filter((k) => ALL_METRIC_KEYS.includes(k));
+		if (Array.isArray(arr)) return arr.length ? arr.filter((k) => ALL_METRIC_KEYS.includes(k)) : ALL_METRIC_KEYS;
 	} catch {}
 	return ALL_METRIC_KEYS;
 }
