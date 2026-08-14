@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	if (!user) throw redirect(303, '/login');
 
 	// 1. Ambil template yang sudah ada warnanya (dari folder static)
-	const templateUrl = new URL('/template-import-santri.xlsx', url.origin);
+	const templateUrl = new URL('/live-template.xlsx', url.origin);
 	const templateRes = await fetch(templateUrl.href);
 	if (!templateRes.ok) return new Response('Template not found', { status: 500 });
 	const templateBuf = await templateRes.arrayBuffer();
