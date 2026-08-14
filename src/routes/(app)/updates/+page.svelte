@@ -26,7 +26,7 @@
 				<h2 class="text-lg font-semibold text-primary">{commit.label}</h2>
 				<span class="badge badge-outline badge-sm">{commit.date}</span>
 			</div>
-			<p class="mt-4 text-sm text-base-content/80">Pembaruan terkait: {commit.subject}</p>
+			<p class="mt-3 text-xs font-mono text-base-content/50">{commit.short}</p>
 		</article>
 	{/each}
 </div>

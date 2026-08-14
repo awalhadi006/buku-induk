@@ -1,7 +1,7 @@
 /* Auto-generated — jangan diedit manual. Regenerasi lewat: npm run changelog */
 export const changelog = [
   {
-    "short": "401cbe5",
+    "short": "4127205",
     "date": "2026-08-14",
     "subject": "fix: sticky header halaman Apa yang Baru (hapus overflow body, offset mobile)",
     "label": "Perbaikan: Sticky header halaman Apa yang Baru (hapus overflow body, offset mobile)"

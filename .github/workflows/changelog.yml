@@ -1,0 +1,26 @@
+name: Changelog
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: changelog-sync
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: node scripts/gen-changelog.mjs
+      - name: Commit updated changelog
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: chore: Sync changelog.ts dari git log
+          file_pattern: src/lib/changelog.ts
+          commit_options: '--no-verify'
