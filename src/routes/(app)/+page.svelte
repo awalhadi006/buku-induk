@@ -2,12 +2,13 @@
 	import { page } from '$app/state';
 	import { IconUsers } from '@tabler/icons-svelte';
 	import BarList from '$lib/components/BarList.svelte';
-	import { PERAN_LABEL, type Profile, type Rekap } from '$lib/types';
+	import { PERAN_LABEL, type Profile, type Rekap, ALL_METRIC_KEYS } from '$lib/types';
 
 	let { data } = $props();
 
 	const rekap = $derived((data.rekap as Rekap | null) ?? null);
 	const profile = $derived((page.data.profile as Profile | null) ?? null);
+	const enabledMetrics = $derived((data.enabledMetrics as string[]) ?? ALL_METRIC_KEYS);
 
 	const STATUS_LABEL: Record<string, string> = {
 		aktif: 'Aktif',
@@ -79,57 +80,73 @@
 			</div>
 		</div>
 	{:else}
-		<section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Angka utama">
-			<div class="flex flex-col justify-between rounded-2xl border border-base-300 bg-base-100 p-5 lg:col-span-2">
-				<span class="text-sm text-base-content/70">Total santri</span>
-				<span class="mt-2 font-mono text-5xl">{rekap.total}</span>
-			</div>
-			<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<span class="text-sm text-base-content/70">Laki-laki</span>
-				<span class="mt-2 block font-mono text-3xl">{laki}</span>
-			</div>
-			<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<span class="text-sm text-base-content/70">Perempuan</span>
-				<span class="mt-2 block font-mono text-3xl">{perempuan}</span>
-			</div>
-		</section>
+		{#if enabledMetrics.includes('total')}
+			<section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Angka utama">
+				<div class="flex flex-col justify-between rounded-2xl border border-base-300 bg-base-100 p-5 lg:col-span-2">
+					<span class="text-sm text-base-content/70">Total santri</span>
+					<span class="mt-2 font-mono text-5xl">{rekap.total}</span>
+				</div>
+				<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+					<span class="text-sm text-base-content/70">Laki-laki</span>
+					<span class="mt-2 block font-mono text-3xl">{laki}</span>
+				</div>
+				<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+					<span class="text-sm text-base-content/70">Perempuan</span>
+					<span class="mt-2 block font-mono text-3xl">{perempuan}</span>
+				</div>
+			</section>
+		{/if}
 
-		<section class="mt-4 grid gap-4 lg:grid-cols-2" aria-label="Perbandingan">
-			<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<h2 class="text-sm font-semibold">Status santri</h2>
-				<div class="mt-2">
-					<BarList rows={statusRows} max={rekap.total} />
-				</div>
-			</div>
-			<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<h2 class="text-sm font-semibold">Jenis kelamin</h2>
-				<div class="mt-2">
-					<BarList rows={genderRows} max={genderMax} />
-				</div>
-			</div>
-		</section>
+		{#if enabledMetrics.includes('status') || enabledMetrics.includes('gender')}
+			<section class="mt-4 grid gap-4 lg:grid-cols-2" aria-label="Perbandingan">
+				{#if enabledMetrics.includes('status')}
+					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+						<h2 class="text-sm font-semibold">Status santri</h2>
+						<div class="mt-2">
+							<BarList rows={statusRows} max={rekap.total} />
+						</div>
+					</div>
+				{/if}
+				{#if enabledMetrics.includes('gender')}
+					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+						<h2 class="text-sm font-semibold">Jenis kelamin</h2>
+						<div class="mt-2">
+							<BarList rows={genderRows} max={genderMax} />
+						</div>
+					</div>
+				{/if}
+			</section>
+		{/if}
 
-		<section class="mt-4 grid gap-4 lg:grid-cols-2" aria-label="Kelompok">
-			<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<h2 class="text-sm font-semibold">Per kamar</h2>
-				<div class="mt-2">
-					<BarList rows={kamarRows} max={Math.max(0, ...kamarRows.map((r) => r.value))} />
-				</div>
-			</div>
-			<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<h2 class="text-sm font-semibold">Per kelas</h2>
-				<div class="mt-2">
-					<BarList rows={kelasRows} max={Math.max(0, ...kelasRows.map((r) => r.value))} />
-				</div>
-			</div>
-		</section>
+		{#if enabledMetrics.includes('kamar') || enabledMetrics.includes('kelas')}
+			<section class="mt-4 grid gap-4 lg:grid-cols-2" aria-label="Kelompok">
+				{#if enabledMetrics.includes('kamar')}
+					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+						<h2 class="text-sm font-semibold">Per kamar</h2>
+						<div class="mt-2">
+							<BarList rows={kamarRows} max={Math.max(0, ...kamarRows.map((r) => r.value))} />
+						</div>
+					</div>
+				{/if}
+				{#if enabledMetrics.includes('kelas')}
+					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+						<h2 class="text-sm font-semibold">Per kelas</h2>
+						<div class="mt-2">
+							<BarList rows={kelasRows} max={Math.max(0, ...kelasRows.map((r) => r.value))} />
+						</div>
+					</div>
+				{/if}
+			</section>
+		{/if}
 
-		<section class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5" aria-label="Asal daerah">
-			<h2 class="text-sm font-semibold">Per daerah asal</h2>
-			<div class="mt-2">
-				<BarList rows={daerahRows} max={Math.max(0, ...daerahRows.map((r) => r.value))} />
-			</div>
-		</section>
+		{#if enabledMetrics.includes('daerah')}
+			<section class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5" aria-label="Asal daerah">
+				<h2 class="text-sm font-semibold">Per daerah asal</h2>
+				<div class="mt-2">
+					<BarList rows={daerahRows} max={Math.max(0, ...daerahRows.map((r) => r.value))} />
+				</div>
+			</section>
+		{/if}
 	{/if}
 {:else}
 	<div class="mt-8 rounded-2xl border border-base-300 bg-base-100 p-10 text-center">

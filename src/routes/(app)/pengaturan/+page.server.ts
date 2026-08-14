@@ -1,5 +1,15 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { ROLES } from '$lib/permissions';
+import { ALL_METRIC_KEYS } from '$lib/types';
+
+function parseMetricKeys(v: string | null): string[] {
+	if (!v) return ALL_METRIC_KEYS;
+	try {
+		const arr = JSON.parse(v);
+		if (Array.isArray(arr)) return arr.filter((k) => ALL_METRIC_KEYS.includes(k));
+	} catch {}
+	return ALL_METRIC_KEYS;
+}
 
 function parseOptInt(v: FormDataEntryValue | null): number | null {
 	const s = typeof v === 'string' ? v.trim() : '';
@@ -37,7 +47,10 @@ export async function load({ locals }) {
 		permissions: permissions ?? [],
 		fields: fields ?? [],
 		settings: Object.fromEntries((settings ?? []).map((s) => [s.key, s.value ?? ''])),
-		auditLogs: auditLogs ?? []
+		auditLogs: auditLogs ?? [],
+		enabledMetrics: parseMetricKeys(
+			(settings ?? []).find((s) => s.key === 'dashboard_metrics')?.value ?? null
+		)
 	};
 }
 
@@ -108,6 +121,16 @@ export const actions = {
 		if (key !== 'tahun_ajaran_aktif') return fail(400, { error: 'Key tidak valid.' });
 		const value = (fd.get('value') as string | null)?.trim() ?? '';
 		const { error } = await locals.supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
+		if (error) return fail(400, { error: error.message });
+	},
+
+	updateDashboardMetrics: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const metrics = fd.getAll('metrics').map(String);
+		const { error } = await locals.supabase
+			.from('settings')
+			.upsert({ key: 'dashboard_metrics', value: JSON.stringify(metrics) }, { onConflict: 'key' });
 		if (error) return fail(400, { error: error.message });
 	}
 };

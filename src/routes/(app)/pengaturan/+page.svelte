@@ -10,7 +10,7 @@
 		IconTrash,
 		IconPlus
 	} from '@tabler/icons-svelte';
-	import { PERAN_LABEL } from '$lib/types';
+	import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	import { ABILITIES } from '$lib/permissions';
 
 	type Profile = {
@@ -48,6 +48,10 @@
 	const fields = $derived(data.fields as Field[]);
 	const settings = $derived(data.settings as Record<string, string>);
 	const auditLogs = $derived(data.auditLogs as Audit[]);
+
+	const enabledMetrics = $derived(
+		(Array.isArray(data.enabledMetrics) ? data.enabledMetrics : []) as string[]
+	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 	const tab = $derived(page.url.searchParams.get('tab') ?? 'users');
@@ -120,6 +124,7 @@
 	<a class="tab" class:tab-active={tab === 'permissions'} href="/pengaturan?tab=permissions">Peran & Izin</a>
 	<a class="tab" class:tab-active={tab === 'fields'} href="/pengaturan?tab=fields">Field Kustom</a>
 	<a class="tab" class:tab-active={tab === 'ta'} href="/pengaturan?tab=ta">Tahun Ajaran</a>
+	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
 	<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
 </div>
 
@@ -419,6 +424,37 @@
 					value={settings['tahun_ajaran_aktif'] ?? ''}
 					placeholder="mis. 2026/2027" />
 			</label>
+			<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan</button>
+		</form>
+	</section>
+
+{:else if tab === 'dashboard'}
+	<section class="mt-6">
+		<h2 class="flex items-center gap-2 text-sm font-semibold">
+			<IconCalendar class="size-4" stroke-width={1.75} />
+			Konfigurasi Dashboard Rekap
+		</h2>
+		<p class="mt-1 max-w-[65ch] text-sm text-base-content/60">
+			Pilih metrik angka yang ingin ditampilkan di dashboard utama.
+		</p>
+
+		<form
+			method="POST"
+			action="?/updateDashboardMetrics"
+			class="mt-4 max-w-md rounded-2xl border border-base-300 bg-base-100 p-5">
+			<div class="grid gap-2">
+				{#each DASHBOARD_METRICS as m (m.key)}
+					<label class="flex items-center gap-2 text-sm">
+						<input
+							type="checkbox"
+							name="metrics"
+							value={m.key}
+							class="checkbox checkbox-primary checkbox-sm"
+							checked={enabledMetrics.includes(m.key)} />
+						{m.label}
+					</label>
+				{/each}
+			</div>
 			<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan</button>
 		</form>
 	</section>

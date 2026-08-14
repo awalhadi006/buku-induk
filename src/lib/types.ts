@@ -21,3 +21,13 @@ export type Rekap = {
 	per_kelas: { kelas: string | null; jumlah: number }[];
 	per_daerah: Record<string, number>;
 };
+
+export const DASHBOARD_METRICS = [
+	{ key: 'total', label: 'Total santri' },
+	{ key: 'status', label: 'Per status santri' },
+	{ key: 'gender', label: 'Per jenis kelamin' },
+	{ key: 'kamar', label: 'Per kamar' },
+	{ key: 'kelas', label: 'Per kelas' },
+	{ key: 'daerah', label: 'Per asal daerah' }
+];
+export const ALL_METRIC_KEYS = DASHBOARD_METRICS.map((m) => m.key);
