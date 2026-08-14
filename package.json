@@ -11,7 +11,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"gen": "wrangler types",
-		"changelog": "node scripts/gen-changelog.mjs"
+		"changelog": "node scripts/gen-changelog.mjs",
+		"predev": "node scripts/gen-changelog.mjs",
+		"prebuild": "node scripts/gen-changelog.mjs"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-cloudflare": "^7.2.8",

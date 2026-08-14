@@ -26,11 +26,12 @@ function humanize(subject) {
 	return subject.charAt(0).toUpperCase() + subject.slice(1);
 }
 
-let out = '';
+let out;
 try {
 	out = execSync('git log --date=short --pretty=format:%H%x1f%ad%x1f%s', { encoding: 'utf8' }).trim();
 } catch {
-	out = '';
+	console.warn('[changelog] git tidak tersedia — file tidak diubah (hindari menimpa snapshot).');
+	process.exit(0);
 }
 
 const commits = [];
