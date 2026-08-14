@@ -8,7 +8,12 @@
 
 	const rekap = $derived((data.rekap as Rekap | null) ?? null);
 	const profile = $derived((page.data.profile as Profile | null) ?? null);
-	const enabledMetrics = $derived((data.enabledMetrics as string[]) ?? ALL_METRIC_KEYS);
+	const rekapError = $derived((data.rekapError as string | null) ?? null);
+	const enabledMetrics = $derived(
+		Array.isArray(data.enabledMetrics) && data.enabledMetrics.length
+			? (data.enabledMetrics as string[])
+			: ALL_METRIC_KEYS
+	);
 
 	const STATUS_LABEL: Record<string, string> = {
 		aktif: 'Aktif',
@@ -149,7 +154,18 @@
 		{/if}
 	{/if}
 {:else}
-	<div class="mt-8 rounded-2xl border border-base-300 bg-base-100 p-10 text-center">
-		<p class="text-base-content/60">Data belum dapat dimuat.</p>
-	</div>
-{/if}
+		<div class="mt-8 rounded-2xl border border-base-300 bg-base-100 p-10">
+			<p class="text-base-content/60">
+				Rekapitulasi tidak dapat ditampilkan untuk akun ini.
+			</p>
+			{#if rekapError}
+				<p class="mt-2 text-sm text-error">Error teknis: {rekapError}</p>
+			{:else}
+				<p class="mt-2 text-sm text-base-content/60">
+					Pastikan peran Anda memiliki izin <span class="font-medium">Dashboard rekap</span> (Rekapitulsi hanya bisa
+					dilihat oleh Superadmin, Admin TU, atau Asatidz). Jika Anda Superadmin/Admin, periksa pada
+					Pengaturan → Peran & Izin bahwa kemampuan <em>Dashboard rekap</em> aktif.
+				</p>
+			{/if}
+		</div>
+	{/if}
