@@ -66,3 +66,21 @@ $$;
 
 revoke execute on function public.fn_rekap() from public;
 grant execute on function public.fn_rekap() to authenticated;
+
+-- Fungsi untuk mengambil daftar kabupaten unik (filter asal daerah)
+create or replace function public.fn_unique_kabupaten()
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare
+  r jsonb;
+begin
+  select jsonb_agg(distinct s.kabupaten order by s.kabupaten)
+  into r
+  from public.santri s
+  where s.kabupaten is not null and s.kabupaten <> '';
+
+  return coalesce(r, '[]'::jsonb);
+end
+$$;
+
+revoke execute on function public.fn_unique_kabupaten() from public;
+grant execute on function public.fn_unique_kabupaten() to authenticated;

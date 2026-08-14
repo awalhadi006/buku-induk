@@ -7,7 +7,7 @@
 	<title>Apa yang Baru | Buku Induk</title>
 </svelte:head>
 
-<header class="flex items-center gap-3">
+<header class="sticky top-0 z-10 flex items-center gap-3 bg-base-100 pb-4 pt-2">
 	<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
 		<IconSparkles class="size-5" stroke-width={1.75} />
 	</span>
@@ -19,7 +19,7 @@
 	</div>
 </header>
 
-<div class="mt-8 space-y-6">
+<div class="mt-4 space-y-6">
 	{#each changelog as commit (commit.short)}
 		<article class="rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm">
 			<div class="flex items-center justify-between border-b border-base-200 pb-3">

@@ -1,6 +1,54 @@
 /* Auto-generated — jangan diedit manual. Regenerasi lewat: npm run changelog */
 export const changelog = [
   {
+    "short": "4a0941a",
+    "date": "2026-08-14",
+    "subject": "feat: gunakan live-template.xlsx untuk konsistensi header ekspor dengan impor",
+    "label": "Fitur: Gunakan live-template.xlsx untuk konsistensi header ekspor dengan impor"
+  },
+  {
+    "short": "a9a040f",
+    "date": "2026-08-14",
+    "subject": "feat: dashboard rekap terkonfigurasi (pilih metrik yang tampil)",
+    "label": "Fitur: Dashboard rekap terkonfigurasi (pilih metrik yang tampil)"
+  },
+  {
+    "short": "94930f3",
+    "date": "2026-08-14",
+    "subject": "feat: use Excel Tables (!tbls) to ensure consistent grey header styling across all devices",
+    "label": "Fitur: Use Excel Tables (!tbls) to ensure consistent grey header styling across all devices"
+  },
+  {
+    "short": "706ca22",
+    "date": "2026-08-13",
+    "subject": "fix: gunakan template import aslinya untuk ekspor agar warna/style header terjaga",
+    "label": "Perbaikan: Gunakan template import aslinya untuk ekspor agar warna/style header terjaga"
+  },
+  {
+    "short": "c479ef7",
+    "date": "2026-08-13",
+    "subject": "fix: apply grey header styling to export and template buffers using cellStyles",
+    "label": "Perbaikan: Apply grey header styling to export and template buffers using cellStyles"
+  },
+  {
+    "short": "4612b96",
+    "date": "2026-08-13",
+    "subject": "feat: sesuaikan ekspor santri dengan template impor dan tambahkan styling header",
+    "label": "Fitur: Sesuaikan ekspor santri dengan template impor dan tambahkan styling header"
+  },
+  {
+    "short": "1b55e5d",
+    "date": "2026-08-13",
+    "subject": "fix: restore XLSX import and remove dead code in excel.ts",
+    "label": "Perbaikan: Restore XLSX import and remove dead code in excel.ts"
+  },
+  {
+    "short": "36fb33c",
+    "date": "2026-08-13",
+    "subject": "fix: perbaiki gen-changelog.mjs agar bisa dieksekusi oleh node (hapus type annotations)",
+    "label": "Perbaikan: Perbaiki gen-changelog.mjs agar bisa dieksekusi oleh node (hapus type annotations)"
+  },
+  {
     "short": "77af314",
     "date": "2026-08-13",
     "subject": "feat: selesaikan fitur ekspor santri (xlsx) dan halaman update (changelog)",

@@ -8,6 +8,7 @@
 	const santri = $derived(data.santri ?? []);
 	const kamarList = $derived(data.kamar ?? []);
 	const kelasList = $derived(data.kelas ?? []);
+	const kabupatenList = $derived((data.kabupaten ?? []) as string[]);
 
 	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
 	const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
@@ -18,10 +19,11 @@
 	let filterStatus = $state('');
 	let filterKeluarga = $state('');
 	let filterGender = $state('');
+	let filterKabupaten = $state('');
 	let showFilters = $state(false);
 
 	const activeFilterCount = $derived(
-		[filterKamar, filterKelas, filterStatus, filterKeluarga, filterGender].filter(Boolean).length
+		[filterKamar, filterKelas, filterStatus, filterKeluarga, filterGender, filterKabupaten].filter(Boolean).length
 	);
 
 	function resetFilters() {
@@ -30,19 +32,25 @@
 		filterStatus = '';
 		filterKeluarga = '';
 		filterGender = '';
+		filterKabupaten = '';
 	}
 
 	const filtered = $derived(
 		santri.filter((s) => {
 			const q = query.toLowerCase().trim();
-			if (q && !s.nama_lengkap.toLowerCase().includes(q) && !(s.nisn ?? '').toLowerCase().includes(q)) {
-				return false;
+			if (q) {
+				const matchNama = s.nama_lengkap.toLowerCase().includes(q);
+				const matchNisn = (s.nisn ?? '').toLowerCase().includes(q);
+				const matchNik = (s.nik ?? '').toLowerCase().includes(q);
+				const matchNis = (s.nis ?? '').toLowerCase().includes(q);
+				if (!matchNama && !matchNisn && !matchNik && !matchNis) return false;
 			}
 			if (filterKamar && String(s.kamar_id) !== filterKamar) return false;
 			if (filterKelas && String(s.kelas_id) !== filterKelas) return false;
 			if (filterStatus && s.status_santri !== filterStatus) return false;
 			if (filterKeluarga && s.status_keluarga !== filterKeluarga) return false;
 			if (filterGender && s.jenis_kelamin !== filterGender) return false;
+			if (filterKabupaten && (s.kabupaten ?? '') !== filterKabupaten) return false;
 			return true;
 		})
 	);
@@ -156,6 +164,16 @@
 					<option value="">Semua JK</option>
 					{#each GENDER_OPTIONS as o (o.value)}
 						<option value={o.value}>{o.label}</option>
+					{/each}
+				</select>
+			</label>
+
+			<label class="block sm:col-span-2 lg:col-span-5">
+				<span class="mb-1 block text-xs font-medium text-base-content/70">Asal Daerah</span>
+				<select class="select select-bordered select-sm w-full" bind:value={filterKabupaten}>
+					<option value="">Semua daerah</option>
+					{#each kabupatenList as k (k)}
+						<option value={k}>{k}</option>
 					{/each}
 				</select>
 			</label>
