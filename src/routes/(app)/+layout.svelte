@@ -212,6 +212,7 @@
 				<div class="min-w-0 flex-1">
 					<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
 					<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+					<a href="/pengaturan/ganti-password" class="text-[10px] text-primary hover:underline">Ganti kata sandi</a>
 				</div>
 				<button
 					class="btn btn-ghost btn-square btn-sm"

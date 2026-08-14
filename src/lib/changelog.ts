@@ -1,6 +1,12 @@
 /* Auto-generated — jangan diedit manual. Regenerasi lewat: npm run changelog */
 export const changelog = [
   {
+    "short": "b1414d3",
+    "date": "2026-08-14",
+    "subject": "fix: tampilkan semua commit di Apa yang Baru (hapus hook build, auto via GH Action) + hapus duplikat teks",
+    "label": "Perbaikan: Tampilkan semua commit di Apa yang Baru (hapus hook build, auto via GH Action) + hapus duplikat teks"
+  },
+  {
     "short": "4127205",
     "date": "2026-08-14",
     "subject": "fix: sticky header halaman Apa yang Baru (hapus overflow body, offset mobile)",
