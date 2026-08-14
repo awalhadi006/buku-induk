@@ -68,5 +68,24 @@ export const actions = {
 		if (err) return fail(400, { error: err.message });
 
 		throw redirect(303, '/santri');
+	},
+	updateDocument: async ({ params, locals, request }) => {
+		const { user, supabase } = locals;
+		if (!user) throw redirect(303, '/login');
+
+		const fd = await request.formData();
+		const docId = fd.get('docId') as string;
+		const jenis = (fd.get('jenis') as string) ?? '';
+		const nama_file = (fd.get('nama_file') as string)?.trim() || null;
+		if (!docId || !jenis) return fail(400, { error: 'Data dokumen tidak valid.' });
+
+		const { error } = await supabase
+			.from('santri_documents')
+			.update({ jenis, nama_file })
+			.eq('id', docId)
+			.eq('santri_id', params.id);
+		if (error) return fail(400, { error: error.message });
+
+		throw redirect(303, `/santri/${params.id}`);
 	}
 };

@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { supabase } from '$lib/supabase';
 	import { uploadSantriPdf } from '$lib/storage';
-	import { IconDownload, IconTrash, IconPrinter, IconIdBadge } from '@tabler/icons-svelte';
+	import { IconDownload, IconTrash, IconPrinter, IconIdBadge, IconEye, IconEdit } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
 	import {
 		GENDER_LABEL,
@@ -19,6 +19,7 @@
 	let editing = $state(false);
 	// svelte-ignore state_referenced_locally (nilai awal dokumen dari loader)
 	let docs = $state<Doc[]>(data.documents as Doc[]);
+	let editingDoc = $state<Doc | null>(null);
 	let upFile = $state<File>();
 	let upJenis = $state('kk');
 	let upBusy = $state(false);
@@ -27,6 +28,9 @@
 
 	const s = $derived(data.santri as Record<string, any>);
 	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
+	const canEdit = $derived(
+		profile ? ['superadmin', 'admin_tu', 'wali_kamar', 'wali_kelas'].includes(profile.peran) : false
+	);
 	const canDelete = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
 	const kamar = $derived(data.kamar as { id: number; nomor: number; aktif: boolean }[]);
@@ -100,6 +104,10 @@
 		} else {
 			docs = docs.filter((x) => x.id !== d.id);
 		}
+	}
+
+	function startEditDoc(d: Doc) {
+		editingDoc = { ...d };
 	}
 
 	async function uploadDoc() {
@@ -310,6 +318,22 @@
 								onclick={() => downloadDoc(d)}>
 								<IconDownload class="size-4" stroke-width={1.75} />
 							</button>
+							<button
+								class="btn btn-ghost btn-square btn-sm"
+								aria-label="Pratinjau dokumen"
+								title="Pratinjau"
+								onclick={() => downloadDoc(d)}>
+								<IconEye class="size-4" stroke-width={1.75} />
+							</button>
+							{#if canEdit}
+								<button
+									class="btn btn-ghost btn-square btn-sm"
+									aria-label="Edit dokumen"
+									title="Edit"
+									onclick={() => startEditDoc(d)}>
+									<IconEdit class="size-4" stroke-width={1.75} />
+							</button>
+							{/if}
 							{#if canDelete}
 								<button
 									class="btn btn-ghost btn-square btn-sm text-error"
@@ -324,41 +348,67 @@
 				</ul>
 			{/if}
 
-			<form
-				class="mt-4 flex flex-col gap-3 border-t border-base-200 pt-4 sm:flex-row sm:items-end"
-				onsubmit={(e) => {
-					e.preventDefault();
-					uploadDoc();
-				}}>
-				<label class="flex-1">
-					<span class="mb-1.5 block text-sm font-medium">Tambah dokumen (PDF)</span>
-					<input
-						class="file-input file-input-bordered w-full"
-						type="file"
-						accept=".pdf,application/pdf"
-						bind:this={fileInput}
-						onchange={(e) => {
-							const input = e.currentTarget as HTMLInputElement;
-							upFile = input.files?.[0];
-						}} />
-				</label>
-				<label class="sm:w-52">
-					<span class="mb-1.5 block text-sm font-medium">Jenis</span>
-					<select class="select select-bordered w-full" bind:value={upJenis}>
-						{#each JENIS_DOKUMEN_OPTIONS as o (o.value)}
-							<option value={o.value}>{o.label}</option>
-						{/each}
-					</select>
-				</label>
-				<button type="submit" class="btn btn-outline btn-sm" disabled={upBusy}>
-					{#if upBusy}
-						<span class="loading loading-spinner loading-sm"></span>
-					{/if}
-					Unggah
-				</button>
-			</form>
-			{#if upError}
-				<p class="mt-2 text-sm text-error">{upError}</p>
+			<!-- Form edit dokumen -->
+			{#if editingDoc}
+				<form method="POST" action="?/updateDocument" class="mt-4 rounded-xl border border-base-200 bg-base-200/30 p-4">
+					<input type="hidden" name="docId" value={editingDoc.id} />
+					<h3 class="mb-3 text-sm font-semibold">Edit dokumen</h3>
+					<div class="grid gap-3 sm:grid-cols-2">
+						<label class="block">
+							<span class="mb-1.5 block text-sm font-medium">Jenis</span>
+							<select name="jenis" class="select select-bordered select-sm w-full">
+								{#each JENIS_DOKUMEN_OPTIONS as o (o.value)}
+									<option value={o.value} selected={o.value === editingDoc.jenis}>{o.label}</option>
+								{/each}
+							</select>
+						</label>
+						<label class="block">
+							<span class="mb-1.5 block text-sm font-medium">Nama file</span>
+							<input name="nama_file" type="text" class="input input-bordered input-sm w-full" value={editingDoc.nama_file ?? ''} />
+						</label>
+					</div>
+					<div class="mt-3 flex gap-2">
+						<button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+						<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingDoc = null)}>Batal</button>
+					</div>
+				</form>
+			{:else}
+				<form
+					class="mt-4 flex flex-col gap-3 border-t border-base-200 pt-4 sm:flex-row sm:items-end"
+					onsubmit={(e) => {
+						e.preventDefault();
+						uploadDoc();
+					}}>
+					<label class="flex-1">
+						<span class="mb-1.5 block text-sm font-medium">Tambah dokumen (PDF)</span>
+						<input
+							class="file-input file-input-bordered w-full"
+							type="file"
+							accept=".pdf,application/pdf"
+							bind:this={fileInput}
+							onchange={(e) => {
+								const input = e.currentTarget as HTMLInputElement;
+								upFile = input.files?.[0];
+							}} />
+					</label>
+					<label class="sm:w-52">
+						<span class="mb-1.5 block text-sm font-medium">Jenis</span>
+						<select class="select select-bordered w-full" bind:value={upJenis}>
+							{#each JENIS_DOKUMEN_OPTIONS as o (o.value)}
+								<option value={o.value}>{o.label}</option>
+							{/each}
+						</select>
+					</label>
+					<button type="submit" class="btn btn-outline btn-sm" disabled={upBusy}>
+						{#if upBusy}
+							<span class="loading loading-spinner loading-sm"></span>
+						{/if}
+						Unggah
+					</button>
+				</form>
+				{#if upError}
+					<p class="mt-2 text-sm text-error">{upError}</p>
+				{/if}
 			{/if}
 		</section>
 	</div>
