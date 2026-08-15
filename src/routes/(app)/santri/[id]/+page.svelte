@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { IconTrash, IconPrinter, IconIdBadge, IconEye, IconEdit, IconPhoto } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
-	import { photoUrl, docUrl } from '$lib/gdrive';
+	import { photoUrl, docUrl } from '$lib/gdrive-url';
 	import {
 		GENDER_LABEL,
 		JENIS_DOKUMEN_LABEL,

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
-	import { photoUrl } from '$lib/gdrive';
+	import { photoUrl } from '$lib/gdrive-url';
 
 	let { data } = $props();
 
