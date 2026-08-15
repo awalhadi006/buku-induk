@@ -16,7 +16,7 @@ export const GET = async ({ locals, url }) => {
 			grant_type: 'authorization_code'
 		})
 	});
-	const { access_token, refresh_token, expires_in } = await res.json();
+	const { access_token, refresh_token, expires_in } = await res.json() as { access_token: string; refresh_token: string; expires_in: number };
 	
 	// Simpan
 	await locals.supabase.from('gdrive_creds').upsert({

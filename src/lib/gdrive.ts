@@ -21,7 +21,7 @@ export async function getValidToken(supabase: any) {
 	});
 
 	if (!res.ok) return null;
-	const { access_token, expires_in } = await res.json();
+	const { access_token, expires_in } = await res.json() as { access_token: string; expires_in: number };
 	await supabase.from('gdrive_creds').update({
 		access_token,
 		expires_at: new Date(Date.now() + expires_in * 1000).toISOString()
@@ -36,7 +36,7 @@ export async function uploadPhoto(supabase: any, file: File, filename: string) {
 
 	const { data: creds } = await supabase.from('gdrive_creds').select('folder_id').eq('id', 1).single();
 	
-	const metadata = { name: filename, parents: [creds.folder_id] };
+	const metadata = { name: filename, parents: [creds.folder_id!] }; // Add ! for non-null assertion
 	const form = new FormData();
 	form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
 	form.append('file', file);
@@ -48,7 +48,7 @@ export async function uploadPhoto(supabase: any, file: File, filename: string) {
 	});
 
 	if (!res.ok) throw new Error('Gagal mengunggah foto');
-	const { id } = await res.json();
+	const { id } = await res.json() as { id: string };
 	
 	// Share file
 	await fetch(`https://www.googleapis.com/drive/v3/files/${id}/permissions`, {

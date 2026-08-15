@@ -12,7 +12,7 @@ export async function load({ params, locals }) {
 		.maybeSingle();
 	if (!santri) throw error(404, 'Santri tidak ditemukan');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }, { data: history }] =
+	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }, { data: history }, { data: gdrive }] =
 		await Promise.all([
 			supabase.from('kamar').select('id,nomor,aktif').order('nomor'),
 			supabase
@@ -31,7 +31,8 @@ export async function load({ params, locals }) {
 				.from('status_history')
 				.select('*')
 				.eq('santri_id', params.id)
-				.order('tanggal_efektif', { ascending: false })
+				.order('tanggal_efektif', { ascending: false }),
+			supabase.from('gdrive_creds').select('id,refresh_token,folder_id').eq('id', 1).maybeSingle()
 		]);
 
 	return {
@@ -43,7 +44,8 @@ export async function load({ params, locals }) {
 			label: w.nama_wali || w.nama_ayah || w.nama_ibu || '(wali tanpa nama)'
 		})),
 		documents: documents ?? [],
-		_status_history: history ?? []
+		_status_history: history ?? [],
+		gdrive: (gdrive?.refresh_token && gdrive?.folder_id) ? { active: true } : null
 	};
 }
 
@@ -112,6 +114,27 @@ export const actions = {
 			requested_by: user.id,
 			status: 'pending'
 		});
+		if (error) return fail(400, { error: error.message });
+
+		throw redirect(303, `/santri/${params.id}`);
+	},
+	uploadPhoto: async ({ params, locals, request }) => {
+		const { user, supabase } = locals;
+		if (!user) throw redirect(303, '/login');
+
+		const fd = await request.formData();
+		const file = fd.get('file') as File;
+		if (!file || file.size === 0) return fail(400, { error: 'Pilih file foto terlebih dahulu.' });
+
+		const { uploadPhoto } = await import('$lib/gdrive');
+		let foto_url: string;
+		try {
+			foto_url = await uploadPhoto(supabase, file, `santri-${params.id}.jpg`);
+		} catch (e) {
+			return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah foto ke Google Drive.' });
+		}
+
+		const { error } = await supabase.from('santri').update({ foto_url }).eq('id', params.id);
 		if (error) return fail(400, { error: error.message });
 
 		throw redirect(303, `/santri/${params.id}`);

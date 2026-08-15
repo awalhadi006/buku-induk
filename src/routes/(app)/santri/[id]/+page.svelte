@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 	import { supabase } from '$lib/supabase';
 	import { uploadSantriPdf } from '$lib/storage';
-	import { IconDownload, IconTrash, IconPrinter, IconIdBadge, IconEye, IconEdit } from '@tabler/icons-svelte';
+	import { IconDownload, IconTrash, IconPrinter, IconIdBadge, IconEye, IconEdit, IconPhoto } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
 	import {
 		GENDER_LABEL,
@@ -25,6 +25,7 @@
 	let upBusy = $state(false);
 	let upError = $state('');
 	let fileInput = $state<HTMLInputElement>();
+	let photoInput = $state<HTMLInputElement>();
 
 	const s = $derived(data.santri as Record<string, any>);
 	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
@@ -252,6 +253,42 @@
 		</div>
 	{/if}
 </header>
+
+{#if data.gdrive && !editing}
+	<form
+		method="POST"
+		action="?/uploadPhoto"
+		enctype="multipart/form-data"
+		class="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-base-300 bg-base-100 p-5"
+		onsubmit={(e) => {
+			if (!confirm('Unggah foto ini ke Google Drive?')) e.preventDefault();
+		}}>
+		<div class="flex items-center gap-4">
+			{#if s.foto_url}
+				<img src={s.foto_url} alt="Foto" class="size-16 rounded-xl object-cover" />
+			{:else}
+				<div class="flex size-16 items-center justify-center rounded-xl bg-base-200 text-base-content/40">
+					<IconPhoto class="size-7" stroke-width={1.5} />
+				</div>
+			{/if}
+			<div>
+				<p class="text-sm font-medium">Foto Santri</p>
+				<p class="text-xs text-base-content/60">Disimpan di Google Drive (akun belajar.id)</p>
+			</div>
+		</div>
+		<label class="flex-1">
+			<span class="mb-1.5 block text-sm font-medium">Pilih file foto</span>
+			<input
+				type="file"
+				name="file"
+				accept="image/*"
+				required
+				class="file-input file-input-bordered w-full"
+				bind:this={photoInput} />
+		</label>
+		<button type="submit" class="btn btn-primary btn-sm">Unggah Foto</button>
+	</form>
+{/if}
 
 {#if editing}
 	<div class="mt-6">
