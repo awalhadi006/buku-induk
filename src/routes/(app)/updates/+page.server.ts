@@ -1,26 +1,62 @@
 import { redirect } from '@sveltejs/kit';
 
 const TYPE_LABELS: Record<string, string> = {
-	feat: 'Fitur',
-	fix: 'Perbaikan',
-	docs: 'Dokumentasi',
-	style: 'Gaya tampilan',
-	refactor: 'Perubahan kode',
-	perf: 'Performa',
-	test: 'Pengujian',
-	chore: 'Pemeliharaan',
-	ci: 'CI',
-	build: 'Build'
+	feat: 'Penambahan Fitur',
+	fix: 'Perbaikan Sistem',
+	docs: 'Pembaruan Dokumen',
+	style: 'Perubahan Tampilan',
+	refactor: 'Optimasi Internal',
+	perf: 'Peningkatan Kecepatan',
+	test: 'Pengujian Sistem',
+	chore: 'Pemeliharaan Rutin',
+	ci: 'Sistem Otomatisasi',
+	build: 'Sistem Rilis'
+};
+
+const KEYWORD_MAP: Record<string, string> = {
+	'academic year': 'tahun ajaran',
+	'active': 'aktif',
+	'management': 'pengelolaan',
+	'approval': 'persetujuan',
+	'request': 'permintaan',
+	'change': 'perubahan',
+	'export': 'unduh/ekspor',
+	'notification': 'pemberitahuan/notifikasi',
+	'dashboard': 'halaman utama',
+	'rekap': 'ringkasan data',
+	'santri': 'santri',
+	'wali': 'orang tua/wali',
+	'timeline': 'riwayat urutan waktu',
+	'filter': 'penyaringan data',
+	'add': 'tambah',
+	'update': 'perbarui',
+	'delete': 'hapus',
+	'fix': 'perbaiki',
+	'make': 'buat',
+	'implement': 'terapkan',
+	'show': 'tampilkan',
+	'humanize': 'permudah pembacaan'
 };
 
 function humanize(subject: string): string {
 	const m = subject.match(/^(feat|fix|docs|style|refactor|perf|test|chore|ci|build)(?:\([^)]+\))?!?:\s*(.*)$/i);
+	let type = '';
+	let content = subject;
+
 	if (m) {
-		const label = TYPE_LABELS[m[1].toLowerCase()] ?? m[1];
-		const rest = m[2].charAt(0).toUpperCase() + m[2].slice(1);
-		return `${label}: ${rest}`;
+		type = TYPE_LABELS[m[1].toLowerCase()] ?? m[1];
+		content = m[2];
 	}
-	return subject.charAt(0).toUpperCase() + subject.slice(1);
+
+	// Terjemahkan kata kunci jika pesan masih bahasa Inggris
+	let humanized = content;
+	for (const [en, id] of Object.entries(KEYWORD_MAP)) {
+		const regex = new RegExp(`\\b${en}\\b`, 'gi');
+		humanized = humanized.replace(regex, id);
+	}
+
+	humanized = humanized.charAt(0).toUpperCase() + humanized.slice(1);
+	return type ? `${type}: ${humanized}` : humanized;
 }
 
 export async function load({ locals, fetch, setHeaders }) {
