@@ -90,6 +90,54 @@ export const actions = {
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
+	uploadDocument: async ({ params, locals, request }) => {
+		const { user, supabase } = locals;
+		if (!user) throw redirect(303, '/login');
+
+		const fd = await request.formData();
+		const file = fd.get('file') as File;
+		const jenis = (fd.get('jenis') as string) ?? '';
+		if (!file || file.size === 0) return fail(400, { error: 'Pilih file dokumen terlebih dahulu.' });
+
+		const { data: s } = await supabase.from('santri').select('nama_lengkap').eq('id', params.id).maybeSingle();
+		const { uploadDocument } = await import('$lib/gdrive');
+		let fileId: string;
+		try {
+			fileId = await uploadDocument(supabase, file, s?.nama_lengkap ?? 'Santri');
+		} catch (e) {
+			return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah dokumen ke Google Drive.' });
+		}
+
+		const { error } = await supabase
+			.from('santri_documents')
+			.insert({ santri_id: params.id, jenis, nama_file: file.name, file_url: fileId });
+		if (error) return fail(400, { error: error.message });
+
+		throw redirect(303, `/santri/${params.id}`);
+	},
+	deleteDocument: async ({ params, locals, request }) => {
+		const { user, supabase } = locals;
+		if (!user) throw redirect(303, '/login');
+
+		const fd = await request.formData();
+		const docId = fd.get('docId') as string;
+		const { data: doc } = await supabase
+			.from('santri_documents')
+			.select('file_url')
+			.eq('id', docId)
+			.eq('santri_id', params.id)
+			.maybeSingle();
+		if (doc) {
+			if (doc.file_url?.startsWith('gdrive:')) {
+				const { deleteDriveFile } = await import('$lib/gdrive');
+				await deleteDriveFile(supabase, doc.file_url);
+			} else if (doc.file_url) {
+				await supabase.storage.from('santri').remove([doc.file_url]);
+			}
+			await supabase.from('santri_documents').delete().eq('id', docId);
+		}
+		throw redirect(303, `/santri/${params.id}`);
+	},
 	requestChange: async ({ params, locals, request }) => {
 		const { user, supabase } = locals;
 		if (!user) throw redirect(303, '/login');
@@ -126,10 +174,11 @@ export const actions = {
 		const file = fd.get('file') as File;
 		if (!file || file.size === 0) return fail(400, { error: 'Pilih file foto terlebih dahulu.' });
 
+		const { data: s } = await supabase.from('santri').select('nama_lengkap').eq('id', params.id).maybeSingle();
 		const { uploadPhoto } = await import('$lib/gdrive');
 		let foto_url: string;
 		try {
-			foto_url = await uploadPhoto(supabase, file, `santri-${params.id}.jpg`);
+			foto_url = await uploadPhoto(supabase, file, s?.nama_lengkap ?? 'Santri');
 		} catch (e) {
 			return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah foto ke Google Drive.' });
 		}

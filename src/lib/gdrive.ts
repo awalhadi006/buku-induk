@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 
-export async function getValidToken(supabase: any) {
+async function getValidToken(supabase: any): Promise<string | null> {
 	const { data: creds } = await supabase.from('gdrive_creds').select('*').eq('id', 1).maybeSingle();
 	if (!creds?.refresh_token) return null;
 
@@ -8,7 +8,6 @@ export async function getValidToken(supabase: any) {
 		return creds.access_token;
 	}
 
-	// Refresh token
 	const res = await fetch('https://oauth2.googleapis.com/token', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -21,7 +20,7 @@ export async function getValidToken(supabase: any) {
 	});
 
 	if (!res.ok) return null;
-	const { access_token, expires_in } = await res.json() as { access_token: string; expires_in: number };
+	const { access_token, expires_in } = (await res.json()) as { access_token: string; expires_in: number };
 	await supabase.from('gdrive_creds').update({
 		access_token,
 		expires_at: new Date(Date.now() + expires_in * 1000).toISOString()
@@ -30,32 +29,89 @@ export async function getValidToken(supabase: any) {
 	return access_token;
 }
 
-export async function uploadPhoto(supabase: any, file: File, filename: string) {
-	const token = await getValidToken(supabase);
-	if (!token) throw new Error('Gagal autentikasi Google Drive');
+async function ensureFolder(token: string, name: string, parentId: string): Promise<string> {
+	const safe = name.replace(/'/g, "\\'");
+	const q = `mimeType='application/vnd.google-apps.folder' and name='${safe}' and '${parentId}' in parents and trashed=false`;
+	const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&spaces=drive`;
+	const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+	const { files } = (await res.json()) as { files: { id: string; name: string }[] };
+	if (files.length) return files[0].id;
 
-	const { data: creds } = await supabase.from('gdrive_creds').select('folder_id').eq('id', 1).single();
-	
-	const metadata = { name: filename, parents: [creds.folder_id!] }; // Add ! for non-null assertion
+	const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+		method: 'POST',
+		headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			name,
+			mimeType: 'application/vnd.google-apps.folder',
+			parents: [parentId]
+		})
+	});
+	const created = (await createRes.json()) as { id: string };
+	return created.id;
+}
+
+async function uploadToFolder(token: string, file: File, filename: string, folderId: string): Promise<string> {
+	const metadata = { name: filename, parents: [folderId] };
 	const form = new FormData();
 	form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
 	form.append('file', file);
 
-	const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+	const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
 		method: 'POST',
 		headers: { Authorization: `Bearer ${token}` },
 		body: form
 	});
+	if (!res.ok) throw new Error('Gagal mengunggah ke Google Drive');
+	const { id } = (await res.json()) as { id: string };
 
-	if (!res.ok) throw new Error('Gagal mengunggah foto');
-	const { id } = await res.json() as { id: string };
-	
-	// Share file
 	await fetch(`https://www.googleapis.com/drive/v3/files/${id}/permissions`, {
 		method: 'POST',
 		headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
 		body: JSON.stringify({ role: 'reader', type: 'anyone' })
 	});
 
-	return `https://drive.google.com/uc?export=view&id=${id}`;
+	return id;
+}
+
+export async function uploadPhoto(supabase: any, file: File, santriName: string): Promise<string> {
+	const token = await getValidToken(supabase);
+	if (!token) throw new Error('Gagal autentikasi Google Drive');
+	const { data: creds } = await supabase.from('gdrive_creds').select('folder_id').eq('id', 1).single();
+	const folderId = await ensureFolder(token, 'Foto', creds.folder_id);
+	const childId = await ensureFolder(token, santriName, folderId);
+	const id = await uploadToFolder(token, file, file.name || 'foto.jpg', childId);
+	return `gdrive:${id}`;
+}
+
+export async function uploadDocument(supabase: any, file: File, santriName: string): Promise<string> {
+	const token = await getValidToken(supabase);
+	if (!token) throw new Error('Gagal autentikasi Google Drive');
+	const { data: creds } = await supabase.from('gdrive_creds').select('folder_id').eq('id', 1).single();
+	const folderId = await ensureFolder(token, 'Dokumen', creds.folder_id);
+	const childId = await ensureFolder(token, santriName, folderId);
+	const id = await uploadToFolder(token, file, file.name || 'dokumen.pdf', childId);
+	return `gdrive:${id}`;
+}
+
+export async function deleteDriveFile(supabase: any, gdriveUrl: string): Promise<void> {
+	const id = gdriveUrl.replace('gdrive:', '');
+	if (!id) return;
+	const token = await getValidToken(supabase);
+	if (!token) return;
+	await fetch(`https://www.googleapis.com/drive/v3/files/${id}`, {
+		method: 'DELETE',
+		headers: { Authorization: `Bearer ${token}` }
+	});
+}
+
+export function photoUrl(value: string | null | undefined): string | null {
+	if (!value) return null;
+	if (value.startsWith('gdrive:')) return `https://drive.google.com/thumbnail?id=${value.slice(7)}&sz=w512`;
+	return value;
+}
+
+export function docUrl(value: string | null | undefined): string | null {
+	if (!value) return null;
+	if (value.startsWith('gdrive:')) return `https://drive.google.com/file/d/${value.slice(7)}/view?usp=sharing`;
+	return value;
 }
