@@ -1,152 +1,118 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { IconUserHeart } from '@tabler/icons-svelte';
-	import WaliForm from '$lib/components/WaliForm.svelte';
-	import { waliLabel } from '$lib/wali';
-
-	const STATUS_LABEL: Record<string, string> = {
-		aktif: 'Aktif',
-		khusus: 'Khusus',
-		mutasi_keluar: 'Mutasi Keluar',
-		lulus: 'Lulus',
-		wafat: 'Wafat',
-		drop_out: 'Drop Out'
-	};
+	import { IconUserHeart, IconPhone, IconMapPin, IconUsers } from '@tabler/icons-svelte';
 
 	let { data } = $props();
+	const w = $derived(data.wali as {
+		nama_ayah: string | null;
+		nama_ibu: string | null;
+		nama_wali: string | null;
+		pekerjaan_ayah: string | null;
+		pekerjaan_ibu: string | null;
+		penghasilan: string | null;
+		alamat: string | null;
+		no_hp: string | null;
+	});
+	const santri = $derived(data.santri as {
+		id: string;
+		nama_lengkap: string;
+		nisn: string | null;
+		kamar: string;
+		kelas: string;
+	}[]);
 
-	const w = $derived(data.wali as Record<string, any>);
-	const santri = $derived(data.santri ?? []);
-	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
-	const canDelete = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
-
-	let editing = $state(false);
-
-	function toEdit(): Record<string, string> {
-		const out: Record<string, string> = {};
-		for (const k of ['nama_ayah', 'nama_ibu', 'nama_wali', 'pekerjaan_ayah', 'pekerjaan_ibu', 'penghasilan', 'alamat', 'no_hp']) {
-			out[k] = w[k] == null ? '' : String(w[k]);
-		}
-		return out;
-	}
-
-	const sections = $derived([
-		{
-			label: 'Data ayah',
-			rows: [
-				['Nama ayah', w.nama_ayah],
-				['Pekerjaan ayah', w.pekerjaan_ayah]
-			] as [string, string | null][]
-		},
-		{
-			label: 'Data ibu',
-			rows: [
-				['Nama ibu', w.nama_ibu],
-				['Pekerjaan ibu', w.pekerjaan_ibu]
-			] as [string, string | null][]
-		},
-		{
-			label: 'Wali & kontak',
-			rows: [
-				['Nama wali', w.nama_wali],
-				['Penghasilan keluarga', w.penghasilan],
-				['No. HP', w.no_hp],
-				['Alamat', w.alamat]
-			] as [string, string | null][]
-		}
-	]);
+	const label = w.nama_wali || w.nama_ayah || w.nama_ibu || 'Wali Santri';
 </script>
 
 <svelte:head>
-	<title>{waliLabel(w)} | Buku Induk</title>
+	<title>{label} | Buku Induk</title>
 </svelte:head>
 
-<header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-	<div class="flex items-center gap-3">
-		<a class="btn btn-ghost btn-sm" href="/wali" aria-label="Kembali ke daftar wali santri">
-			&larr;
-		</a>
-		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">{waliLabel(w)}</h1>
-			<p class="mt-0.5 font-mono text-sm text-base-content/60">{w.no_hp || '—'}</p>
-		</div>
+<header class="flex items-center gap-3">
+	<a class="btn btn-ghost btn-sm" href="/wali" aria-label="Kembali ke daftar wali">&larr;</a>
+	<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+		<IconUserHeart class="size-5" stroke-width={1.75} />
+	</span>
+	<div>
+		<h1 class="text-2xl font-semibold tracking-tight">{label}</h1>
+		<p class="mt-0.5 text-base-content/70">Profil wali dan daftar anak (santri) yang dinaungi.</p>
 	</div>
-
-	{#if !editing}
-		<div class="flex gap-2">
-			<button class="btn btn-outline btn-sm" onclick={() => (editing = true)}>Edit</button>
-			{#if canDelete}
-				<form
-					method="POST"
-					action="?/delete"
-					onsubmit={() => confirm('Yakin menghapus wali santri ini? Santri yang terkait tidak ikut terhapus.')}>
-					<button class="btn btn-error btn-outline btn-sm" type="submit">Hapus</button>
-				</form>
-			{/if}
-		</div>
-	{/if}
 </header>
 
-{#if editing}
-	<div class="mt-6">
-		<WaliForm
-			values={toEdit()}
-			action="?/update"
-			submitLabel="Simpan perubahan"
-			cancelHref="/wali/{w.id}" />
+<div class="mt-8 grid gap-6 lg:grid-cols-3">
+	<!-- Info Wali -->
+	<div class="space-y-4 rounded-2xl border border-base-300 bg-base-100 p-5 lg:col-span-1">
+		<h2 class="text-sm font-semibold">Informasi Kontak & Keluarga</h2>
+		<dl class="space-y-3 text-sm">
+			<div>
+				<dt class="text-xs text-base-content/60">Nama Ayah / Ibu / Wali</dt>
+				<dd class="font-medium">
+					{[w.nama_ayah, w.nama_ibu, w.nama_wali].filter(Boolean).join(' / ') || '—'}
+				</dd>
+			</div>
+			<div>
+				<dt class="text-xs text-base-content/60">Pekerjaan</dt>
+				<dd class="font-medium">
+					Ayah: {w.pekerjaan_ayah || '—'} <br />
+					Ibu: {w.pekerjaan_ibu || '—'}
+				</dd>
+			</div>
+			<div>
+				<dt class="text-xs text-base-content/60">Penghasilan</dt>
+				<dd class="font-medium">{w.penghasilan || '—'}</dd>
+			</div>
+			<div>
+				<dt class="text-xs text-base-content/60">No. HP</dt>
+				<dd class="flex items-center gap-1.5 font-medium">
+					<IconPhone class="size-4 text-base-content/50" />
+					{w.no_hp || '—'}
+				</dd>
+			</div>
+			<div>
+				<dt class="text-xs text-base-content/60">Alamat</dt>
+				<dd class="flex items-start gap-1.5 font-medium">
+					<IconMapPin class="mt-0.5 size-4 shrink-0 text-base-content/50" />
+					<span>{w.alamat || '—'}</span>
+				</dd>
+			</div>
+		</dl>
 	</div>
-{:else}
-	<div class="mt-6 space-y-4">
-		{#each sections as sec (sec.label)}
-			<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
-				<h2 class="text-sm font-semibold">{sec.label}</h2>
-				<dl class="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-					{#each sec.rows as [label, value] (label)}
-						<div class="min-w-0">
-							<dt class="text-xs text-base-content/60">{label}</dt>
-							<dd class="truncate text-sm font-medium" title={value ?? undefined}>
-								{value ?? '—'}
-							</dd>
-						</div>
-					{/each}
-				</dl>
-			</section>
-		{/each}
 
-		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
-			<h2 class="text-sm font-semibold">Santri di bawah wali ini</h2>
-			<p class="mt-1 text-xs text-base-content/60">
-				Data santri dengan wali yang sama (mis. kakak-beradik).
-			</p>
+	<!-- Daftar Santri Binaan -->
+	<div class="rounded-2xl border border-base-300 bg-base-100 p-5 lg:col-span-2">
+		<h2 class="flex items-center gap-2 text-sm font-semibold">
+			<IconUsers class="size-4 text-primary" />
+			Daftar Anak / Santri Asuhan ({santri.length})
+		</h2>
 
-			{#if santri.length === 0}
-				<p class="mt-3 text-sm text-base-content/60">
-					Belum ada santri yang memakai wali ini.
-				</p>
-			{:else}
-				<ul class="mt-2 divide-y divide-base-200">
-					{#each santri as s}
-						<li class="flex items-center gap-3 py-2">
-							<span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-								<IconUserHeart class="size-4" stroke-width={1.75} />
-							</span>
-							<div class="min-w-0 flex-1">
-								<a class="link link-hover truncate text-sm font-medium" href="/santri/{s.id}">
-									{s.nama_lengkap}
-								</a>
-								<p class="truncate text-xs text-base-content/60">
-									{s.nisn ?? '—'}
-									{s.kamar ? ` · Kamar ${s.kamar.nomor}` : ''}
-									{s.kelas ? ` · ${s.kelas.tingkat} ${s.kelas.rombel}` : ''}
-								</p>
-							</div>
-							<span class="badge badge-ghost badge-sm">
-								{STATUS_LABEL[s.status_santri] ?? s.status_santri}
-							</span>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-		</section>
+		{#if santri.length === 0}
+			<div class="mt-4 rounded-xl border border-dashed border-base-300 p-8 text-center">
+				<p class="text-sm text-base-content/60">Belum ada santri yang terhubung dengan wali ini.</p>
+			</div>
+		{:else}
+			<div class="mt-4 overflow-x-auto rounded-xl border border-base-200">
+				<table class="table">
+					<thead>
+						<tr class="text-xs uppercase tracking-wider text-base-content/60">
+							<th>Nama Santri</th>
+							<th>NISN</th>
+							<th>Kamar</th>
+							<th>Kelas</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-base-200 text-sm">
+						{#each santri as s (s.id)}
+							<tr class="hover:bg-base-200/50">
+								<td class="font-medium">
+									<a href="/santri/{s.id}" class="text-primary hover:underline">{s.nama_lengkap}</a>
+								</td>
+								<td class="font-mono text-xs">{s.nisn ?? '—'}</td>
+								<td>{s.kamar}</td>
+								<td>{s.kelas}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
 	</div>
-{/if}
+</div>
