@@ -38,6 +38,7 @@
 		entity_id: string | null;
 		created_at: string;
 	};
+	type TahunAjaran = { id: number; nama: string; aktif: boolean };
 
 	let { data, form } = $props();
 
@@ -48,6 +49,7 @@
 	const fields = $derived(data.fields as Field[]);
 	const settings = $derived(data.settings as Record<string, string>);
 	const auditLogs = $derived(data.auditLogs as Audit[]);
+	const tahunAjaran = $derived(data.tahunAjaran as TahunAjaran[]);
 
 	const enabledMetrics = $derived(
 		(Array.isArray(data.enabledMetrics) ? data.enabledMetrics : []) as string[]
@@ -417,15 +419,53 @@
 			<input type="hidden" name="key" value="tahun_ajaran_aktif" />
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Tahun ajaran aktif</span>
-				<input
-					name="value"
-					type="text"
-					class="input input-bordered w-full"
-					value={settings['tahun_ajaran_aktif'] ?? ''}
-					placeholder="mis. 2026/2027" />
+				<select name="value" class="select select-bordered w-full">
+					<option value="">— Pilih tahun ajaran —</option>
+					{#each tahunAjaran as ta (ta.id)}
+						<option value={ta.nama} selected={ta.nama === (settings['tahun_ajaran_aktif'] ?? '')}>{ta.nama}</option>
+					{/each}
+				</select>
 			</label>
 			<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan</button>
 		</form>
+
+		<div class="mt-6 max-w-md">
+			<h3 class="text-sm font-semibold">Daftar tahun ajaran</h3>
+			{#if tahunAjaran.length === 0}
+				<p class="mt-2 text-sm text-base-content/60">Belum ada tahun ajaran.</p>
+			{:else}
+				<ul class="mt-2 divide-y divide-base-200 rounded-2xl border border-base-300 bg-base-100">
+					{#each tahunAjaran as ta (ta.id)}
+						<li class="flex items-center justify-between gap-3 px-4 py-2.5">
+							<span class="text-sm font-medium">{ta.nama}</span>
+							<div class="flex items-center gap-1">
+								<form method="POST" action="?/toggleTahunAjaran">
+									<input type="hidden" name="id" value={ta.id} />
+									<input type="hidden" name="aktif" value={ta.aktif ? 'false' : 'true'} />
+									<button type="submit" class="btn btn-ghost btn-xs {ta.aktif ? 'text-success' : 'text-base-content/50'}">
+										{ta.aktif ? 'Aktif' : 'Nonaktif'}
+									</button>
+								</form>
+								<form method="POST" action="?/deleteTahunAjaran" onsubmit={() => confirm('Hapus tahun ajaran ini?')}>
+									<input type="hidden" name="id" value={ta.id} />
+									<button type="submit" class="btn btn-ghost btn-xs text-error" aria-label="Hapus">
+										<IconTrash class="size-4" stroke-width={1.75} />
+									</button>
+								</form>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+
+			<form method="POST" action="?/createTahunAjaran" class="mt-3 flex gap-2">
+				<input name="nama" type="text" class="input input-bordered input-sm flex-1" placeholder="Tambah tahun ajaran (mis. 2027/2028)" />
+				<button type="submit" class="btn btn-outline btn-sm">
+					<IconPlus class="size-4" stroke-width={1.75} />
+					Tambah
+				</button>
+			</form>
+		</div>
 	</section>
 
 {:else if tab === 'dashboard'}

@@ -62,11 +62,18 @@
 	<title>Rekapitulasi | Buku Induk</title>
 </svelte:head>
 
-<header>
-	<h1 class="text-2xl font-semibold tracking-tight">Rekapitulasi</h1>
-	<p class="mt-1 max-w-[65ch] text-base-content/70">
-		Ringkasan data santri untuk akun <span class="font-medium">{peranDisp}</span>.
-	</p>
+<header class="flex items-center justify-between">
+	<div>
+		<h1 class="text-2xl font-semibold tracking-tight">Rekapitulasi</h1>
+		<p class="mt-1 max-w-[65ch] text-base-content/70">
+			Ringkasan data santri untuk akun <span class="font-medium">{peranDisp}</span>.
+		</p>
+	</div>
+	{#if data.tahunAjaranAktif}
+		<div class="badge badge-primary badge-outline gap-1.5 p-3 text-xs font-semibold">
+			Tahun Ajaran: {data.tahunAjaranAktif}
+		</div>
+	{/if}
 </header>
 
 {#if rekap}

@@ -29,16 +29,25 @@ export async function load({ locals }) {
 	await requireSuperadmin(locals);
 	const { supabase } = locals;
 
-	const [{ data: profiles }, { data: kamar }, { data: kelas }, { data: permissions }, { data: fields }, { data: settings }, { data: auditLogs }] =
-		await Promise.all([
-			supabase.from('profiles').select('*').order('created_at'),
-			supabase.from('kamar').select('id,nomor').order('nomor'),
-			supabase.from('kelas').select('id,tingkat,rombel').order('tingkat').order('rombel'),
-			supabase.from('permissions').select('role,abilities').order('role'),
-			supabase.from('custom_fields').select('*').order('urutan').order('id'),
-			supabase.from('settings').select('key,value'),
-			supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100)
-		]);
+	const [
+		{ data: profiles },
+		{ data: kamar },
+		{ data: kelas },
+		{ data: permissions },
+		{ data: fields },
+		{ data: settings },
+		{ data: auditLogs },
+		{ data: tahunAjaran }
+	] = await Promise.all([
+		supabase.from('profiles').select('*').order('created_at'),
+		supabase.from('kamar').select('id,nomor').order('nomor'),
+		supabase.from('kelas').select('id,tingkat,rombel').order('tingkat').order('rombel'),
+		supabase.from('permissions').select('role,abilities').order('role'),
+		supabase.from('custom_fields').select('*').order('urutan').order('id'),
+		supabase.from('settings').select('key,value'),
+		supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
+		supabase.from('tahun_ajaran').select('id,nama,aktif').order('nama', { ascending: false })
+	]);
 
 	return {
 		profiles: profiles ?? [],
@@ -48,6 +57,7 @@ export async function load({ locals }) {
 		fields: fields ?? [],
 		settings: Object.fromEntries((settings ?? []).map((s) => [s.key, s.value ?? ''])),
 		auditLogs: auditLogs ?? [],
+		tahunAjaran: tahunAjaran ?? [],
 		enabledMetrics: parseMetricKeys(
 			(settings ?? []).find((s) => s.key === 'dashboard_metrics')?.value ?? null
 		)
@@ -121,6 +131,34 @@ export const actions = {
 		if (key !== 'tahun_ajaran_aktif') return fail(400, { error: 'Key tidak valid.' });
 		const value = (fd.get('value') as string | null)?.trim() ?? '';
 		const { error } = await locals.supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
+		if (error) return fail(400, { error: error.message });
+	},
+
+	createTahunAjaran: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const nama = (fd.get('nama') as string | null)?.trim() ?? '';
+		if (!nama) return fail(400, { error: 'Nama tahun ajaran wajib diisi.' });
+		const { error } = await locals.supabase.from('tahun_ajaran').insert({ nama, aktif: true });
+		if (error) return fail(400, { error: error.message });
+	},
+
+	toggleTahunAjaran: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const id = Number(fd.get('id') ?? '');
+		const aktif = fd.get('aktif') === 'true';
+		if (!Number.isInteger(id)) return fail(400, { error: 'Data tidak valid.' });
+		const { error } = await locals.supabase.from('tahun_ajaran').update({ aktif }).eq('id', id);
+		if (error) return fail(400, { error: error.message });
+	},
+
+	deleteTahunAjaran: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const id = Number(fd.get('id') ?? '');
+		if (!Number.isInteger(id)) return fail(400, { error: 'Data tidak valid.' });
+		const { error } = await locals.supabase.from('tahun_ajaran').delete().eq('id', id);
 		if (error) return fail(400, { error: error.message });
 	},
 

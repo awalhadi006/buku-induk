@@ -14,9 +14,10 @@ function parseEnabled(value: string | null | undefined): string[] {
 }
 
 export async function load({ locals }) {
-	const [rekapRes, settingsRes] = await Promise.all([
+	const [rekapRes, settingsRes, taAktifRes] = await Promise.all([
 		locals.supabase.rpc('fn_rekap'),
-		locals.supabase.from('settings').select('key,value').eq('key', 'dashboard_metrics').maybeSingle()
+		locals.supabase.from('settings').select('key,value').eq('key', 'dashboard_metrics').maybeSingle(),
+		locals.supabase.from('settings').select('value').eq('key', 'tahun_ajaran_aktif').maybeSingle()
 	]);
 
 	const rekapError: string | null = rekapRes.error?.message ?? null;
@@ -25,6 +26,7 @@ export async function load({ locals }) {
 	return {
 		rekap,
 		rekapError,
+		tahunAjaranAktif: taAktifRes.data?.value || null,
 		enabledMetrics: parseEnabled(settingsRes.data?.value)
 	};
 }
