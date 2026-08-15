@@ -209,7 +209,7 @@
 			{#if s.foto_url}
 				<img src={photoUrl(s.foto_url)} alt="Foto" class="size-16 rounded-xl object-cover" />
 			{:else}
-				<img src="/placeholder-santri.png" alt="Foto" class="size-16 rounded-xl object-cover bg-base-200" />
+				<img src="/placeholder-santri.jpg" alt="Foto" class="size-16 rounded-xl object-cover bg-base-200" />
 				<div class="flex size-16 items-center justify-center rounded-xl bg-base-200 text-base-content/40">
 					<IconPhoto class="size-7" stroke-width={1.5} />
 				</div>
