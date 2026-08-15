@@ -49,6 +49,8 @@
 	);
 	const peranLabel = $derived(profile ? PERAN_LABEL[profile.peran] ?? profile.peran : '');
 
+	const pendingRequests = $derived((page.data.pendingRequests as number) ?? 0);
+
 	let open = $state(false);
 	let theme = $state('');
 
@@ -146,15 +148,18 @@
 
 		<nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
 			{#each visible as item}
-				{@const active = isActive(item.href)}
-				<a
-					href={item.href}
-					onclick={() => (open = false)}
-					class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors
-						{active ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}">
-					<item.icon class="size-5" stroke-width={1.75} />
-					<span>{item.label}</span>
-				</a>
+			{@const active = isActive(item.href)}
+			<a
+				href={item.href}
+				onclick={() => (open = false)}
+				class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors
+					{active ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}">
+				<item.icon class="size-5" stroke-width={1.75} />
+				<span>{item.label}</span>
+				{#if item.href === '/persetujuan' && pendingRequests > 0}
+					<span class="ml-auto badge badge-error badge-sm" aria-label="Pengajuan menunggu">{pendingRequests}</span>
+				{/if}
+			</a>
 			{/each}
 		</nav>
 

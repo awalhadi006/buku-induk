@@ -10,5 +10,14 @@ export async function load(event) {
 		.eq('id', user.id)
 		.maybeSingle();
 
-	return { user, profile: profile ?? null };
+	let pendingRequests = 0;
+	if (profile && ['superadmin', 'admin_tu'].includes(profile.peran)) {
+		const { count } = await supabase
+			.from('santri_change_requests')
+			.select('*', { count: 'exact', head: true })
+			.eq('status', 'pending');
+		pendingRequests = count ?? 0;
+	}
+
+	return { user, profile: profile ?? null, pendingRequests };
 }
