@@ -32,6 +32,24 @@
 		profile ? ['superadmin', 'admin_tu', 'wali_kamar', 'wali_kelas'].includes(profile.peran) : false
 	);
 	const canDelete = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
+	const canRequest = $derived(profile ? ['wali_kamar', 'wali_kelas'].includes(profile.peran) : false);
+
+	const REQ_FIELDS: { value: string; label: string }[] = [
+		{ value: 'nama_panggilan', label: 'Nama panggilan' },
+		{ value: 'no_hp', label: 'No. HP' },
+		{ value: 'alamat', label: 'Alamat' },
+		{ value: 'rt', label: 'RT' },
+		{ value: 'rw', label: 'RW' },
+		{ value: 'desa', label: 'Desa/kelurahan' },
+		{ value: 'kecamatan', label: 'Kecamatan' },
+		{ value: 'kabupaten', label: 'Kabupaten' },
+		{ value: 'tempat_tinggal', label: 'Tempat tinggal' },
+		{ value: 'transportasi', label: 'Transportasi' },
+		{ value: 'anak_ke', label: 'Anak ke' },
+		{ value: 'bantuan_kip', label: 'Penerima bantuan (KIP/PIP/KPS/PKH)' },
+		{ value: 'asal_sekolah', label: 'Asal sekolah' },
+		{ value: 'jalur_masuk', label: 'Jalur masuk' }
+	];
 
 	const kamar = $derived(data.kamar as { id: number; nomor: number; aktif: boolean }[]);
 	const kelas = $derived(data.kelas as { id: number; tingkat: string; rombel: string; tahun_ajaran?: string | null; aktif: boolean }[]);
@@ -411,5 +429,26 @@
 				{/if}
 			{/if}
 		</section>
+		{#if canRequest}
+			<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+				<h2 class="text-sm font-semibold">Ajukan Perubahan Data</h2>
+				<p class="mt-1 text-sm text-base-content/60">Ajukan perubahan data santri untuk dikonfirmasi Admin TU.</p>
+				<form method="POST" action="?/requestChange" class="mt-4 grid gap-3 sm:grid-cols-2">
+					<label class="block">
+						<span class="mb-1.5 block text-xs font-medium text-base-content/70">Field yang diubah</span>
+						<select name="field" class="select select-bordered select-sm w-full" required>
+							{#each REQ_FIELDS as f (f.value)}
+								<option value={f.value}>{f.label}</option>
+							{/each}
+						</select>
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-xs font-medium text-base-content/70">Nilai baru</span>
+						<input name="new_value" type="text" class="input input-bordered input-sm w-full" required />
+					</label>
+					<button type="submit" class="btn btn-primary btn-sm sm:col-span-2">Kirim permintaan</button>
+				</form>
+			</section>
+		{/if}
 	</div>
 {/if}

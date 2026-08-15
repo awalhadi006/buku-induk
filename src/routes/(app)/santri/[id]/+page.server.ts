@@ -87,5 +87,33 @@ export const actions = {
 		if (error) return fail(400, { error: error.message });
 
 		throw redirect(303, `/santri/${params.id}`);
+	},
+	requestChange: async ({ params, locals, request }) => {
+		const { user, supabase } = locals;
+		if (!user) throw redirect(303, '/login');
+
+		const peranRes = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
+		if (!['wali_kamar', 'wali_kelas'].includes(peranRes.data?.peran ?? ''))
+			return fail(403, { error: 'Hanya Wali Kamar/Kelas yang dapat mengajukan perubahan.' });
+
+		const fd = await request.formData();
+		const field = (fd.get('field') as string) ?? '';
+		const newValue = (fd.get('new_value') as string)?.trim() ?? '';
+		if (!field || !newValue) return fail(400, { error: 'Field dan nilai baru wajib diisi.' });
+
+		const { data: cur } = await supabase.from('santri').select(field).eq('id', params.id).maybeSingle();
+		const oldValue = cur?.[field] != null ? String(cur[field]) : null;
+
+		const { error } = await supabase.from('santri_change_requests').insert({
+			santri_id: params.id,
+			field,
+			old_value: oldValue,
+			new_value: newValue,
+			requested_by: user.id,
+			status: 'pending'
+		});
+		if (error) return fail(400, { error: error.message });
+
+		throw redirect(303, `/santri/${params.id}`);
 	}
 };
