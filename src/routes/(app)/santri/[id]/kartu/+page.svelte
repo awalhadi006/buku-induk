@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
+	import { photoUrl } from '$lib/gdrive';
 
 	let { data } = $props();
 
@@ -11,6 +12,7 @@
 	const kamarNomor = $derived(kamar.find((k) => k.id === s.kamar_id)?.nomor ?? null);
 	const kelasLabel = $derived(kelas.find((k) => k.id === s.kelas_id) ?? null);
 	const waliObj = $derived(wali.find((w) => w.id === s.wali_santri_id) ?? null);
+	const foto = $derived(photoUrl(s.foto_url));
 </script>
 
 <svelte:head>
@@ -40,8 +42,8 @@
 			<div class="my-auto flex gap-3 pt-1">
 				<!-- FOTO SANTRI -->
 				<div class="size-[22mm] shrink-0 overflow-hidden rounded-lg border border-base-300 bg-base-200 shadow-inner flex items-center justify-center text-[8px] text-base-content/40">
-					{#if s.foto_url}
-						<img src={s.foto_url} alt="Foto" class="h-full w-full object-cover" />
+					{#if foto}
+						<img src={foto} alt="Foto" class="h-full w-full object-cover" />
 					{:else}
 						Foto 3x4
 					{/if}

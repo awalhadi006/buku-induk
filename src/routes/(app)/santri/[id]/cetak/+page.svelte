@@ -6,6 +6,7 @@
 		STATUS_KELUARGA_LABEL,
 		STATUS_SANTRI_LABEL
 	} from '$lib/santri';
+	import { photoUrl } from '$lib/gdrive';
 
 	let { data } = $props();
 
@@ -17,6 +18,7 @@
 	const kamarNomor = $derived(kamar.find((k) => k.id === s.kamar_id)?.nomor ?? null);
 	const kelasLabel = $derived(kelas.find((k) => k.id === s.kelas_id) ?? null);
 	const waliLabel = $derived(wali.find((w) => w.id === s.wali_santri_id)?.label ?? null);
+	const foto = $derived(photoUrl(s.foto_url));
 
 	const d = (v: string | null) => {
 		if (!v) return null;
@@ -95,8 +97,8 @@
 			<p><span class="font-semibold w-36 inline-block">Status Aktif:</span> {STATUS_SANTRI_LABEL[s.status_santri] ?? s.status_santri}</p>
 		</div>
 		<div class="size-28 shrink-0 overflow-hidden rounded border border-gray-400 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
-			{#if s.foto_url}
-				<img src={s.foto_url} alt="Foto santri" class="h-full w-full object-cover" />
+			{#if foto}
+				<img src={foto} alt="Foto santri" class="h-full w-full object-cover" />
 			{:else}
 				Foto 3x4
 			{/if}
