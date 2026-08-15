@@ -210,13 +210,15 @@
 				<img src={photoUrl(s.foto_url)} alt="Foto" class="size-16 rounded-xl object-cover" />
 			{:else}
 				<img src="/placeholder-santri.jpg" alt="Foto" class="size-16 rounded-xl object-cover bg-base-200" />
-				<div class="flex size-16 items-center justify-center rounded-xl bg-base-200 text-base-content/40">
-					<IconPhoto class="size-7" stroke-width={1.5} />
-				</div>
 			{/if}
 			<div>
 				<p class="text-sm font-medium">Foto Santri</p>
 				<p class="text-xs text-base-content/60">Disimpan di Google Drive (akun belajar.id)</p>
+				{#if s.foto_url && canDelete}
+					<form method="POST" action="?/deletePhoto" onsubmit={() => confirm('Hapus foto santri ini?')}>
+						<button type="submit" class="btn btn-ghost btn-xs text-error mt-1">Hapus Foto</button>
+					</form>
+				{/if}
 			</div>
 		</div>
 		<label class="flex-1">
@@ -240,6 +242,7 @@
 			kamar={kamarAktif}
 			kelas={kelasAktif}
 			wali={wali}
+			gdrive={data.gdrive}
 			action="?/update"
 			submitLabel="Simpan perubahan"
 			cancelHref="/santri/{s.id}" />

@@ -45,7 +45,7 @@ export async function load({ params, locals }) {
 		})),
 		documents: documents ?? [],
 		_status_history: history ?? [],
-		gdrive: (gdrive?.refresh_token && gdrive?.folder_id) ? { active: true } : null
+		gdrive: !!(gdrive?.refresh_token && gdrive?.folder_id)
 	};
 }
 
@@ -54,8 +54,20 @@ export const actions = {
 		const { user, supabase } = locals;
 		if (!user) throw redirect(303, '/login');
 
-		const payload = parseSantriForm(await request.formData());
+		const fd = await request.formData();
+		const payload = parseSantriForm(fd);
 		if (!payload.nama_lengkap) return fail(400, { error: 'Nama lengkap wajib diisi.' });
+
+		const fotoFile = fd.get('foto_file') as File | null;
+		if (fotoFile && fotoFile.size > 0) {
+			const { data: s } = await supabase.from('santri').select('nama_lengkap').eq('id', params.id).maybeSingle();
+			const { uploadPhoto } = await import('$lib/gdrive');
+			try {
+				payload.foto_url = await uploadPhoto(supabase, fotoFile, s?.nama_lengkap ?? 'Santri');
+			} catch (e) {
+				return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah foto ke Google Drive.' });
+			}
+		}
 
 		const { error: err } = await supabase.from('santri').update(payload).eq('id', params.id);
 		if (err) return fail(400, { error: err.message });
@@ -183,7 +195,21 @@ export const actions = {
 			return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah foto ke Google Drive.' });
 		}
 
-		const { error } = await supabase.from('santri').update({ foto_url }).eq('id', params.id);
+		const { error } = 		await supabase.from('santri').update({ foto_url }).eq('id', params.id);
+		if (error) return fail(400, { error: error.message });
+
+		throw redirect(303, `/santri/${params.id}`);
+	},
+	deletePhoto: async ({ params, locals }) => {
+		const { user, supabase } = locals;
+		if (!user) throw redirect(303, '/login');
+
+		const { data: s } = await supabase.from('santri').select('foto_url').eq('id', params.id).maybeSingle();
+		if (s?.foto_url?.startsWith('gdrive:')) {
+			const { deleteDriveFile } = await import('$lib/gdrive');
+			await deleteDriveFile(supabase, s.foto_url);
+		}
+		const { error } = await supabase.from('santri').update({ foto_url: null }).eq('id', params.id);
 		if (error) return fail(400, { error: error.message });
 
 		throw redirect(303, `/santri/${params.id}`);

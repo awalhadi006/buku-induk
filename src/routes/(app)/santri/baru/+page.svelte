@@ -44,6 +44,19 @@
 				.single();
 			if (insErr) throw new Error(insErr.message);
 
+			const fd = new FormData(el);
+			const fotoFile = fd.get('foto_file') as File | null;
+			if (fotoFile && fotoFile.size > 0) {
+				const up = new FormData();
+				up.append('file', fotoFile);
+				up.append('name', (payload.nama_lengkap as string) ?? 'Santri');
+				const res = await fetch('/api/upload-photo', { method: 'POST', body: up });
+				if (res.ok) {
+					const { url } = (await res.json()) as { url: string };
+					await supabase.from('santri').update({ foto_url: url }).eq('id', row.id);
+				}
+			}
+
 			for (const d of docs) {
 				const path = await uploadSantriPdf(row.id, d.file);
 				const { error: docErr } = await supabase.from('santri_documents').insert({
@@ -83,6 +96,7 @@
 		kamar={data.kamar}
 		kelas={data.kelas}
 		wali={data.wali}
+		gdrive={data.gdrive}
 		submitLabel="Simpan santri"
 		cancelHref="/santri"
 		onSubmit={create}

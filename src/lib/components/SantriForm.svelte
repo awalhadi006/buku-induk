@@ -6,7 +6,7 @@
 	type Field = {
 		key: string;
 		label: string;
-		type?: 'select' | 'textarea' | 'date' | 'number';
+		type?: 'select' | 'textarea' | 'date' | 'number' | 'file';
 		options?: { value: string; label: string }[];
 		required?: boolean;
 		placeholder?: string;
@@ -25,7 +25,8 @@
 		onSubmit,
 		error,
 		submitting,
-		extra
+		extra,
+		gdrive
 	}: {
 		values: Record<string, string>;
 		kamar: { id: number; nomor: number }[];
@@ -38,6 +39,7 @@
 		error?: string | null;
 		submitting?: boolean;
 		extra?: Snippet;
+		gdrive?: boolean;
 	} = $props();
 
 	// svelte-ignore state_referenced_locally (nilai awal sengaja: form selalu di-mount ulang)
@@ -133,7 +135,9 @@
 					type: 'select',
 					options: wali.map((w) => ({ value: w.id, label: w.label }))
 				},
-				{ key: 'foto_url', label: 'Foto (URL)' }
+				...(gdrive
+					? ([{ key: 'foto_file', label: 'Foto profil', type: 'file' }] as Field[])
+					: ([{ key: 'foto_url', label: 'Foto (URL)' }] as Field[]))
 			]
 		}
 	]);
@@ -149,6 +153,7 @@
 	method="POST"
 	action={onSubmit ? undefined : action}
 	onsubmit={handleSubmit}
+	enctype="multipart/form-data"
 	class="space-y-6">
 	{#each groups as g (g.label)}
 		<fieldset class="rounded-2xl border border-base-300 bg-base-100 p-5">
@@ -184,6 +189,12 @@
 								type="number"
 								name={f.key}
 								bind:value={v[f.key]} />
+						{:else if f.type === 'file'}
+							<input
+								class="file-input file-input-bordered w-full"
+								type="file"
+								name={f.key}
+								accept="image/*" />
 						{:else}
 							<input
 								class="input input-bordered w-full"
