@@ -8,7 +8,8 @@
 		IconHistory,
 		IconEdit,
 		IconTrash,
-		IconPlus
+		IconPlus,
+		IconCloud
 	} from '@tabler/icons-svelte';
 	import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	import { ABILITIES } from '$lib/permissions';
@@ -50,6 +51,7 @@
 	const settings = $derived(data.settings as Record<string, string>);
 	const auditLogs = $derived(data.auditLogs as Audit[]);
 	const tahunAjaran = $derived(data.tahunAjaran as TahunAjaran[]);
+	const gdrive = $derived(data.gdrive as { refresh_token: string; connected_at: string; folder_id: string } | null);
 
 	const enabledMetrics = $derived(
 		(Array.isArray(data.enabledMetrics) ? data.enabledMetrics : []) as string[]
@@ -126,6 +128,7 @@
 	<a class="tab" class:tab-active={tab === 'permissions'} href="/pengaturan?tab=permissions">Peran & Izin</a>
 	<a class="tab" class:tab-active={tab === 'fields'} href="/pengaturan?tab=fields">Field Kustom</a>
 	<a class="tab" class:tab-active={tab === 'ta'} href="/pengaturan?tab=ta">Tahun Ajaran</a>
+	<a class="tab" class:tab-active={tab === 'gdrive'} href="/pengaturan?tab=gdrive">Google Drive</a>
 	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
 	<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
 </div>
@@ -464,6 +467,53 @@
 					<IconPlus class="size-4" stroke-width={1.75} />
 					Tambah
 				</button>
+			</form>
+		</div>
+	</section>
+
+{:else if tab === 'gdrive'}
+	<section class="mt-6 max-w-2xl">
+		<h2 class="flex items-center gap-2 text-sm font-semibold">
+			<IconCloud class="size-4" stroke-width={1.75} />
+			Integrasi Google Drive
+		</h2>
+		<p class="mt-1 max-w-[65ch] text-sm text-base-content/60">
+			Unggah foto santri ke Google Drive (akun belajar.id) agar tidak membebani kuota Supabase.
+			Foto akan dibagikan sebagai "siapa saja dengan tautan dapat melihat".
+		</p>
+
+		<div class="mt-4 rounded-2xl border p-5 {gdrive?.refresh_token ? 'border-success/40 bg-success/5' : 'border-base-300 bg-base-100'}">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium">Status Koneksi</p>
+					<p class="text-xs text-base-content/60">
+						{gdrive?.refresh_token ? 'Terhubung' : 'Belum terhubung'}
+						{#if gdrive?.connected_at}
+							· {d(gdrive.connected_at)}
+						{/if}
+					</p>
+				</div>
+				{#if !gdrive?.refresh_token}
+					<a class="btn btn-primary btn-sm" href="/gdrive/auth">Hubungkan Akun</a>
+				{:else}
+					<span class="badge badge-success badge-sm">Aktif</span>
+				{/if}
+			</div>
+
+			<form method="POST" action="?/updateGDriveFolder" class="mt-4">
+				<label class="block">
+					<span class="mb-1.5 block text-sm font-medium">ID Folder Tujuan</span>
+					<input
+						name="folder_id"
+						type="text"
+						class="input input-bordered w-full"
+						value={gdrive?.folder_id ?? ''}
+						placeholder="ID folder Google Drive (dari URL folder)" />
+				</label>
+				<p class="mt-1 text-xs text-base-content/50">
+					Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
+				</p>
+				<button type="submit" class="btn btn-primary btn-sm mt-3">Simpan Folder</button>
 			</form>
 		</div>
 	</section>

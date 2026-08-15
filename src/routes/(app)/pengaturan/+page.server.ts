@@ -37,7 +37,8 @@ export async function load({ locals }) {
 		{ data: fields },
 		{ data: settings },
 		{ data: auditLogs },
-		{ data: tahunAjaran }
+		{ data: tahunAjaran },
+		{ data: gdrive }
 	] = await Promise.all([
 		supabase.from('profiles').select('*').order('created_at'),
 		supabase.from('kamar').select('id,nomor').order('nomor'),
@@ -46,7 +47,8 @@ export async function load({ locals }) {
 		supabase.from('custom_fields').select('*').order('urutan').order('id'),
 		supabase.from('settings').select('key,value'),
 		supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
-		supabase.from('tahun_ajaran').select('id,nama,aktif').order('nama', { ascending: false })
+		supabase.from('tahun_ajaran').select('id,nama,aktif').order('nama', { ascending: false }),
+		supabase.from('gdrive_creds').select('*').eq('id', 1).maybeSingle()
 	]);
 
 	return {
@@ -58,6 +60,7 @@ export async function load({ locals }) {
 		settings: Object.fromEntries((settings ?? []).map((s) => [s.key, s.value ?? ''])),
 		auditLogs: auditLogs ?? [],
 		tahunAjaran: tahunAjaran ?? [],
+		gdrive: gdrive ?? null,
 		enabledMetrics: parseMetricKeys(
 			(settings ?? []).find((s) => s.key === 'dashboard_metrics')?.value ?? null
 		)
@@ -169,6 +172,14 @@ export const actions = {
 		const { error } = await locals.supabase
 			.from('settings')
 			.upsert({ key: 'dashboard_metrics', value: JSON.stringify(metrics) }, { onConflict: 'key' });
+		if (error) return fail(400, { error: error.message });
+	},
+
+	updateGDriveFolder: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const folder_id = (fd.get('folder_id') as string | null)?.trim() ?? '';
+		const { error } = await locals.supabase.from('gdrive_creds').update({ folder_id }).eq('id', 1);
 		if (error) return fail(400, { error: error.message });
 	}
 };
