@@ -121,13 +121,13 @@
 						<IconSchool class="size-5" stroke-width={1.75} />
 					</span>
 					<div class="min-w-0 flex-1">
-						<p class="font-medium">
+						<a href="/kelas/{k.id}" class="font-medium hover:underline">
 							{k.tingkat}
 							{k.rombel}
 							{#if k.tahun_ajaran && k.tahun_ajaran !== '—'}
 								<span class="badge badge-ghost badge-sm ml-2 font-normal">{k.tahun_ajaran}</span>
 							{/if}
-						</p>
+						</a>
 					</div>
 					<span class={`badge badge-sm ${k.aktif ? 'badge-success' : 'badge-neutral'}`}>
 						{k.aktif ? 'Aktif' : 'Nonaktif'}

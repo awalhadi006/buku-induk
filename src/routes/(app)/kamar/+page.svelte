@@ -126,7 +126,7 @@
 						<IconBed class="size-5" stroke-width={1.75} />
 					</span>
 					<div class="min-w-0 flex-1">
-						<p class="font-medium">Kamar {k.nomor}</p>
+						<a href="/kamar/{k.id}" class="font-medium hover:underline">Kamar {k.nomor}</a>
 						<p class="text-sm text-base-content/60">
 							{k.asrama ?? 'Tanpa asrama'}
 							{k.kapasitas != null ? ` · kapasitas ${k.kapasitas}` : ''}
