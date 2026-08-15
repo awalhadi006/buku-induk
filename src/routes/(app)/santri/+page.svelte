@@ -90,7 +90,7 @@
 		</button>
 
 		{#if canCreate}
-			<a class="btn btn-outline btn-sm" href="/santri/export" download title="Ekspor semua data santri ke Excel">
+			<a class="btn btn-outline btn-sm" href="/santri/export" title="Ekspor data santri">
 				<IconDownload class="size-4" stroke-width={2} />
 				Ekspor
 			</a>

@@ -1,0 +1,46 @@
+export type ExportField = {
+	key: string;
+	label: string;
+};
+
+export const EXPORT_FIELDS: ExportField[] = [
+	{ key: 'nama_lengkap', label: 'Nama Lengkap' },
+	{ key: 'nisn', label: 'NISN' },
+	{ key: 'nik', label: 'NIK' },
+	{ key: 'nis', label: 'NIS' },
+	{ key: 'nipd', label: 'NIPD' },
+	{ key: 'nama_panggilan', label: 'Nama Panggilan' },
+	{ key: 'tempat_lahir', label: 'Tempat Lahir' },
+	{ key: 'tanggal_lahir', label: 'Tanggal Lahir' },
+	{ key: 'jenis_kelamin', label: 'Jenis Kelamin' },
+	{ key: 'agama', label: 'Agama' },
+	{ key: 'kewarganegaraan', label: 'Kewarganegaraan' },
+	{ key: 'tempat_tinggal', label: 'Tempat Tinggal' },
+	{ key: 'transportasi', label: 'Transportasi' },
+	{ key: 'anak_ke', label: 'Anak Ke' },
+	{ key: 'no_hp', label: 'No HP' },
+	{ key: 'alamat', label: 'Alamat' },
+	{ key: 'rt', label: 'RT' },
+	{ key: 'rw', label: 'RW' },
+	{ key: 'desa', label: 'Desa' },
+	{ key: 'kecamatan', label: 'Kecamatan' },
+	{ key: 'kabupaten', label: 'Kabupaten' },
+	{ key: 'no_akta', label: 'No Akta' },
+	{ key: 'no_kk', label: 'No KK' },
+	{ key: 'bantuan_kip', label: 'Bantuan KIP' },
+	{ key: 'status_keluarga', label: 'Status Keluarga' },
+	{ key: 'status_santri', label: 'Status Santri' },
+	{ key: 'tanggal_masuk', label: 'Tanggal Masuk' },
+	{ key: 'asal_sekolah', label: 'Asal Sekolah' },
+	{ key: 'jalur_masuk', label: 'Jalur Masuk' },
+	{ key: 'kamar', label: 'Kamar' },
+	{ key: 'kelas', label: 'Kelas' },
+	{ key: 'nama_ayah', label: 'Nama Ayah' },
+	{ key: 'nama_ibu', label: 'Nama Ibu' },
+	{ key: 'nama_wali', label: 'Nama Wali' },
+	{ key: 'pekerjaan_ayah', label: 'Pekerjaan Ayah' },
+	{ key: 'pekerjaan_ibu', label: 'Pekerjaan Ibu' },
+	{ key: 'penghasilan', label: 'Penghasilan' },
+	{ key: 'alamat_wali', label: 'Alamat Wali' },
+	{ key: 'no_hp_wali', label: 'No HP Wali' }
+];
