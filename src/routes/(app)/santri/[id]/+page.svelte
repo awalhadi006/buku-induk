@@ -212,8 +212,6 @@
 				<img src="/placeholder-santri.jpg" alt="Foto" class="size-16 rounded-xl object-cover bg-base-200" />
 			{/if}
 			<div>
-				<p class="text-sm font-medium">Foto Santri</p>
-				<p class="text-xs text-base-content/60">Disimpan di Google Drive (akun belajar.id)</p>
 				{#if s.foto_url && canDelete}
 					<form method="POST" action="?/deletePhoto" onsubmit={() => confirm('Hapus foto santri ini?')}>
 						<button type="submit" class="btn btn-ghost btn-xs text-error mt-1">Hapus Foto</button>

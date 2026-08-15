@@ -58,12 +58,24 @@
 			}
 
 			for (const d of docs) {
-				const path = await uploadSantriPdf(row.id, d.file);
+				let fileUrl: string;
+				if (data.gdrive) {
+					const up = new FormData();
+					up.append('file', d.file);
+					up.append('name', (payload.nama_lengkap as string) ?? 'Santri');
+					const res = await fetch('/api/upload-doc', { method: 'POST', body: up });
+					if (!res.ok) throw new Error('Gagal mengunggah dokumen ke Google Drive.');
+					const json = (await res.json()) as { url: string };
+					fileUrl = json.url;
+				} else {
+					fileUrl = await uploadSantriPdf(row.id, d.file);
+				}
+
 				const { error: docErr } = await supabase.from('santri_documents').insert({
 					santri_id: row.id,
 					jenis: d.jenis,
 					nama_file: d.file.name,
-					file_url: path
+					file_url: fileUrl
 				});
 				if (docErr) throw new Error(docErr.message);
 			}
