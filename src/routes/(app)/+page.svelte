@@ -98,6 +98,17 @@
 					<span class="text-sm text-base-content/70">Total santri</span>
 					<span class="mt-2 font-mono text-5xl">{rekap.total}</span>
 				</div>
+				{#if rekap.tidak_lengkap != null && rekap.tidak_lengkap > 0}
+					<a
+						href="/santri?incomplete=true"
+						class="group flex flex-col justify-between rounded-2xl border border-warning/40 bg-warning/10 p-5 transition-colors hover:border-warning hover:bg-warning/20">
+						<span class="text-sm font-medium text-warning-content">Data belum lengkap</span>
+						<div class="mt-2 flex items-baseline justify-between">
+							<span class="font-mono text-3xl font-bold text-warning-content">{rekap.tidak_lengkap}</span>
+							<span class="text-xs text-warning-content/80 group-hover:underline">Lengkapi &rarr;</span>
+						</div>
+					</a>
+				{/if}
 				<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
 					<span class="text-sm text-base-content/70">Laki-laki</span>
 					<span class="mt-2 block font-mono text-3xl">{laki}</span>

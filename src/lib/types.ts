@@ -15,11 +15,12 @@ export type Profile = {
 
 export type Rekap = {
 	total: number;
+	tidak_lengkap?: number;
 	per_status: Record<string, number>;
 	per_gender: Record<string, number>;
-	per_kamar: { nomor: number | null; jumlah: number }[];
-	per_kelas: { kelas: string | null; jumlah: number }[];
 	per_daerah: Record<string, number>;
+	per_kamar: { nomor: number; jumlah: number }[];
+	per_kelas: { kelas: string; jumlah: number }[];
 };
 
 export const DASHBOARD_METRICS = [

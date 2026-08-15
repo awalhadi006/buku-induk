@@ -22,8 +22,10 @@
 	let filterKabupaten = $state('');
 	let showFilters = $state(false);
 
+	const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 'true');
+
 	const activeFilterCount = $derived(
-		[filterKamar, filterKelas, filterStatus, filterKeluarga, filterGender, filterKabupaten].filter(Boolean).length
+		[filterKamar, filterKelas, filterStatus, filterKeluarga, filterGender, filterKabupaten].filter(Boolean).length + (filterIncomplete ? 1 : 0)
 	);
 
 	function resetFilters() {
@@ -51,6 +53,10 @@
 			if (filterKeluarga && s.status_keluarga !== filterKeluarga) return false;
 			if (filterGender && s.jenis_kelamin !== filterGender) return false;
 			if (filterKabupaten && (s.kabupaten ?? '') !== filterKabupaten) return false;
+			if (filterIncomplete) {
+				const incomplete = !s.nik || !s.nisn || !s.tanggal_lahir || !s.tempat_lahir || !s.jenis_kelamin || !s.wali_santri_id;
+				if (!incomplete) return false;
+			}
 			return true;
 		})
 	);

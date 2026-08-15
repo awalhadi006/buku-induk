@@ -284,31 +284,20 @@
 		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
 			<h2 class="text-sm font-semibold">Histori</h2>
 			{#if data._status_history.length > 0}
-				<div class="overflow-x-auto text-sm">
-					<table class="table caption-top">
-						<thead>
-							<tr class="text-xs uppercase tracking-wide text-base-content/60">
-								<th>Tgl Efektif</th>
-								<th>Jenis</th>
-								<th>Dari</th>
-								<th>Ke</th>
-								<th>Oleh</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each data._status_history as h (h.id)}
-								<tr class="hover:bg-base-200/50">
-									<td class="font-mono text-xs">{d(h.tanggal_efektif)}</td>
-									<td class="text-base-content/60">{h.jenis}</td>
-									<td class="font-mono text-xs">{histVal(h.jenis, h.nilai_lama)}</td>
-									<td class="font-mono text-xs">{histVal(h.jenis, h.nilai_baru)}</td>
-									<td class="text-base-content/60"
-										>{h.created_by ? h.created_by.slice(0, 8) : '(sistem)'}</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
+				<ol class="mt-4 space-y-4">
+					{#each data._status_history as h (h.id)}
+						<li class="flex gap-3">
+							<div class="mt-1 flex h-2.5 w-2.5 shrink-0 rounded-full bg-primary/40"></div>
+							<div class="min-w-0 flex-1">
+								<p class="text-sm font-medium capitalize">{h.jenis.replace(/_/g, ' ')}</p>
+								<p class="text-xs text-base-content/60">
+									<span class="font-mono">{d(h.tanggal_efektif)}</span>
+									&middot; {histVal(h.jenis, h.nilai_lama)} <span class="px-1 text-base-content/40">&rarr;</span> {histVal(h.jenis, h.nilai_baru)}
+								</p>
+							</div>
+						</li>
+					{/each}
+				</ol>
 			{:else}
 				<p class="mt-2 text-sm text-base-content/60">Belum ada catatan histori.</p>
 			{/if}
