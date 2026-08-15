@@ -102,7 +102,7 @@ export const actions = {
 		if (!field || !newValue) return fail(400, { error: 'Field dan nilai baru wajib diisi.' });
 
 		const { data: cur } = await supabase.from('santri').select(field).eq('id', params.id).maybeSingle();
-		const oldValue = cur?.[field] != null ? String(cur[field]) : null;
+		const oldValue = (cur && typeof cur === 'object' && field in cur) ? String((cur as Record<string, unknown>)[field]) : null;
 
 		const { error } = await supabase.from('santri_change_requests').insert({
 			santri_id: params.id,
