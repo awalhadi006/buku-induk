@@ -16,10 +16,12 @@
 		IconLogout,
 		IconChevronDown,
 		IconCheck,
-		IconSparkles
+		IconSparkles,
+		IconSearch
 	} from '@tabler/icons-svelte';
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
+	import QuickSearch from '$lib/components/QuickSearch.svelte';
 
 	let { children } = $props();
 
@@ -241,6 +243,12 @@
 				<IconMenu class="size-5" stroke-width={1.75} />
 			</button>
 			<span class="font-semibold tracking-tight">Buku Induk</span>
+			<button
+				class="btn btn-ghost btn-square btn-sm ml-auto"
+				aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"
+				onclick={() => window.dispatchEvent(new Event('quicksearch:open'))}>
+				<IconSearch class="size-5" stroke-width={1.75} />
+			</button>
 		</header>
 
 		<main class="mx-auto w-full max-w-[1400px] px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:py-8">
@@ -248,3 +256,5 @@
 		</main>
 	</div>
 </div>
+
+<QuickSearch />
