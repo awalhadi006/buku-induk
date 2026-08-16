@@ -117,7 +117,7 @@ export const actions = {
 			kelasIdByKey.set(`${k.tingkat}${k.rombel}`.replace(/\s+/g, '').toUpperCase(), k.id);
 		}
 
-		const errors: { row: number; nama: string; reason: string }[] = [];
+		const errors: { row: number; nama: string; reason: string; kategori: string }[] = [];
 		let berhasil = 0;
 
 		for (let i = 0; i < rows.length; i++) {
@@ -138,22 +138,23 @@ export const actions = {
 			}
 
 			const nama = String(s.nama_lengkap ?? '');
-			const recordErr = (reason: string) => errors.push({ row: line, nama, reason });
+			const recordErr = (reason: string, kategori: string) =>
+				errors.push({ row: line, nama, reason, kategori });
 
 			if (!nama) {
-				recordErr('Nama lengkap kosong');
+				recordErr('Nama lengkap kosong', 'wajib');
 				continue;
 			}
 			if (s.jenis_kelamin && !['L', 'P'].includes(String(s.jenis_kelamin))) {
-				recordErr('Jenis kelamin harus L atau P');
+				recordErr('Jenis kelamin harus L atau P', 'format');
 				continue;
 			}
 			if (s.status_santri && !STATUS_SANTRI_VALUES.has(String(s.status_santri))) {
-				recordErr(`Status santri tidak dikenal: ${s.status_santri}`);
+				recordErr(`Status santri tidak dikenal: ${s.status_santri}`, 'format');
 				continue;
 			}
 			if (s.status_keluarga && !STATUS_KELUARGA_VALUES.has(String(s.status_keluarga))) {
-				recordErr(`Status keluarga tidak dikenal: ${s.status_keluarga}`);
+				recordErr(`Status keluarga tidak dikenal: ${s.status_keluarga}`, 'format');
 				continue;
 			}
 
@@ -161,7 +162,7 @@ export const actions = {
 				if (!s[f]) continue;
 				const iso = toIsoDate(s[f]);
 				if (iso === 'invalid') {
-					recordErr(`${f} tidak valid`);
+					recordErr(`${f} tidak valid`, 'format');
 					continue;
 				}
 				s[f] = iso;
@@ -169,12 +170,12 @@ export const actions = {
 
 			const kamarId = kamarNomor ? kamarIdByNomor.get(Number(kamarNomor)) : null;
 			if (kamarNomor && !kamarId) {
-				recordErr(`Kamar ${kamarNomor} tidak ditemukan`);
+				recordErr(`Kamar ${kamarNomor} tidak ditemukan`, 'referensi');
 				continue;
 			}
 			const kelasId = kelasKey ? kelasIdByKey.get(kelasKey.replace(/\s+/g, '').toUpperCase()) : null;
 			if (kelasKey && !kelasId) {
-				recordErr(`Kelas ${kelasKey} tidak ditemukan`);
+				recordErr(`Kelas ${kelasKey} tidak ditemukan`, 'referensi');
 				continue;
 			}
 
@@ -182,7 +183,7 @@ export const actions = {
 			try {
 				waliId = await findOrCreateWali(supabase, w);
 			} catch (e) {
-				recordErr(e instanceof Error ? e.message : 'Gagal mencatat wali santri');
+				recordErr(e instanceof Error ? e.message : 'Gagal mencatat wali santri', 'database');
 				continue;
 			}
 
@@ -193,7 +194,7 @@ export const actions = {
 
 			const { error } = await supabase.from('santri').insert(payload);
 			if (error) {
-				recordErr(error.message);
+				recordErr(error.message, 'database');
 			} else {
 				berhasil++;
 			}
@@ -205,6 +206,6 @@ export const actions = {
 			after: { rows: rows.length, berhasil, gagal: errors.length }
 		});
 
-		return { berhasil, gagal: errors.length, errors: errors.slice(0, 50) };
+		return { total: rows.length, berhasil, gagal: errors.length, errors };
 	}
 };
