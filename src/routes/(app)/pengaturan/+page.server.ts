@@ -181,6 +181,46 @@ export const actions = {
 		const folder_id = (fd.get('folder_id') as string | null)?.trim() ?? '';
 		const { error } = await locals.supabase.from('gdrive_creds').update({ folder_id }).eq('id', 1);
 		if (error) return fail(400, { error: error.message });
+	},
+
+	updateNisPattern: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const pattern = (fd.get('pattern') as string | null)?.trim() ?? '';
+		const jenjangRaw = (fd.get('jenjang_map') as string | null)?.trim() ?? '';
+
+		if (!pattern) return fail(400, { error: 'Pola NIS wajib diisi.' });
+		if (!pattern.includes('{NO}')) return fail(400, { error: 'Pola harus mengandung token {NO}.' });
+
+		const jenjangEntries: [string, string][] = [];
+		if (jenjangRaw) {
+			for (const line of jenjangRaw.split('\n')) {
+				const [k, v] = line.split('=').map((s) => s.trim());
+				if (k && v) jenjangEntries.push([k, v]);
+			}
+		}
+		const jenjangMap = Object.fromEntries(jenjangEntries);
+
+		const { error: e1 } = await locals.supabase
+			.from('settings')
+			.upsert({ key: 'nis_pattern', value: pattern }, { onConflict: 'key' });
+		if (e1) return fail(400, { error: e1.message });
+
+		const { error: e2 } = await locals.supabase
+			.from('settings')
+			.upsert({ key: 'nis_jenjang_map', value: JSON.stringify(jenjangMap) }, { onConflict: 'key' });
+		if (e2) return fail(400, { error: e2.message });
+	},
+
+	bulkGenerateNis: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const pattern = (fd.get('pattern') as string | null)?.trim() ?? '';
+		if (!pattern) return fail(400, { error: 'Pola NIS belum dikonfigurasi.' });
+
+		const { data, error } = await locals.supabase.rpc('bulk_generate_nis', { p_pattern: pattern });
+		if (error) return fail(400, { error: error.message });
+		return { nisGenerated: data as number };
 	}
 };
 

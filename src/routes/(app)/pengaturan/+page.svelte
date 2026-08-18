@@ -9,7 +9,8 @@
 		IconEdit,
 		IconTrash,
 		IconPlus,
-		IconCloud
+		IconCloud,
+		IconHash
 	} from '@tabler/icons-svelte';
 	import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	import { ABILITIES } from '$lib/permissions';
@@ -104,6 +105,16 @@
 			? iso
 			: date.toLocaleDateString('id-ID') + ' ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 	}
+
+	function formatJenjangMap(raw: string | undefined): string {
+		if (!raw) return '';
+		try {
+			const obj = JSON.parse(raw);
+			return Object.entries(obj).map(([k, v]) => `${k}=${v}`).join('\n');
+		} catch {
+			return '';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -128,6 +139,7 @@
 	<a class="tab" class:tab-active={tab === 'permissions'} href="/pengaturan?tab=permissions">Peran & Izin</a>
 	<a class="tab" class:tab-active={tab === 'fields'} href="/pengaturan?tab=fields">Field Kustom</a>
 	<a class="tab" class:tab-active={tab === 'ta'} href="/pengaturan?tab=ta">Tahun Ajaran</a>
+	<a class="tab" class:tab-active={tab === 'nis'} href="/pengaturan?tab=nis">NIS</a>
 	<a class="tab" class:tab-active={tab === 'gdrive'} href="/pengaturan?tab=gdrive">Google Drive</a>
 	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
 	<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
@@ -469,6 +481,76 @@
 				</button>
 			</form>
 		</div>
+	</section>
+
+{:else if tab === 'nis'}
+	<section class="mt-6 max-w-2xl">
+		<h2 class="flex items-center gap-2 text-sm font-semibold">
+			<IconHash class="size-4" stroke-width={1.75} />
+			Auto-Generator NIS
+		</h2>
+		<p class="mt-1 max-w-[65ch] text-sm text-base-content/60">
+			Atur pola NIS otomatis. Token: <code class="badge badge-ghost badge-sm font-mono">{`{TAHUN}`}</code> (2 digit tahun),
+			<code class="badge badge-ghost badge-sm font-mono">{`{JENJANG}`}</code> (kode jenjang),
+			<code class="badge badge-ghost badge-sm font-mono">{`{NO}`}</code> (nomor urut 3 digit).
+			Token bisa di-ordered ulang, ditambah, atau dikurangi.
+		</p>
+
+		<form method="POST" action="?/updateNisPattern" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+			<label class="block">
+				<span class="mb-1.5 block text-sm font-medium">Pola NIS *</span>
+				<input
+					name="pattern"
+					type="text"
+					required
+					class="input input-bordered w-full font-mono"
+					value={settings['nis_pattern'] ?? '{TAHUN}.{JENJANG}.{NO}'}
+					placeholder="{TAHUN}.{JENJANG}.{NO}" />
+			</label>
+			<p class="mt-1 text-xs text-base-content/50">
+				Contoh: <code>{`{TAHUN}{JENJANG}{NO}`}</code> → <code>25MIA001</code> ·
+				<code>{`{TAHUN}-{NO}`}</code> → <code>25-001</code> ·
+				<code>{`{NO}`}</code> → <code>001</code>
+			</p>
+
+			<label class="mt-4 block">
+				<span class="mb-1.5 block text-sm font-medium">Pemetaan Jenjang (opsional)</span>
+				<textarea
+					name="jenjang_map"
+					rows="3"
+					class="textarea textarea-bordered w-full font-mono text-sm"
+					placeholder="MI=I&#10;MTs=M&#10;MA=A">{formatJenjangMap(settings['nis_jenjang_map'])}</textarea>
+			</label>
+			<p class="mt-1 text-xs text-base-content/50">
+				Satu per baris, format: <code>nama_jenjang=kode</code>. Token <code>{`{JENJANG}`}</code> akan diganti dengan kode yang sesuai.
+			</p>
+
+			<div class="mt-3 rounded-lg bg-base-200 p-3">
+				<p class="text-xs font-medium text-base-content/70">Contoh hasil:</p>
+				<div class="mt-1 flex flex-wrap gap-2">
+					<code class="badge badge-outline badge-sm font-mono">25MIA001</code>
+					<code class="badge badge-outline badge-sm font-mono">25MIA002</code>
+					<code class="badge badge-outline badge-sm font-mono">26MIA001</code>
+				</div>
+			</div>
+
+			<button type="submit" class="btn btn-primary btn-sm mt-4">
+				<IconEdit class="size-4" stroke-width={2} />
+				Simpan Pola
+			</button>
+		</form>
+
+		<form method="POST" action="?/bulkGenerateNis" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+			<input type="hidden" name="pattern" value={settings['nis_pattern'] ?? '{TAHUN}.{JENJANG}.{NO}'} />
+			<h3 class="text-sm font-semibold">Generate NIS Massal</h3>
+			<p class="mt-1 text-sm text-base-content/60">
+				Buatkan NIS otomatis untuk semua santri yang belum memiliki NIS.
+			</p>
+			<button type="submit" class="btn btn-outline btn-sm mt-3" onclick={() => !confirm('Generate NIS untuk semua santri yang belum punya NIS?') && event.preventDefault()}>
+				<IconHash class="size-4" stroke-width={2} />
+				Generate Sekarang
+			</button>
+		</form>
 	</section>
 
 {:else if tab === 'gdrive'}

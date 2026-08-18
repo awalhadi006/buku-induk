@@ -11,7 +11,7 @@ export async function load({ locals }) {
 		.maybeSingle();
 	if (!['superadmin', 'admin_tu'].includes(profile?.peran ?? '')) throw redirect(303, '/santri');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: gd }, { data: customFields }] =
+	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: gd }, { data: customFields }, { data: nisPattern }] =
 		await Promise.all([
 			supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
 			supabase
@@ -23,7 +23,8 @@ export async function load({ locals }) {
 				.order('rombel'),
 			supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at'),
 			supabase.from('gdrive_creds').select('id,refresh_token').eq('id', 1).maybeSingle(),
-			supabase.from('custom_fields').select('*').eq('aktif', true).order('urutan').order('id')
+			supabase.from('custom_fields').select('*').eq('aktif', true).order('urutan').order('id'),
+			supabase.from('settings').select('value').eq('key', 'nis_pattern').maybeSingle()
 		]);
 
 	return {
@@ -34,6 +35,7 @@ export async function load({ locals }) {
 			label: w.nama_wali || w.nama_ayah || w.nama_ibu || '(wali tanpa nama)'
 		})),
 		gdrive: !!gd?.refresh_token,
-		customFields: customFields ?? []
+		customFields: customFields ?? [],
+		nisPattern: nisPattern?.value ?? ''
 	};
 }

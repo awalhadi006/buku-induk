@@ -35,6 +35,14 @@
 			error = 'Nama lengkap wajib diisi.';
 			return;
 		}
+
+		if (!payload.nis && data.nisPattern) {
+			const { data: generatedNis, error: nisErr } = await supabase.rpc('generate_nis', {
+				p_pattern: data.nisPattern
+			});
+			if (!nisErr && generatedNis) payload.nis = generatedNis;
+		}
+
 		submitting = true;
 		error = '';
 		try {
