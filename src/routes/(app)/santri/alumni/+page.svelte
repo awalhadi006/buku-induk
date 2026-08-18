@@ -96,6 +96,14 @@
 				<span class="badge badge-primary badge-sm ml-1">{activeFilterCount}</span>
 			{/if}
 		</button>
+		<a
+			href={`/santri/alumni/export?tahun=${filterTahun}&kelas=${filterKelas}`}
+			class="btn btn-outline btn-sm"
+			target="_blank"
+			rel="noopener noreferrer">
+			<IconAward class="size-4" stroke-width={1.75} />
+			Export
+		</a>
 	</div>
 </header>
 
