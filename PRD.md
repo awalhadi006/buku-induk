@@ -53,7 +53,14 @@ Catatan: seluruh izin di atas **dapat diubah** Superadmin di menu **Peran & Izin
 ### 4. Field konfigurabel
 - Superadmin menambah **field kustom** (teks/angka/pilihan/tanggal) dan menyembunyikan field bawaan yang tak terpakai — sebagai jaring pengaman bila ada field tertinggal/tidak dipakai.
 
-### 5. Kamar, kelas & tahun ajaran
+### 5. Auto-Generator NIS
+- Superadmin mengonfigurasi **pola NIS** di halaman Pengaturan (contoh: `{TAHUN}.{JENJANG}.{NO}`).
+- Pola tersusun dari **token** yang bisa di-ordered ulang: `TAHUN` (2 digit tahun masuk), `JENJANG` (kode jenjang), `NO` (nomor urut otomatis, zero-padded).
+- NIS di-generate otomatis saat santri baru ditambahkan atau saat di-trigger manual dari halaman Pengaturan untuk santri yang belum punya NIS.
+- Admin TU tetap bisa **override manual** NIS per santri jika diperlukan.
+- Validasi: NIS harus unik, pola harus valid sebelum disimpan.
+
+### 6. Kamar, kelas & tahun ajaran
 - **Kamar**: daftar dinamis (nomor tidak terpaku 1–9), opsional asrama (Putra/Putri) + kapasitas.
 - **Kelas**: tingkat (7/8/9) + rombel (A/B/…) + wali kelas; sejarah per tahun.
 - **Tahun Ajaran Aktif**: setting di halaman pengaturan; konteks dashboard/rekap.
@@ -61,34 +68,34 @@ Catatan: seluruh izin di atas **dapat diubah** Superadmin di menu **Peran & Izin
 - **Kenaikan Kelas Massal**: Admin TU memilih kelas sumber → kelas tujuan, seluruh santri di kelas tersebut dipindahkan sekaligus dengan tanggal efektif yang bisa diatur.
 - **Kelulusan Massal**: Admin TU memilih kelas, seluruh santri di kelas tersebut statusnya diubah menjadi `Lulus` sekaligus dengan tanggal efektif yang bisa diatur.
 
-### 6. Wali Santri
+### 7. Wali Santri
 - Entitas terpisah yang menaungi satu atau lebih santri (kakak-beradik). Menghindari duplikasi dan satu edit berlaku untuk semua anak.
 - Data: nama ayah, nama ibu, nama wali, pekerjaan, penghasilan, alamat, no HP.
 
-### 7. Direktori Alumni
+### 8. Direktori Alumni
 - Halaman khusus untuk menampilkan daftar santri yang berstatus `Lulus`.
 - Dapat difilter berdasarkan tahun kelulusan dan kelas asal.
 - Fitur ekspor data alumni ke Excel.
 
-### 8. Histori & audit log
+### 9. Histori & audit log
 - **Histori santri**: status, perpindahan kamar/kelas, perubahan penting — otomatis tercatat "dari apa ke apa, kapan".
 - **Audit log** (append-only, khusus Superadmin): semua perubahan data santri & wali, import Excel, perubahan pengguna/peran/izin/field — siapa, apa, dari ke, kapan.
 - **Catatan Pembaruan (Apa yang Baru)**: Halaman khusus yang menampilkan riwayat pembaruan aplikasi secara otomatis berdasarkan aktivitas pengembangan, disajikan dengan bahasa yang mudah dipahami oleh pengguna.
 
-### 9. Import Excel
+### 10. Import Excel
 - Template siap unduh; import data santri + wali dari Excel.
 - Log hasil import (berhasil/gagal/baris bermasalah) masuk audit log.
 
-### 10. Cetak & ekspor
+### 11. Cetak & ekspor
 - **Kartu santri** (dengan foto), **kutipan buku induk** (resmi per santri), **rekap per kamar/kelas** (tabel), **ekspor Excel** seluruh data.
 - Cetak/ekspor **menghormati filter aktif** (mis. hanya santri putra, hanya status keluarga Yatim).
 
-### 11. Pencarian & filter
+### 12. Pencarian & filter
 - Kata kunci: nama, NISN, NIK, NIS.
 - Filter: kamar, kelas, status santri, status keluarga, jenis kelamin, asal daerah.
 - Tampilan daftar (tabel) + halaman detail.
 
-### 12. Tema
+### 13. Tema
 - Multi-tema dengan daisyUI (bawaan + tema kustom), bukan sekadar dark/light.
 
 ## Persyaratan non-fungsional
