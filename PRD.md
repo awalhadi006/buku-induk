@@ -65,25 +65,30 @@ Catatan: seluruh izin di atas **dapat diubah** Superadmin di menu **Peran & Izin
 - Entitas terpisah yang menaungi satu atau lebih santri (kakak-beradik). Menghindari duplikasi dan satu edit berlaku untuk semua anak.
 - Data: nama ayah, nama ibu, nama wali, pekerjaan, penghasilan, alamat, no HP.
 
-### 7. Histori & audit log
+### 7. Direktori Alumni
+- Halaman khusus untuk menampilkan daftar santri yang berstatus `Lulus`.
+- Dapat difilter berdasarkan tahun kelulusan dan kelas asal.
+- Fitur ekspor data alumni ke Excel.
+
+### 8. Histori & audit log
 - **Histori santri**: status, perpindahan kamar/kelas, perubahan penting — otomatis tercatat "dari apa ke apa, kapan".
 - **Audit log** (append-only, khusus Superadmin): semua perubahan data santri & wali, import Excel, perubahan pengguna/peran/izin/field — siapa, apa, dari ke, kapan.
 - **Catatan Pembaruan (Apa yang Baru)**: Halaman khusus yang menampilkan riwayat pembaruan aplikasi secara otomatis berdasarkan aktivitas pengembangan, disajikan dengan bahasa yang mudah dipahami oleh pengguna.
 
-### 8. Import Excel
+### 9. Import Excel
 - Template siap unduh; import data santri + wali dari Excel.
 - Log hasil import (berhasil/gagal/baris bermasalah) masuk audit log.
 
-### 9. Cetak & ekspor
+### 10. Cetak & ekspor
 - **Kartu santri** (dengan foto), **kutipan buku induk** (resmi per santri), **rekap per kamar/kelas** (tabel), **ekspor Excel** seluruh data.
 - Cetak/ekspor **menghormati filter aktif** (mis. hanya santri putra, hanya status keluarga Yatim).
 
-### 10. Pencarian & filter
+### 11. Pencarian & filter
 - Kata kunci: nama, NISN, NIK, NIS.
 - Filter: kamar, kelas, status santri, status keluarga, jenis kelamin, asal daerah.
 - Tampilan daftar (tabel) + halaman detail.
 
-### 11. Tema
+### 12. Tema
 - Multi-tema dengan daisyUI (bawaan + tema kustom), bukan sekadar dark/light.
 
 ## Persyaratan non-fungsional
