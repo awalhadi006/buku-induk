@@ -58,6 +58,8 @@ Catatan: seluruh izin di atas **dapat diubah** Superadmin di menu **Peran & Izin
 - **Kelas**: tingkat (7/8/9) + rombel (A/B/…) + wali kelas; sejarah per tahun.
 - **Tahun Ajaran Aktif**: setting di halaman pengaturan; konteks dashboard/rekap.
 - Satu santri = satu kamar + satu kelas (berbeda dari dimensi lain). Pergantian kamar/kelas terekam sebagai **histori bertanggal efektif**.
+- **Kenaikan Kelas Massal**: Admin TU memilih kelas sumber → kelas tujuan, seluruh santri di kelas tersebut dipindahkan sekaligus dengan tanggal efektif yang bisa diatur.
+- **Kelulusan Massal**: Admin TU memilih kelas, seluruh santri di kelas tersebut statusnya diubah menjadi `Lulus` sekaligus dengan tanggal efektif yang bisa diatur.
 
 ### 6. Wali Santri
 - Entitas terpisah yang menaungi satu atau lebih santri (kakak-beradik). Menghindari duplikasi dan satu edit berlaku untuk semua anak.
