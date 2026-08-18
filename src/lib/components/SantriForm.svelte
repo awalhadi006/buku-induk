@@ -52,19 +52,20 @@
 		customFields?: CustomField[];
 	} = $props();
 
+	function expandCustom(vals: Record<string, string>, fields?: CustomField[]): Record<string, string> {
+		if (!fields?.length || typeof vals.custom !== 'string') return {};
+		try {
+			const parsed = JSON.parse(vals.custom);
+			const out: Record<string, string> = {};
+			for (const cf of fields) {
+				if (parsed[cf.nama] != null) out[`custom_${cf.nama}`] = String(parsed[cf.nama]);
+			}
+			return out;
+		} catch { return {}; }
+	}
+
 	// svelte-ignore state_referenced_locally (nilai awal sengaja: form selalu di-mount ulang)
-	let v = $state(() => {
-		const init = { ...values };
-		if (customFields?.length && typeof init.custom === 'string') {
-			try {
-				const parsed = JSON.parse(init.custom);
-				for (const cf of customFields) {
-					if (parsed[cf.nama] != null) init[`custom_${cf.nama}`] = String(parsed[cf.nama]);
-				}
-			} catch { /* ignore */ }
-		}
-		return init;
-	});
+	let v = $state({ ...values, ...expandCustom(values, customFields) });
 
 	const form = $derived(
 		error ?? ((page.form as { error?: string } | null)?.error ?? null)
@@ -78,7 +79,7 @@
 		}
 	}
 
-	const groups = $derived<Group[]>([
+	const groups: Group[] = $derived([
 		{
 			label: 'Identitas',
 			fields: [
