@@ -18,9 +18,13 @@
 	const countAffected = $derived((form as { count?: number } | null)?.count ?? 0);
 	const lastActionType = $derived((form as { type?: string } | null)?.type ?? '');
 
+	const today = new Date().toISOString().slice(0, 10);
+
 	let sourceNaik = $state<string>('');
 	let targetNaik = $state<string>('');
 	let sourceLulus = $state<string>('');
+	let tanggalNaik = $state(today);
+	let tanggalLulus = $state(today);
 
 	const selectedSourceNaik = $derived(kelas.find((k) => String(k.id) === sourceNaik));
 	const selectedTargetNaik = $derived(kelas.find((k) => String(k.id) === targetNaik));
@@ -115,6 +119,11 @@
 				</select>
 			</label>
 
+			<label class="block">
+				<span class="mb-1.5 block text-sm font-medium">Tanggal Efektif</span>
+				<input type="date" name="tanggal_efektif" class="input input-bordered w-full" bind:value={tanggalNaik} max={today} />
+			</label>
+
 			{#if selectedSourceNaik}
 				<div class="rounded-xl bg-base-200/50 p-3 text-xs text-base-content/70">
 					Akan memindahkan <strong>{selectedSourceNaik.jumlahSantri}</strong> santri aktif/khusus.
@@ -164,6 +173,11 @@
 						</option>
 					{/each}
 				</select>
+			</label>
+
+			<label class="block">
+				<span class="mb-1.5 block text-sm font-medium">Tanggal Efektif</span>
+				<input type="date" name="tanggal_efektif" class="input input-bordered w-full" bind:value={tanggalLulus} max={today} />
 			</label>
 
 			<div class="rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs text-warning-content">

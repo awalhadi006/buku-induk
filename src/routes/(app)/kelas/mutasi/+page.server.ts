@@ -52,6 +52,7 @@ export const actions = {
 		const fd = await request.formData();
 		const sourceId = Number(fd.get('source_kelas_id'));
 		const targetId = Number(fd.get('target_kelas_id'));
+		const tanggal = (fd.get('tanggal_efektif') as string)?.trim() || new Date().toISOString().slice(0, 10);
 
 		if (!sourceId || !targetId) {
 			return fail(400, { error: 'Pilih kelas asal dan kelas tujuan.' });
@@ -60,28 +61,18 @@ export const actions = {
 			return fail(400, { error: 'Kelas asal dan kelas tujuan tidak boleh sama.' });
 		}
 
-		const { data: santri, error: fetchErr } = await locals.supabase
-			.from('santri')
-			.select('id')
-			.eq('kelas_id', sourceId)
-			.in('status_santri', ['aktif', 'khusus']);
+		const { data: count, error: rpcErr } = await locals.supabase.rpc('bulk_naik_kelas', {
+			p_source_kelas_id: sourceId,
+			p_target_kelas_id: targetId,
+			p_tanggal_efektif: tanggal
+		});
 
-		if (fetchErr) return fail(400, { error: fetchErr.message });
-		if (!santri || santri.length === 0) {
+		if (rpcErr) return fail(400, { error: rpcErr.message });
+		if (!count || count === 0) {
 			return fail(400, { error: 'Tidak ada santri aktif di kelas asal.' });
 		}
 
-		const ids = santri.map((s) => s.id);
-
-		// ponytail: tanggal_efektif in status_history uses trigger's default current_date; upgrade path: RPC with custom date parameter if historical backfilling needed
-		const { error: updateErr } = await locals.supabase
-			.from('santri')
-			.update({ kelas_id: targetId })
-			.in('id', ids);
-
-		if (updateErr) return fail(400, { error: updateErr.message });
-
-		return { success: true, count: ids.length, type: 'naik' };
+		return { success: true, count, type: 'naik' };
 	},
 
 	lulusMassal: async ({ locals, request }) => {
@@ -89,32 +80,22 @@ export const actions = {
 
 		const fd = await request.formData();
 		const kelasId = Number(fd.get('kelas_id'));
+		const tanggal = (fd.get('tanggal_efektif') as string)?.trim() || new Date().toISOString().slice(0, 10);
 
 		if (!kelasId) {
 			return fail(400, { error: 'Pilih kelas yang akan diluluskan.' });
 		}
 
-		const { data: santri, error: fetchErr } = await locals.supabase
-			.from('santri')
-			.select('id')
-			.eq('kelas_id', kelasId)
-			.in('status_santri', ['aktif', 'khusus']);
+		const { data: count, error: rpcErr } = await locals.supabase.rpc('bulk_lulus_massal', {
+			p_kelas_id: kelasId,
+			p_tanggal_efektif: tanggal
+		});
 
-		if (fetchErr) return fail(400, { error: fetchErr.message });
-		if (!santri || santri.length === 0) {
+		if (rpcErr) return fail(400, { error: rpcErr.message });
+		if (!count || count === 0) {
 			return fail(400, { error: 'Tidak ada santri aktif di kelas terpilih.' });
 		}
 
-		const ids = santri.map((s) => s.id);
-
-		// ponytail: status_history gets automatically logged with current_date; upgrade path: custom date support via RPC if backfilling past graduations
-		const { error: updateErr } = await locals.supabase
-			.from('santri')
-			.update({ status_santri: 'lulus' })
-			.in('id', ids);
-
-		if (updateErr) return fail(400, { error: updateErr.message });
-
-		return { success: true, count: ids.length, type: 'lulus' };
+		return { success: true, count, type: 'lulus' };
 	}
 };
