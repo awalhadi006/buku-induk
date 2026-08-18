@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { IconSchool } from '@tabler/icons-svelte';
+	import { IconSchool, IconPrinter } from '@tabler/icons-svelte';
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
 
 	let { data } = $props();
-	const k = $derived(data.kelas as { tingkat: string; rombel: string; tahun_ajaran: string | null; aktif: boolean });
+	const k = $derived(data.kelas as { id: string; tingkat: string; rombel: string; tahun_ajaran: string | null; aktif: boolean });
 	const santri = $derived(data.santri as {
 		id: string;
 		nama_lengkap: string;
@@ -35,6 +35,13 @@
 		</p>
 	</div>
 </header>
+
+<div class="mt-4 flex gap-2">
+	<a class="btn btn-outline btn-sm" href="/kelas/{k.id}/kartu-massal" target="_blank" rel="noopener">
+		<IconPrinter class="size-4" stroke-width={1.75} />
+		Cetak Kartu Massal
+	</a>
+</div>
 
 <section class="mt-8 grid gap-4 sm:grid-cols-3">
 	<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
