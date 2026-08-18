@@ -29,6 +29,7 @@ export const DASHBOARD_METRICS = [
 	{ key: 'gender', label: 'Per jenis kelamin' },
 	{ key: 'kamar', label: 'Per kamar' },
 	{ key: 'kelas', label: 'Per kelas' },
-	{ key: 'daerah', label: 'Per asal daerah' }
+	{ key: 'daerah', label: 'Per asal daerah' },
+	{ key: 'alumni', label: 'Statistik alumni' }
 ];
 export const ALL_METRIC_KEYS = DASHBOARD_METRICS.map((m) => m.key);

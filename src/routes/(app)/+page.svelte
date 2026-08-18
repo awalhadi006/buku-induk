@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconUsers } from '@tabler/icons-svelte';
+	import { IconUsers, IconAward } from '@tabler/icons-svelte';
 	import BarList from '$lib/components/BarList.svelte';
 	import { PERAN_LABEL, type Profile, type Rekap, ALL_METRIC_KEYS } from '$lib/types';
 
@@ -56,6 +56,14 @@
 	const perempuan = $derived(rekap?.per_gender?.['P'] ?? 0);
 	const canImport = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 	const peranDisp = $derived(profile ? PERAN_LABEL[profile.peran] ?? profile.peran : '');
+
+	const alumniPerTahun = $derived(data.alumniPerTahun as Record<string, number>);
+	const alumniRows = $derived(
+		Object.entries(alumniPerTahun)
+			.map(([k, v]) => ({ label: k, value: v }))
+			.sort((a, b) => b.label.localeCompare(a.label))
+	);
+	const totalAlumni = $derived(alumniRows.reduce((sum, r) => sum + r.value, 0));
 </script>
 
 <svelte:head>
@@ -167,6 +175,22 @@
 				<h2 class="text-sm font-semibold">Per daerah asal</h2>
 				<div class="mt-2">
 					<BarList rows={daerahRows} max={Math.max(0, ...daerahRows.map((r) => r.value))} />
+				</div>
+			</section>
+		{/if}
+
+		{#if enabledMetrics.includes('alumni') && alumniRows.length > 0}
+			<section class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5" aria-label="Statistik alumni">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<IconAward class="size-4 text-primary" stroke-width={1.75} />
+						<h2 class="text-sm font-semibold">Statistik Alumni</h2>
+					</div>
+					<a href="/santri/alumni" class="text-xs text-primary hover:underline">Lihat semua &rarr;</a>
+				</div>
+				<p class="mt-1 text-xs text-base-content/60">Total {totalAlumni} alumni tercatat.</p>
+				<div class="mt-3">
+					<BarList rows={alumniRows} max={Math.max(0, ...alumniRows.map((r) => r.value))} />
 				</div>
 			</section>
 		{/if}
