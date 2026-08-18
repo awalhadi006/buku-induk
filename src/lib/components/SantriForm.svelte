@@ -79,6 +79,26 @@
 		}
 	}
 
+	const customGroup: Group | null = $derived(
+		customFields && customFields.length > 0
+			? {
+					label: 'Field tambahan',
+					fields: customFields.map((cf) => ({
+						key: `custom_${cf.nama}`,
+						label: cf.label,
+						type: (cf.tipe === 'select'
+							? 'select'
+							: cf.tipe === 'date'
+								? 'date'
+								: cf.tipe === 'number'
+									? 'number'
+									: 'text') as Field['type'],
+						options: cf.tipe === 'select' ? cf.opsi : undefined
+					})) as Field[]
+				}
+			: null
+	);
+
 	const groups: Group[] = $derived([
 		{
 			label: 'Identitas',
@@ -157,29 +177,11 @@
 					type: 'select',
 					options: wali.map((w) => ({ value: w.id, label: w.label }))
 				},
-			...(gdrive
+				...(gdrive
 					? ([{ key: 'foto_file', label: 'Foto profil', type: 'file' }] as Field[])
 					: ([{ key: 'foto_url', label: 'Foto (URL)' }] as Field[]))
 		},
-		...(customFields && customFields.length > 0
-			? [
-					{
-						label: 'Field tambahan',
-						fields: customFields.map((cf) => ({
-							key: `custom_${cf.nama}`,
-							label: cf.label,
-							type: (cf.tipe === 'select'
-								? 'select'
-								: cf.tipe === 'date'
-									? 'date'
-									: cf.tipe === 'number'
-										? 'number'
-										: 'text') as Field['type'],
-							options: cf.tipe === 'select' ? cf.opsi : undefined
-						})) as Field[]
-					}
-				]
-			: [])
+		...(customGroup ? [customGroup] : [])
 	]);
 </script>
 

@@ -239,13 +239,11 @@
 			{:else}
 				<img src="/placeholder-santri.jpg" alt="Foto" class="size-16 rounded-xl object-cover bg-base-200" />
 			{/if}
-			<div>
-				{#if s.foto_url && canDelete}
-					<form method="POST" action="?/deletePhoto" onsubmit={() => confirm('Hapus foto santri ini?')}>
-						<button type="submit" class="btn btn-ghost btn-xs text-error mt-1">Hapus Foto</button>
-					</form>
-				{/if}
-			</div>
+			{#if s.foto_url && canDelete}
+				<form method="POST" action="?/deletePhoto" onsubmit={() => confirm('Hapus foto santri ini?')}>
+					<button type="submit" class="btn btn-ghost btn-xs text-error mt-1">Hapus Foto</button>
+				</form>
+			{/if}
 		</div>
 		<label class="flex-1">
 			<span class="mb-1.5 block text-sm font-medium">Pilih file foto</span>
