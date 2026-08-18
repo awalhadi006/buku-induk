@@ -7,7 +7,6 @@
 		IconLayoutDashboard,
 		IconUsers,
 		IconUserHeart,
-		IconArrowsUp,
 		IconBed,
 		IconSchool,
 		IconFileImport,
@@ -34,7 +33,6 @@
 	const items: NavItem[] = [
 		{ href: '/', label: 'Rekapitulasi', icon: IconLayoutDashboard, roles: 'all' },
 		{ href: '/santri', label: 'Santri', icon: IconUsers, roles: 'all' },
-		{ href: '/santri/mass-update', label: 'Update Massal', icon: IconArrowsUp, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/rekap', label: 'Rekap Kamar/Kelas', icon: IconChevronDown, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/wali', label: 'Wali Santri', icon: IconUserHeart, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/kamar', label: 'Kamar', icon: IconBed, roles: ['superadmin', 'admin_tu'] },
