@@ -14,6 +14,14 @@
 
 	type Group = { label: string; fields: Field[] };
 
+	type CustomField = {
+		id: number;
+		nama: string;
+		label: string;
+		tipe: string;
+		opsi: { value: string; label: string }[];
+	};
+
 	let {
 		values,
 		kamar,
@@ -26,7 +34,8 @@
 		error,
 		submitting,
 		extra,
-		gdrive
+		gdrive,
+		customFields
 	}: {
 		values: Record<string, string>;
 		kamar: { id: number; nomor: number }[];
@@ -40,10 +49,22 @@
 		submitting?: boolean;
 		extra?: Snippet;
 		gdrive?: boolean;
+		customFields?: CustomField[];
 	} = $props();
 
 	// svelte-ignore state_referenced_locally (nilai awal sengaja: form selalu di-mount ulang)
-	let v = $state({ ...values });
+	let v = $state(() => {
+		const init = { ...values };
+		if (customFields?.length && typeof init.custom === 'string') {
+			try {
+				const parsed = JSON.parse(init.custom);
+				for (const cf of customFields) {
+					if (parsed[cf.nama] != null) init[`custom_${cf.nama}`] = String(parsed[cf.nama]);
+				}
+			} catch { /* ignore */ }
+		}
+		return init;
+	});
 
 	const form = $derived(
 		error ?? ((page.form as { error?: string } | null)?.error ?? null)
@@ -135,11 +156,29 @@
 					type: 'select',
 					options: wali.map((w) => ({ value: w.id, label: w.label }))
 				},
-				...(gdrive
+			...(gdrive
 					? ([{ key: 'foto_file', label: 'Foto profil', type: 'file' }] as Field[])
 					: ([{ key: 'foto_url', label: 'Foto (URL)' }] as Field[]))
-			]
-		}
+		},
+		...(customFields && customFields.length > 0
+			? [
+					{
+						label: 'Field tambahan',
+						fields: customFields.map((cf) => ({
+							key: `custom_${cf.nama}`,
+							label: cf.label,
+							type: (cf.tipe === 'select'
+								? 'select'
+								: cf.tipe === 'date'
+									? 'date'
+									: cf.tipe === 'number'
+										? 'number'
+										: 'text') as Field['type'],
+							options: cf.tipe === 'select' ? cf.opsi : undefined
+						})) as Field[]
+					}
+				]
+			: [])
 	]);
 </script>
 

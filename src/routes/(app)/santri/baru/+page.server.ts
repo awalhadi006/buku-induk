@@ -11,18 +11,20 @@ export async function load({ locals }) {
 		.maybeSingle();
 	if (!['superadmin', 'admin_tu'].includes(profile?.peran ?? '')) throw redirect(303, '/santri');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: gd }] = await Promise.all([
-		supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
-		supabase
-			.from('kelas')
-			.select('id,tingkat,rombel,tahun_ajaran')
-			.eq('aktif', true)
-			.order('tahun_ajaran', { ascending: false })
-			.order('tingkat')
-			.order('rombel'),
-		supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at'),
-		supabase.from('gdrive_creds').select('id,refresh_token').eq('id', 1).maybeSingle()
-	]);
+	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: gd }, { data: customFields }] =
+		await Promise.all([
+			supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
+			supabase
+				.from('kelas')
+				.select('id,tingkat,rombel,tahun_ajaran')
+				.eq('aktif', true)
+				.order('tahun_ajaran', { ascending: false })
+				.order('tingkat')
+				.order('rombel'),
+			supabase.from('wali_santri').select('id,nama_ayah,nama_ibu,nama_wali').order('created_at'),
+			supabase.from('gdrive_creds').select('id,refresh_token').eq('id', 1).maybeSingle(),
+			supabase.from('custom_fields').select('*').eq('aktif', true).order('urutan').order('id')
+		]);
 
 	return {
 		kamar: kamar ?? [],
@@ -31,6 +33,7 @@ export async function load({ locals }) {
 			id: w.id,
 			label: w.nama_wali || w.nama_ayah || w.nama_ibu || '(wali tanpa nama)'
 		})),
-		gdrive: !!gd?.refresh_token
+		gdrive: !!gd?.refresh_token,
+		customFields: customFields ?? []
 	};
 }

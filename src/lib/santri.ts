@@ -83,7 +83,10 @@ export const EMPTY_SANTRI: Record<string, string> = Object.fromEntries(
 	SANTRI_COLUMNS.map((c) => [c, ''])
 );
 
-export function parseSantriForm(fd: FormData): Record<string, unknown> {
+export function parseSantriForm(
+	fd: FormData,
+	customFieldNames?: string[]
+): Record<string, unknown> {
 	const payload: Record<string, unknown> = {};
 	for (const col of SANTRI_COLUMNS) {
 		const raw = fd.get(col);
@@ -95,6 +98,17 @@ export function parseSantriForm(fd: FormData): Record<string, unknown> {
 		} else {
 			payload[col] = val;
 		}
+	}
+	if (customFieldNames?.length) {
+		const custom: Record<string, unknown> = {};
+		for (const name of customFieldNames) {
+			const raw = fd.get(`custom_${name}`);
+			if (typeof raw === 'string') {
+				const trimmed = raw.trim();
+				if (trimmed) custom[name] = trimmed;
+			}
+		}
+		if (Object.keys(custom).length > 0) payload.custom = custom;
 	}
 	return payload;
 }

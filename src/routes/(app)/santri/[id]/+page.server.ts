@@ -12,7 +12,7 @@ export async function load({ params, locals }) {
 		.maybeSingle();
 	if (!santri) throw error(404, 'Santri tidak ditemukan');
 
-	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }, { data: history }, { data: gdrive }] =
+	const [{ data: kamar }, { data: kelas }, { data: wali }, { data: documents }, { data: history }, { data: gdrive }, { data: customFields }] =
 		await Promise.all([
 			supabase.from('kamar').select('id,nomor,aktif').order('nomor'),
 			supabase
@@ -32,7 +32,8 @@ export async function load({ params, locals }) {
 				.select('*')
 				.eq('santri_id', params.id)
 				.order('tanggal_efektif', { ascending: false }),
-			supabase.from('gdrive_creds').select('id,refresh_token,folder_id').eq('id', 1).maybeSingle()
+			supabase.from('gdrive_creds').select('id,refresh_token,folder_id').eq('id', 1).maybeSingle(),
+			supabase.from('custom_fields').select('*').eq('aktif', true).order('urutan').order('id')
 		]);
 
 	return {
@@ -45,7 +46,8 @@ export async function load({ params, locals }) {
 		})),
 		documents: documents ?? [],
 		_status_history: history ?? [],
-		gdrive: !!(gdrive?.refresh_token && gdrive?.folder_id)
+		gdrive: !!(gdrive?.refresh_token && gdrive?.folder_id),
+		customFields: customFields ?? []
 	};
 }
 
@@ -55,7 +57,9 @@ export const actions = {
 		if (!user) throw redirect(303, '/login');
 
 		const fd = await request.formData();
-		const payload = parseSantriForm(fd);
+
+		const { data: cfs } = await supabase.from('custom_fields').select('nama').eq('aktif', true);
+		const payload = parseSantriForm(fd, cfs?.map((f) => f.nama));
 		if (!payload.nama_lengkap) return fail(400, { error: 'Nama lengkap wajib diisi.' });
 
 		const fotoFile = fd.get('foto_file') as File | null;

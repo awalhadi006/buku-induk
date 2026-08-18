@@ -60,6 +60,18 @@
 	const kelasById = $derived(Object.fromEntries(kelas.map((k) => [k.id, k])));
 	const waliById = $derived(Object.fromEntries(wali.map((w) => [w.id, w])));
 
+	const customFields = $derived((data.customFields ?? []) as { nama: string; label: string; tipe: string; opsi: { value: string; label: string }[] }[]);
+	const customValues = $derived((s.custom ?? {}) as Record<string, unknown>);
+
+	function customDisplay(cf: { nama: string; tipe: string; opsi: { value: string; label: string }[] }) {
+		const v = customValues[cf.nama];
+		if (v == null || v === '') return null;
+		if (cf.tipe === 'select' && cf.opsi.length) {
+			return cf.opsi.find((o) => o.value === v)?.label ?? String(v);
+		}
+		return String(v);
+	}
+
 	const kamarNomor = $derived(kamar.find((k) => k.id === s.kamar_id)?.nomor ?? null);
 	const kelasLabel = $derived(kelas.find((k) => k.id === s.kelas_id) ?? null);
 	const waliLabel = $derived(wali.find((w) => w.id === s.wali_santri_id)?.label ?? null);
@@ -94,7 +106,13 @@
 
 	function toEdit(): Record<string, string> {
 		const out: Record<string, string> = {};
-		for (const k of Object.keys(s)) out[k] = s[k] == null ? '' : String(s[k]);
+		for (const k of Object.keys(s)) {
+			if (k === 'custom') {
+				out.custom = JSON.stringify(s.custom ?? {});
+				continue;
+			}
+			out[k] = s[k] == null ? '' : String(s[k]);
+		}
 		return out;
 	}
 
@@ -154,7 +172,17 @@
 				['Wali santri', waliLabel],
 				['Foto', s.foto_url ? 'Sudah diunggah' : 'Belum ada']
 			] as [string, string | null][]
-		}
+		},
+		...(customFields.length > 0
+			? [
+					{
+						label: 'Field tambahan',
+						rows: customFields
+							.map((cf) => [cf.label, customDisplay(cf)] as [string, string | null])
+							.filter((r): r is [string, string | null] => true)
+					}
+				]
+			: [])
 	]);
 </script>
 
@@ -241,6 +269,7 @@
 			kelas={kelasAktif}
 			wali={wali}
 			gdrive={data.gdrive}
+			customFields={data.customFields}
 			action="?/update"
 			submitLabel="Simpan perubahan"
 			cancelHref="/santri/{s.id}" />

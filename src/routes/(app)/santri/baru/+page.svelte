@@ -29,7 +29,8 @@
 
 	async function create(el: HTMLFormElement) {
 		if (submitting) return;
-		const payload = parseSantriForm(new FormData(el));
+		const customFieldNames = data.customFields?.map((cf: { nama: string }) => cf.nama);
+		const payload = parseSantriForm(new FormData(el), customFieldNames);
 		if (!payload.nama_lengkap) {
 			error = 'Nama lengkap wajib diisi.';
 			return;
@@ -109,6 +110,7 @@
 		kelas={data.kelas}
 		wali={data.wali}
 		gdrive={data.gdrive}
+		customFields={data.customFields}
 		submitLabel="Simpan santri"
 		cancelHref="/santri"
 		onSubmit={create}
