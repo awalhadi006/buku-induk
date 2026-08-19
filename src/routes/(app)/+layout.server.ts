@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { parseSidebarNav } from '$lib/nav';
 
 export async function load(event) {
 	const { user, supabase } = event.locals;
@@ -19,5 +20,13 @@ export async function load(event) {
 		pendingRequests = count ?? 0;
 	}
 
-	return { user, profile: profile ?? null, pendingRequests };
+	const { data: sidebarSetting } = await supabase
+		.from('settings')
+		.select('value')
+		.eq('key', 'sidebar_nav')
+		.maybeSingle();
+
+	const sidebarNav = parseSidebarNav(sidebarSetting?.value);
+
+	return { user, profile: profile ?? null, pendingRequests, sidebarNav };
 }

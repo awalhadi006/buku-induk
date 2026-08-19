@@ -29,34 +29,33 @@
 
 	const profile = $derived((page.data.profile as Profile | null) ?? null);
 
-	type NavItem = { href: string; label: string; icon: ComponentType; roles: string[] | 'all' };
-	const items: NavItem[] = [
-		{ href: '/', label: 'Rekapitulasi', icon: IconLayoutDashboard, roles: 'all' },
-		{ href: '/santri', label: 'Santri', icon: IconUsers, roles: 'all' },
-		{ href: '/rekap', label: 'Rekap Kamar/Kelas', icon: IconChevronDown, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/wali', label: 'Wali Santri', icon: IconUserHeart, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/kamar', label: 'Kamar', icon: IconBed, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/kelas', label: 'Kelas', icon: IconSchool, roles: ['superadmin', 'admin_tu'] },
-		{
-			href: '/kelas/mutasi',
-			label: 'Mutasi Kelas & Lulus',
-			icon: IconRepeat,
-			roles: ['superadmin', 'admin_tu']
-		},
-		{ href: '/persetujuan', label: 'Persetujuan Data', icon: IconCheck, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/import', label: 'Import Excel', icon: IconFileImport, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/pengaturan', label: 'Pengaturan', icon: IconSettings, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/updates', label: 'Apa yang Baru', icon: IconSparkles, roles: 'all' },
-		{
-			href: '/santri/alumni',
-			label: 'Arsip Alumni',
-			icon: IconAward,
-			roles: ['superadmin', 'admin_tu']
-		}
-	];
+	import { NAV_ITEMS, type NavItemDef } from '$lib/nav';
+
+	type NavItem = NavItemDef & { icon: ComponentType };
+	const NAV_ICONS: Record<string, ComponentType> = {
+		'/': IconLayoutDashboard,
+		'/santri': IconUsers,
+		'/rekap': IconChevronDown,
+		'/wali': IconUserHeart,
+		'/kamar': IconBed,
+		'/kelas': IconSchool,
+		'/kelas/mutasi': IconRepeat,
+		'/persetujuan': IconCheck,
+		'/import': IconFileImport,
+		'/pengaturan': IconSettings,
+		'/updates': IconSparkles,
+		'/santri/alumni': IconAward
+	};
+
+	const items: NavItem[] = NAV_ITEMS.map((item) => ({
+		...item,
+		icon: NAV_ICONS[item.href] ?? IconLayoutDashboard // Fallback icon
+	}));
+
+	const sidebarNav = $derived(page.data.sidebarNav);
 
 	const visible = $derived(
-		items.filter((i) => i.roles === 'all' || (profile && i.roles.includes(profile.peran)))
+		items.filter((i) => profile && sidebarNav[i.href]?.includes(profile.peran))
 	);
 
 	const initial = $derived(

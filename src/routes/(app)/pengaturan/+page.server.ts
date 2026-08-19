@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { ROLES } from '$lib/permissions';
 import { ALL_METRIC_KEYS } from '$lib/types';
+import { parseSidebarNav } from '$lib/nav';
 
 function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
@@ -18,6 +19,14 @@ function parseOptInt(v: FormDataEntryValue | null): number | null {
 	return Number.isFinite(n) ? Math.floor(n) : null;
 }
 
+async function requireAdmin(locals: App.Locals) {
+	const { user, supabase } = locals;
+	if (!user) throw redirect(303, '/login');
+	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
+	if (!profile || !['superadmin', 'admin_tu'].includes(profile.peran)) throw redirect(303, '/');
+	return profile.peran as string;
+}
+
 async function requireSuperadmin(locals: App.Locals) {
 	const { user, supabase } = locals;
 	if (!user) throw redirect(303, '/login');
@@ -26,7 +35,7 @@ async function requireSuperadmin(locals: App.Locals) {
 }
 
 export async function load({ locals }) {
-	await requireSuperadmin(locals);
+	const peran = await requireAdmin(locals);
 	const { supabase } = locals;
 
 	const [
@@ -46,24 +55,26 @@ export async function load({ locals }) {
 		supabase.from('permissions').select('role,abilities').order('role'),
 		supabase.from('custom_fields').select('*').order('urutan').order('id'),
 		supabase.from('settings').select('key,value'),
-		supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
+		peran === 'superadmin' ? supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100) : Promise.resolve({ data: null }),
 		supabase.from('tahun_ajaran').select('id,nama,aktif').order('nama', { ascending: false }),
 		supabase.from('gdrive_creds').select('*').eq('id', 1).maybeSingle()
 	]);
 
+	const settingsObj = Object.fromEntries((settings ?? []).map((s) => [s.key, s.value ?? '']));
+
 	return {
+		isSuperadmin: peran === 'superadmin',
 		profiles: profiles ?? [],
 		kamar: kamar ?? [],
 		kelas: kelas ?? [],
 		permissions: permissions ?? [],
 		fields: fields ?? [],
-		settings: Object.fromEntries((settings ?? []).map((s) => [s.key, s.value ?? ''])),
+		settings: settingsObj,
 		auditLogs: auditLogs ?? [],
 		tahunAjaran: tahunAjaran ?? [],
 		gdrive: gdrive ?? null,
-		enabledMetrics: parseMetricKeys(
-			(settings ?? []).find((s) => s.key === 'dashboard_metrics')?.value ?? null
-		)
+		enabledMetrics: parseMetricKeys(settingsObj['dashboard_metrics'] ?? null),
+		sidebarNav: parseSidebarNav(settingsObj['sidebar_nav'])
 	};
 }
 
@@ -96,7 +107,7 @@ export const actions = {
 	},
 
 	createField: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const field = parseField(await request.formData());
 		if (!field.nama || !field.label) return fail(400, { error: 'Nama dan label field wajib diisi.' });
 		if (field.tipe === 'select' && field.opsi.length === 0)
@@ -106,7 +117,7 @@ export const actions = {
 	},
 
 	updateField: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		const field = parseField(fd);
@@ -119,7 +130,7 @@ export const actions = {
 	},
 
 	deleteField: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		if (!Number.isInteger(id)) return fail(400, { error: 'Data field tidak valid.' });
@@ -128,7 +139,7 @@ export const actions = {
 	},
 
 	updateSetting: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const key = (fd.get('key') as string) ?? '';
 		if (key !== 'tahun_ajaran_aktif') return fail(400, { error: 'Key tidak valid.' });
@@ -138,7 +149,7 @@ export const actions = {
 	},
 
 	createTahunAjaran: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const nama = (fd.get('nama') as string | null)?.trim() ?? '';
 		if (!nama) return fail(400, { error: 'Nama tahun ajaran wajib diisi.' });
@@ -147,7 +158,7 @@ export const actions = {
 	},
 
 	toggleTahunAjaran: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		const aktif = fd.get('aktif') === 'true';
@@ -157,7 +168,7 @@ export const actions = {
 	},
 
 	deleteTahunAjaran: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		if (!Number.isInteger(id)) return fail(400, { error: 'Data tidak valid.' });
@@ -166,7 +177,7 @@ export const actions = {
 	},
 
 	updateDashboardMetrics: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const metrics = fd.getAll('metrics').map(String);
 		const { error } = await locals.supabase
@@ -176,7 +187,7 @@ export const actions = {
 	},
 
 	updateGDriveFolder: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const folder_id = (fd.get('folder_id') as string | null)?.trim() ?? '';
 		const { error } = await locals.supabase.from('gdrive_creds').update({ folder_id }).eq('id', 1);
@@ -184,7 +195,7 @@ export const actions = {
 	},
 
 	updateNisPattern: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const pattern = (fd.get('pattern') as string | null)?.trim() ?? '';
 		const jenjangRaw = (fd.get('jenjang_map') as string | null)?.trim() ?? '';
@@ -213,7 +224,7 @@ export const actions = {
 	},
 
 	bulkGenerateNis: async ({ locals, request }) => {
-		await requireSuperadmin(locals);
+		await requireAdmin(locals);
 		const fd = await request.formData();
 		const pattern = (fd.get('pattern') as string | null)?.trim() ?? '';
 		if (!pattern) return fail(400, { error: 'Pola NIS belum dikonfigurasi.' });
@@ -221,6 +232,23 @@ export const actions = {
 		const { data, error } = await locals.supabase.rpc('bulk_generate_nis', { p_pattern: pattern });
 		if (error) return fail(400, { error: error.message });
 		return { nisGenerated: data as number };
+	},
+
+	updateSidebarNav: async ({ locals, request }) => {
+		await requireAdmin(locals);
+		const fd = await request.formData();
+		const sidebarNav: Record<string, string[]> = {};
+
+		for (const href of Object.keys(parseSidebarNav(null))) {
+			const roles = fd.getAll(`nav:${href}`).map(String).filter(r => ROLES.includes(r));
+			sidebarNav[href] = roles;
+		}
+
+		const { error } = await locals.supabase
+			.from('settings')
+			.upsert({ key: 'sidebar_nav', value: JSON.stringify(sidebarNav) }, { onConflict: 'key' });
+		if (error) return fail(400, { error: error.message });
+		return { sidebarNav };
 	}
 };
 

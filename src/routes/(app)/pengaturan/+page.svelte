@@ -42,6 +42,10 @@
 	};
 	type TahunAjaran = { id: number; nama: string; aktif: boolean };
 
+	import { NAV_ITEMS } from '$lib/nav';
+	import { ROLES } from '$lib/permissions';
+	import { IconMenu } from '@tabler/icons-svelte';
+
 	let { data, form } = $props();
 
 	const profiles = $derived(data.profiles as Profile[]);
@@ -59,7 +63,7 @@
 	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
-	const tab = $derived(page.url.searchParams.get('tab') ?? 'users');
+	const tab = $derived(page.url.searchParams.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields'));
 	const actorName = $derived(
 		Object.fromEntries(profiles.map((p) => [p.id, p.nama ?? p.id.slice(0, 8)]))
 	);
@@ -135,17 +139,22 @@
 {/if}
 
 <div class="tabs tabs-box mt-6 w-full overflow-x-auto">
-	<a class="tab" class:tab-active={tab === 'users'} href="/pengaturan?tab=users">Pengguna</a>
-	<a class="tab" class:tab-active={tab === 'permissions'} href="/pengaturan?tab=permissions">Peran & Izin</a>
+	{#if data.isSuperadmin}
+		<a class="tab" class:tab-active={tab === 'users'} href="/pengaturan?tab=users">Pengguna</a>
+		<a class="tab" class:tab-active={tab === 'permissions'} href="/pengaturan?tab=permissions">Peran & Izin</a>
+	{/if}
 	<a class="tab" class:tab-active={tab === 'fields'} href="/pengaturan?tab=fields">Field Kustom</a>
 	<a class="tab" class:tab-active={tab === 'ta'} href="/pengaturan?tab=ta">Tahun Ajaran</a>
 	<a class="tab" class:tab-active={tab === 'nis'} href="/pengaturan?tab=nis">NIS</a>
 	<a class="tab" class:tab-active={tab === 'gdrive'} href="/pengaturan?tab=gdrive">Google Drive</a>
+	<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
 	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
-	<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
+	{#if data.isSuperadmin}
+		<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
+	{/if}
 </div>
 
-{#if tab === 'users'}
+{#if tab === 'users' && data.isSuperadmin}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconUserCog class="size-4" stroke-width={1.75} />
@@ -259,7 +268,7 @@
 		</div>
 	</section>
 
-{:else if tab === 'permissions'}
+{:else if tab === 'permissions' && data.isSuperadmin}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconShieldCheck class="size-4" stroke-width={1.75} />
@@ -631,7 +640,7 @@
 		</form>
 	</section>
 
-{:else if tab === 'audit'}
+{:else if tab === 'audit' && data.isSuperadmin}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconHistory class="size-4" stroke-width={1.75} />
@@ -675,4 +684,55 @@
 			</div>
 		{/if}
 	</section>
+
+{:else if tab === 'sidebar'}
+	<section class="mt-6">
+		<h2 class="flex items-center gap-2 text-sm font-semibold">
+			<IconMenu class="size-4" stroke-width={1.75} />
+			Konfigurasi Menu Sidebar
+		</h2>
+		<p class="mt-1 max-w-[65ch] text-sm text-base-content/60">
+			Atur menu mana saja yang terlihat untuk setiap peran. Superadmin selalu bisa mengakses halaman melalui URL jika disembunyikan dari sidebar.
+		</p>
+
+		<form method="POST" action="?/updateSidebarNav" class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+			<table class="table">
+				<thead>
+					<tr class="text-xs uppercase tracking-wide text-base-content/60">
+						<th class="min-w-[200px]">Menu</th>
+						{#each ROLES as role (role)}
+							<th class="text-center">
+								<span class="badge badge-ghost badge-sm whitespace-nowrap">{PERAN_LABEL[role] ?? role}</span>
+							</th>
+						{/each}
+					</tr>
+				</thead>
+				<tbody>
+					{#each NAV_ITEMS as item (item.href)}
+						<tr>
+							<td class="font-medium">{item.label}</td>
+							{#each ROLES as role (role)}
+								<td class="text-center">
+									<input
+										type="checkbox"
+										name={`nav:${item.href}`}
+										value={role}
+										class="checkbox checkbox-primary checkbox-sm"
+										checked={data.sidebarNav[item.href]?.includes(role)} />
+								</td>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+			<div class="flex justify-end p-4">
+				<button type="submit" class="btn btn-primary btn-sm">Simpan Konfigurasi Sidebar</button>
+			</div>
+		</form>
+	</section>
+
+{:else}
+	<div class="mt-6 rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
+		<p class="text-base-content/60">Anda tidak memiliki akses ke bagian ini.</p>
+	</div>
 {/if}
