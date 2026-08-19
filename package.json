@@ -11,18 +11,25 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"gen": "wrangler types",
-		"changelog": "node scripts/gen-changelog.mjs"
+		"changelog": "node scripts/gen-changelog.mjs",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
+		"@testing-library/svelte": "^5.4.2",
+		"@vitest/coverage-v8": "^4.1.11",
+		"jsdom": "^30.0.1",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.16",
+		"vitest": "^4.1.11",
 		"wrangler": "^4.97.0"
 	},
 	"dependencies": {
