@@ -180,6 +180,7 @@
 				...(gdrive
 					? ([{ key: 'foto_file', label: 'Foto profil', type: 'file' }] as Field[])
 					: ([{ key: 'foto_url', label: 'Foto (URL)' }] as Field[]))
+			]
 		},
 		...(customGroup ? [customGroup] : [])
 	]);
