@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { afterNavigate } from '$app/navigation';
 	import {
 		IconUserCog,
 		IconShieldCheck,
@@ -63,7 +64,10 @@
 	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
-	const tab = $derived(page.url.searchParams.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields'));
+	let tab = $state(page.url.searchParams.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields'));
+	afterNavigate(() => {
+		tab = page.url.searchParams.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields');
+	});
 	const actorName = $derived(
 		Object.fromEntries(profiles.map((p) => [p.id, p.nama ?? p.id.slice(0, 8)]))
 	);
@@ -147,7 +151,8 @@
 	<a class="tab" class:tab-active={tab === 'ta'} href="/pengaturan?tab=ta">Tahun Ajaran</a>
 	<a class="tab" class:tab-active={tab === 'nis'} href="/pengaturan?tab=nis">NIS</a>
 	<a class="tab" class:tab-active={tab === 'gdrive'} href="/pengaturan?tab=gdrive">Google Drive</a>
-	<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
+			<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
+			<a class="tab" class:tab-active={tab === 'school'} href="/pengaturan?tab=school">Identitas Sekolah</a>
 	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
 	{#if data.isSuperadmin}
 		<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
@@ -584,29 +589,84 @@
 						{/if}
 					</p>
 				</div>
-				{#if !gdrive?.refresh_token}
+				{#if data.isSuperadmin && !gdrive?.refresh_token}
 					<a class="btn btn-primary btn-sm" href="/gdrive/auth">Hubungkan Akun</a>
+				{:else if !gdrive?.refresh_token}
+					<span class="badge badge-warning badge-sm">Belum Terhubung</span>
 				{:else}
 					<span class="badge badge-success badge-sm">Aktif</span>
 				{/if}
 			</div>
 
-			<form method="POST" action="?/updateGDriveFolder" class="mt-4">
-				<label class="block">
-					<span class="mb-1.5 block text-sm font-medium">ID Folder Tujuan</span>
-					<input
-						name="folder_id"
-						type="text"
-						class="input input-bordered w-full"
-						value={gdrive?.folder_id ?? ''}
-						placeholder="ID folder Google Drive (dari URL folder)" />
-				</label>
-				<p class="mt-1 text-xs text-base-content/50">
-					Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
+			{#if data.isSuperadmin}
+				<form method="POST" action="?/updateGDriveFolder" class="mt-4">
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">ID Folder Tujuan</span>
+						<input
+							name="folder_id"
+							type="text"
+							class="input input-bordered w-full"
+							value={gdrive?.folder_id ?? ''}
+							placeholder="ID folder Google Drive (dari URL folder)" />
+					</label>
+					<p class="mt-1 text-xs text-base-content/50">
+						Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
+					</p>
+					<button type="submit" class="btn btn-primary btn-sm mt-3">Simpan Folder</button>
+				</form>
+			{:else}
+				<p class="mt-4 text-sm text-base-content/60">
+					Hanya superadmin yang dapat mengubah pengaturan Google Drive.
 				</p>
-				<button type="submit" class="btn btn-primary btn-sm mt-3">Simpan Folder</button>
-			</form>
+			{/if}
 		</div>
+	</section>
+
+{:else if tab === 'school'}
+	<section class="mt-6 max-w-2xl">
+		<h2 class="flex items-center gap-2 text-sm font-semibold">
+			<IconSchool class="size-4" stroke-width={1.75} />
+			Identitas Sekolah
+		</h2>
+		<p class="mt-1 max-w-[65ch] text-sm text-base-content/60">
+			Ubah nama dan logo sekolah yang akan ditampilkan di seluruh aplikasi dan di browser.
+		</p>
+
+		<form
+			method="POST"
+			action="?/updateSchoolIdentity"
+			enctype="multipart/form-data"
+			class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+			<label class="block">
+				<span class="mb-1.5 block text-sm font-medium">Nama Sekolah</span>
+				<input
+					name="school_name"
+					type="text"
+					class="input input-bordered w-full"
+					value={settings['school_name'] ?? ''}
+					placeholder="Nama Lengkap Sekolah" />
+			</label>
+
+			<label class="mt-4 block">
+				<span class="mb-1.5 block text-sm font-medium">Logo Sekolah</span>
+				{#if settings['school_logo_url']}
+					<img
+						src={photoUrl(settings['school_logo_url'])}
+						alt="Logo Sekolah"
+						class="mb-3 max-h-20 w-auto rounded-lg object-contain" />
+				{/if}
+				<input
+					name="school_logo"
+					type="file"
+					class="file-input file-input-bordered w-full"
+					accept="image/*" />
+			</label>
+
+			<button type="submit" class="btn btn-primary btn-sm mt-4">
+				<IconEdit class="size-4" stroke-width={2} />
+				Simpan Identitas
+			</button>
+		</form>
 	</section>
 
 {:else if tab === 'dashboard'}

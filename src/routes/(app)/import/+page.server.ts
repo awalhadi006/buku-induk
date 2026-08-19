@@ -118,6 +118,7 @@ export const actions = {
 		}
 
 		const errors: { row: number; nama: string; reason: string; kategori: string }[] = [];
+		const peringatan: { row: number; nama: string; warnings: string[] }[] = [];
 		let berhasil = 0;
 
 		for (let i = 0; i < rows.length; i++) {
@@ -138,53 +139,89 @@ export const actions = {
 			}
 
 			const nama = String(s.nama_lengkap ?? '');
-			const recordErr = (reason: string, kategori: string) =>
-				errors.push({ row: line, nama, reason, kategori });
+			const rowWarnings: string[] = [];
 
+			// REQUIRED (gagal): nama_lengkap, tempat_lahir, tanggal_lahir
 			if (!nama) {
-				recordErr('Nama lengkap kosong', 'wajib');
+				errors.push({ row: line, nama, reason: 'Nama lengkap kosong', kategori: 'wajib' });
 				continue;
 			}
-			if (s.jenis_kelamin && !['L', 'P'].includes(String(s.jenis_kelamin))) {
-				recordErr('Jenis kelamin harus L atau P', 'format');
+			if (!s.tempat_lahir) {
+				errors.push({ row: line, nama, reason: 'Tempat lahir kosong', kategori: 'wajib' });
 				continue;
 			}
-			if (s.status_santri && !STATUS_SANTRI_VALUES.has(String(s.status_santri))) {
-				recordErr(`Status santri tidak dikenal: ${s.status_santri}`, 'format');
-				continue;
-			}
-			if (s.status_keluarga && !STATUS_KELUARGA_VALUES.has(String(s.status_keluarga))) {
-				recordErr(`Status keluarga tidak dikenal: ${s.status_keluarga}`, 'format');
+			if (!s.tanggal_lahir) {
+				errors.push({ row: line, nama, reason: 'Tanggal lahir kosong', kategori: 'wajib' });
 				continue;
 			}
 
-			for (const f of ['tanggal_lahir', 'tanggal_masuk']) {
-				if (!s[f]) continue;
-				const iso = toIsoDate(s[f]);
+			// Required tanggal_lahir must be valid
+			{
+				const iso = toIsoDate(s.tanggal_lahir);
 				if (iso === 'invalid') {
-					recordErr(`${f} tidak valid`, 'format');
+					errors.push({ row: line, nama, reason: 'Tanggal lahir tidak valid', kategori: 'format' });
 					continue;
 				}
-				s[f] = iso;
+				s.tanggal_lahir = iso;
 			}
 
-			const kamarId = kamarNomor ? kamarIdByNomor.get(Number(kamarNomor)) : null;
-			if (kamarNomor && !kamarId) {
-				recordErr(`Kamar ${kamarNomor} tidak ditemukan`, 'referensi');
-				continue;
-			}
-			const kelasId = kelasKey ? kelasIdByKey.get(kelasKey.replace(/\s+/g, '').toUpperCase()) : null;
-			if (kelasKey && !kelasId) {
-				recordErr(`Kelas ${kelasKey} tidak ditemukan`, 'referensi');
-				continue;
+			// OPTIONAL: warning jika belum lengkap, tetap disimpan
+			if (!s.nisn) rowWarnings.push('NISN belum diisi');
+			if (!s.nik) rowWarnings.push('NIK belum diisi');
+
+			// Convert & validate tanggal_masuk
+			if (s.tanggal_masuk) {
+				const iso = toIsoDate(s.tanggal_masuk);
+				if (iso === 'invalid') {
+					rowWarnings.push('Tanggal masuk tidak valid, data tidak disimpan');
+					delete s.tanggal_masuk;
+				} else {
+					s.tanggal_masuk = iso;
+				}
 			}
 
+			// Validate jenis_kelamin
+			if (s.jenis_kelamin && !['L', 'P'].includes(String(s.jenis_kelamin))) {
+				rowWarnings.push('Jenis kelamin harus L atau P, data tidak disimpan');
+				delete s.jenis_kelamin;
+			}
+
+			// Validate status_santri
+			if (s.status_santri && !STATUS_SANTRI_VALUES.has(String(s.status_santri))) {
+				rowWarnings.push(`Status santri "${s.status_santri}" tidak dikenal, menggunakan default`);
+				delete s.status_santri;
+			}
+
+			// Validate status_keluarga
+			if (s.status_keluarga && !STATUS_KELUARGA_VALUES.has(String(s.status_keluarga))) {
+				rowWarnings.push(`Status keluarga "${s.status_keluarga}" tidak dikenal, data tidak disimpan`);
+				delete s.status_keluarga;
+			}
+
+			// Resolve kamar
+			let kamarId: string | null = null;
+			if (kamarNomor) {
+				kamarId = kamarIdByNomor.get(Number(kamarNomor)) ?? null;
+				if (!kamarId) {
+					rowWarnings.push(`Kamar ${kamarNomor} tidak ditemukan, santri tanpa kamar`);
+				}
+			}
+
+			// Resolve kelas
+			let kelasId: string | null = null;
+			if (kelasKey) {
+				kelasId = kelasIdByKey.get(kelasKey.replace(/\s+/g, '').toUpperCase()) ?? null;
+				if (!kelasId) {
+					rowWarnings.push(`Kelas ${kelasKey} tidak ditemukan, santri tanpa kelas`);
+				}
+			}
+
+			// Resolve wali
 			let waliId: string | null = null;
 			try {
 				waliId = await findOrCreateWali(supabase, w);
 			} catch (e) {
-				recordErr(e instanceof Error ? e.message : 'Gagal mencatat wali santri', 'database');
-				continue;
+				rowWarnings.push('Gagal mencatat wali santri, santri tanpa wali');
 			}
 
 			const payload: Record<string, unknown> = { ...s, custom: {} };
@@ -194,9 +231,12 @@ export const actions = {
 
 			const { error } = await supabase.from('santri').insert(payload);
 			if (error) {
-				recordErr(error.message, 'database');
+				errors.push({ row: line, nama, reason: error.message, kategori: 'database' });
 			} else {
 				berhasil++;
+				if (rowWarnings.length > 0) {
+					peringatan.push({ row: line, nama, warnings: rowWarnings });
+				}
 			}
 		}
 
@@ -206,6 +246,6 @@ export const actions = {
 			after: { rows: rows.length, berhasil, gagal: errors.length }
 		});
 
-		return { total: rows.length, berhasil, gagal: errors.length, errors };
+		return { total: rows.length, berhasil, gagal: errors.length, errors, peringatan };
 	}
 };

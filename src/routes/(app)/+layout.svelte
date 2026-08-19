@@ -24,8 +24,10 @@
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
 	import QuickSearch from '$lib/components/QuickSearch.svelte';
+	import favicon from '$lib/assets/favicon.svg';
+	import { photoUrl } from '$lib/gdrive-url';
 
-	let { children } = $props();
+	let { data, children } = $props();
 
 	const profile = $derived((page.data.profile as Profile | null) ?? null);
 
@@ -43,13 +45,13 @@
 		'/persetujuan': IconCheck,
 		'/import': IconFileImport,
 		'/pengaturan': IconSettings,
-		'/updates': IconSparkles,
-		'/santri/alumni': IconAward
+		'/santri/alumni': IconAward,
+		'/updates': IconSparkles
 	};
 
 	const items: NavItem[] = NAV_ITEMS.map((item) => ({
 		...item,
-		icon: NAV_ICONS[item.href] ?? IconLayoutDashboard // Fallback icon
+		icon: NAV_ICONS[item.href] ?? IconLayoutDashboard
 	}));
 
 	const sidebarNav = $derived(page.data.sidebarNav);
@@ -65,6 +67,9 @@
 	const peranLabel = $derived(profile ? PERAN_LABEL[profile.peran] ?? profile.peran : '');
 
 	const pendingRequests = $derived((page.data.pendingRequests as number) ?? 0);
+
+	const schoolName = $derived(data.schoolName ?? 'Buku Induk');
+	const schoolLogoUrl = $derived(data.schoolLogoUrl as string | null);
 
 	let open = $state(false);
 	let theme = $state('');
@@ -134,6 +139,15 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{schoolName}</title>
+	{#if schoolLogoUrl}
+		<link rel="icon" href={photoUrl(schoolLogoUrl)} />
+	{:else}
+		<link rel="icon" href={favicon} />
+	{/if}
+</svelte:head>
+
 <div class="min-h-[100dvh] bg-base-100 text-base-content">
 	{#if open}
 		<button
@@ -147,11 +161,15 @@
 		{open ? 'translate-x-0' : ''}">
 		<div class="flex items-center justify-between px-5 pb-4 pt-6">
 			<div class="flex items-center gap-3">
-				<span
-					class="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary"
-					>BI</span
-				>
-				<span class="font-semibold tracking-tight">Buku Induk</span>
+				{#if schoolLogoUrl}
+					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-9 object-contain" />
+				{:else}
+					<span
+						class="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary"
+						>BI</span
+					>
+				{/if}
+				<span class="font-semibold tracking-tight">{schoolName}</span>
 			</div>
 			<button
 				class="btn btn-ghost btn-square btn-sm lg:hidden"
@@ -255,7 +273,7 @@
 				onclick={() => (open = true)}>
 				<IconMenu class="size-5" stroke-width={1.75} />
 			</button>
-			<span class="font-semibold tracking-tight">Buku Induk</span>
+			<span class="font-semibold tracking-tight">{schoolName}</span>
 			<button
 				class="btn btn-ghost btn-square btn-sm ml-auto"
 				aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"

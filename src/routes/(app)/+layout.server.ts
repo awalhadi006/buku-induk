@@ -26,7 +26,26 @@ export async function load(event) {
 		.eq('key', 'sidebar_nav')
 		.maybeSingle();
 
+	const { data: schoolNameSetting } = await supabase
+		.from('settings')
+		.select('value')
+		.eq('key', 'school_name')
+		.maybeSingle();
+	
+	const { data: schoolLogoUrlSetting } = await supabase
+		.from('settings')
+		.select('value')
+		.eq('key', 'school_logo_url')
+		.maybeSingle();
+
 	const sidebarNav = parseSidebarNav(sidebarSetting?.value);
 
-	return { user, profile: profile ?? null, pendingRequests, sidebarNav };
+	return { 
+		user,
+		profile: profile ?? null,
+		pendingRequests,
+		sidebarNav,
+		schoolName: schoolNameSetting?.value ?? null,
+		schoolLogoUrl: schoolLogoUrlSetting?.value ?? null
+	};
 }

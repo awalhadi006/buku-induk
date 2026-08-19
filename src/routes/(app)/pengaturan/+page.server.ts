@@ -234,6 +234,32 @@ export const actions = {
 		return { nisGenerated: data as number };
 	},
 
+	updateSchoolIdentity: async ({ locals, request }) => {
+		await requireSuperadmin(locals); // Only superadmin can change school identity
+		const supabase = locals.supabase;
+		const fd = await request.formData();
+		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
+		const logoFile = fd.get('school_logo') as File | null;
+
+		// Update nama sekolah
+		const { error: nameErr } = await supabase.from('settings').upsert({ key: 'school_name', value: schoolName }, { onConflict: 'key' });
+		if (nameErr) return fail(400, { error: nameErr.message });
+
+		// Upload logo ke Google Drive jika ada file
+		if (logoFile && logoFile.size > 0) {
+			const { uploadSchoolLogo } = await import('$lib/gdrive');
+			try {
+				const logoUrl = await uploadSchoolLogo(supabase, logoFile);
+				const { error: logoErr } = await supabase.from('settings').upsert({ key: 'school_logo_url', value: logoUrl }, { onConflict: 'key' });
+				if (logoErr) return fail(400, { error: logoErr.message });
+			} catch (e) {
+				return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah logo sekolah ke Google Drive.' });
+			}
+		}
+
+		return { success: true };
+	},
+
 	updateSidebarNav: async ({ locals, request }) => {
 		await requireAdmin(locals);
 		const fd = await request.formData();

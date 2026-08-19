@@ -13,17 +13,14 @@ async function isAdmin(locals: App.Locals): Promise<boolean> {
 	return ADMIN_ROLES.includes(profile?.peran ?? '');
 }
 
-function parseOptInt(v: FormDataEntryValue | null): number | null {
-	const s = typeof v === 'string' ? v.trim() : '';
-	if (!s) return null;
-	const n = Number(s);
-	return Number.isFinite(n) && n >= 1 ? Math.floor(n) : null;
-}
-
 export async function load({ locals }) {
 	const admin = await isAdmin(locals);
-	const { data } = await locals.supabase.from('kamar').select('*').order('nomor');
-	return { kamar: data ?? [], isAdmin: admin };
+	const { data } = await locals.supabase.from('kamar').select('*, santri(count)').order('nomor');
+	const kamar = (data ?? []).map((k: any) => ({
+		...k,
+		jumlah_santri: k.santri?.[0]?.count ?? 0,
+	}));
+	return { kamar, isAdmin: admin };
 }
 
 export const actions = {
@@ -37,7 +34,6 @@ export const actions = {
 		const payload = {
 			nomor,
 			asrama: (fd.get('asrama') as string | null)?.trim() || null,
-			kapasitas: parseOptInt(fd.get('kapasitas')),
 			aktif: fd.get('aktif') === 'on'
 		};
 		const { error } = await locals.supabase.from('kamar').insert(payload);
@@ -55,7 +51,6 @@ export const actions = {
 		const payload = {
 			nomor,
 			asrama: (fd.get('asrama') as string | null)?.trim() || null,
-			kapasitas: parseOptInt(fd.get('kapasitas')),
 			aktif: fd.get('aktif') === 'on'
 		};
 		const { error } = await locals.supabase.from('kamar').update(payload).eq('id', id);

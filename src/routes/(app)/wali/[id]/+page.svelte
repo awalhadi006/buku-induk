@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { IconUserHeart, IconPhone, IconMapPin, IconUsers } from '@tabler/icons-svelte';
+	import { IconUserHeart, IconPhone, IconMapPin, IconUsers, IconTrash } from '@tabler/icons-svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	const w = $derived(data.wali as {
 		nama_ayah: string | null;
 		nama_ibu: string | null;
@@ -21,6 +21,7 @@
 	}[]);
 
 	const label = $derived(w.nama_wali || w.nama_ayah || w.nama_ibu || 'Wali Santri');
+	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 </script>
 
 <svelte:head>
@@ -32,11 +33,25 @@
 	<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
 		<IconUserHeart class="size-5" stroke-width={1.75} />
 	</span>
-	<div>
+	<div class="min-w-0 flex-1">
 		<h1 class="text-2xl font-semibold tracking-tight">{label}</h1>
 		<p class="mt-0.5 text-base-content/70">Profil wali dan daftar anak (santri) yang dinaungi.</p>
 	</div>
+	{#if data.isAdmin}
+		<form method="POST" action="?/delete" onsubmit={() => confirm('Yakin ingin menghapus wali ini? Data yang sudah terhapus tidak dapat dikembalikan.')}>
+			<button type="submit" class="btn btn-error btn-sm gap-1">
+				<IconTrash class="size-4" stroke-width={1.75} />
+				Hapus
+			</button>
+		</form>
+	{/if}
 </header>
+
+{#if actionError}
+	<div class="alert alert-error mt-6" role="alert">
+		<span>{actionError}</span>
+	</div>
+{/if}
 
 <div class="mt-8 grid gap-6 lg:grid-cols-3">
 	<!-- Info Wali -->

@@ -108,12 +108,10 @@
 				{ key: 'nisn', label: 'NISN' },
 				{ key: 'nik', label: 'NIK' },
 				{ key: 'nis', label: 'NIS' },
-				{ key: 'nipd', label: 'NIPD' },
 				{ key: 'tempat_lahir', label: 'Tempat lahir' },
 				{ key: 'tanggal_lahir', label: 'Tanggal lahir', type: 'date' },
 				{ key: 'jenis_kelamin', label: 'Jenis kelamin', type: 'select', options: GENDER_OPTIONS },
-				{ key: 'agama', label: 'Agama' },
-				{ key: 'kewarganegaraan', label: 'Kewarganegaraan' }
+				{ key: 'agama', label: 'Agama' }
 			]
 		},
 		{

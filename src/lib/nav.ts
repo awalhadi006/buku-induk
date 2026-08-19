@@ -16,8 +16,8 @@ export const NAV_ITEMS: NavItemDef[] = [
 	{ href: '/persetujuan', label: 'Persetujuan Data' },
 	{ href: '/import', label: 'Import Excel' },
 	{ href: '/pengaturan', label: 'Pengaturan' },
-	{ href: '/updates', label: 'Apa yang Baru' },
-	{ href: '/santri/alumni', label: 'Arsip Alumni' }
+	{ href: '/santri/alumni', label: 'Arsip Alumni' },
+	{ href: '/updates', label: 'Apa yang Baru' }
 ];
 
 export const DEFAULT_SIDEBAR_ROLES: Record<string, string[]> = {

@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { IconFileDownload, IconFileUpload, IconFileImport, IconAlertTriangle, IconFilter, IconTable } from '@tabler/icons-svelte';
+	import { IconFileDownload, IconFileUpload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconInfoCircle } from '@tabler/icons-svelte';
 
 	type ImportError = { row: number; nama: string; reason: string; kategori: string };
+	type Warning = { row: number; nama: string; warnings: string[] };
 
 	let { form } = $props();
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 	const result = $derived(
 		form && typeof (form as { berhasil?: number }).berhasil === 'number'
-			? (form as { total: number; berhasil: number; gagal: number; errors: ImportError[] })
+			? (form as { total: number; berhasil: number; gagal: number; errors: ImportError[]; peringatan: Warning[] })
 			: null
 	);
 
@@ -59,7 +60,7 @@
 <header>
 	<h1 class="text-2xl font-semibold tracking-tight">Import Excel</h1>
 	<p class="mt-1 max-w-[65ch] text-base-content/70">
-		Download template Excel yang sudah berisi 38 kolom data santri. Isi data di sheet "santri", lalu upload file.
+		Download template Excel yang sudah berisi kolom data santri. Isi data di sheet "santri", lalu upload file.
 		Sheet "Panduan" berisi contoh pengisian. Data wali (nama ayah/ibu/wali) otomatis tercatat.
 	</p>
 </header>
@@ -134,6 +135,30 @@
 				</table>
 			</div>
 		{/if}
+
+		{#if result.peringatan && result.peringatan.length > 0}
+			<div class="mt-4 rounded-xl border border-warning/40 bg-warning/5 p-4">
+				<h3 class="flex items-center gap-2 text-sm font-semibold text-warning">
+					<IconAlertTriangle class="size-4" stroke-width={1.75} />
+					Peringatan ({result.peringatan.length} baris)
+				</h3>
+				<p class="mt-1 text-xs text-base-content/60">
+					Data berhasil disimpan, tetapi ada field yang belum lengkap atau tidak valid.
+				</p>
+				<ul class="mt-3 max-h-[300px] divide-y divide-warning/20 overflow-y-auto">
+					{#each result.peringatan as w}
+						<li class="py-2 text-sm">
+							<span class="font-medium">Baris {w.row} — {w.nama || '—'}</span>
+							<ul class="mt-1 list-inside list-disc text-xs text-base-content/60">
+								{#each w.warnings as warn}
+									<li>{warn}</li>
+								{/each}
+							</ul>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
 	</div>
 {/if}
 
@@ -147,7 +172,7 @@
 		</span>
 		<h2 class="mt-3 text-sm font-semibold">1. Download template</h2>
 		<p class="mt-1 text-sm text-base-content/60">
-			Template Excel siap isi (38 kolom). Unduh, isi, lalu upload kembali.
+			Template Excel siap isi. Unduh, isi, lalu upload kembali.
 		</p>
 	</a>
 
@@ -161,7 +186,7 @@
 		</span>
 		<h2 class="mt-3 text-sm font-semibold">2. Upload file terisi</h2>
 		<p class="mt-1 text-sm text-base-content/60">
-			File Excel (.xlsx atau .xls) yang sudah diisi.
+			File Excel (.xlsx atau .xls) yang sudah diisi. Minimal kolom Nama Lengkap, Tempat Lahir, dan Tanggal Lahir terisi.
 		</p>
 		<label class="mt-4 block">
 			<span class="mb-1.5 block text-sm font-medium">File Excel</span>

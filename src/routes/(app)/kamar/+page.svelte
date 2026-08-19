@@ -5,7 +5,7 @@
 		id: number;
 		nomor: number;
 		asrama: string | null;
-		kapasitas: number | null;
+		jumlah_santri: number;
 		aktif: boolean;
 	};
 
@@ -16,14 +16,13 @@
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 
 	let editingId = $state<number | null>(null);
-	let editForm = $state({ nomor: '1', asrama: '', kapasitas: '', aktif: true });
+	let editForm = $state({ nomor: '1', asrama: '', aktif: true });
 
 	function startEdit(k: Kamar) {
 		editingId = k.id;
 		editForm = {
 			nomor: String(k.nomor),
 			asrama: k.asrama ?? '',
-			kapasitas: k.kapasitas != null ? String(k.kapasitas) : '',
 			aktif: k.aktif
 		};
 	}
@@ -36,7 +35,7 @@
 <header>
 	<h1 class="text-2xl font-semibold tracking-tight">Kamar</h1>
 	<p class="mt-1 max-w-[65ch] text-base-content/70">
-		Daftar kamar santri, asrama, dan kapasitas. Nomor kamar dinamis, tidak terpaku angka tertentu.
+		Daftar kamar santri, asrama, dan jumlah santri. Nomor kamar dinamis, tidak terpaku angka tertentu.
 	</p>
 </header>
 
@@ -52,18 +51,14 @@
 		action="?/add"
 		class="mt-6 rounded-2xl border border-base-300 bg-base-100 p-5">
 		<h2 class="text-sm font-semibold">Tambah kamar</h2>
-		<div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+		<div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Nomor *</span>
 				<input name="nomor" type="number" min="1" required class="input input-bordered w-full" />
 			</label>
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Asrama</span>
-				<input name="asrama" type="text" class="input input-bordered w-full" placeholder="Putra/Putri" />
-			</label>
-			<label class="block">
-				<span class="mb-1.5 block text-sm font-medium">Kapasitas</span>
-				<input name="kapasitas" type="number" min="1" class="input input-bordered w-full" />
+				<input name="asrama" type="text" class="input input-bordered w-full" placeholder="Ikhwan/Akhwat" />
 			</label>
 			<label class="flex items-end gap-2 pb-1.5">
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary" />
@@ -99,16 +94,8 @@
 							name="asrama"
 							type="text"
 							class="input input-bordered w-44"
+							placeholder="Ikhwan/Akhwat"
 							bind:value={editForm.asrama} />
-					</label>
-					<label class="block">
-						<span class="mb-1.5 block text-sm font-medium">Kapasitas</span>
-						<input
-							name="kapasitas"
-							type="number"
-							min="1"
-							class="input input-bordered w-28"
-							bind:value={editForm.kapasitas} />
 					</label>
 					<label class="flex items-end gap-2 pb-1.5">
 						<input name="aktif" type="checkbox" class="toggle toggle-primary" bind:checked={editForm.aktif} />
@@ -129,7 +116,7 @@
 						<a href="/kamar/{k.id}" class="font-medium hover:underline">Kamar {k.nomor}</a>
 						<p class="text-sm text-base-content/60">
 							{k.asrama ?? 'Tanpa asrama'}
-							{k.kapasitas != null ? ` · kapasitas ${k.kapasitas}` : ''}
+							· {k.jumlah_santri} santri
 						</p>
 					</div>
 					<span class={`badge badge-sm ${k.aktif ? 'badge-success' : 'badge-neutral'}`}>

@@ -8,7 +8,6 @@ export const EXPORT_FIELDS: ExportField[] = [
 	{ key: 'nisn', label: 'NISN' },
 	{ key: 'nik', label: 'NIK' },
 	{ key: 'nis', label: 'NIS' },
-	{ key: 'nipd', label: 'NIPD' },
 	{ key: 'nama_panggilan', label: 'Nama Panggilan' },
 	{ key: 'tempat_lahir', label: 'Tempat Lahir' },
 	{ key: 'tanggal_lahir', label: 'Tanggal Lahir' },

@@ -93,6 +93,15 @@ export async function uploadDocument(supabase: any, file: File, santriName: stri
 	return `gdrive:${id}`;
 }
 
+export async function uploadSchoolLogo(supabase: any, file: File): Promise<string> {
+	const token = await getValidToken(supabase);
+	if (!token) throw new Error('Gagal autentikasi Google Drive');
+	const { data: creds } = await supabase.from('gdrive_creds').select('folder_id').eq('id', 1).single();
+	const folderId = await ensureFolder(token, 'Logo', creds.folder_id);
+	const id = await uploadToFolder(token, file, file.name || 'logo.png', folderId);
+	return `gdrive:${id}`;
+}
+
 export async function deleteDriveFile(supabase: any, gdriveUrl: string): Promise<void> {
 	const id = gdriveUrl.replace('gdrive:', '');
 	if (!id) return;
