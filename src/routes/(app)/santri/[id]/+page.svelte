@@ -225,14 +225,7 @@
 </header>
 
 {#if data.gdrive && !editing}
-	<form
-		method="POST"
-		action="?/uploadPhoto"
-		enctype="multipart/form-data"
-		class="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-base-300 bg-base-100 p-5"
-		onsubmit={(e) => {
-			if (!confirm('Unggah foto ini ke Google Drive?')) e.preventDefault();
-		}}>
+	<div class="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-base-300 bg-base-100 p-5">
 		<div class="flex items-center gap-4">
 			{#if s.foto_url}
 				<img src={photoUrl(s.foto_url)} alt="Foto" class="size-16 rounded-xl object-cover" />
@@ -245,18 +238,22 @@
 				</form>
 			{/if}
 		</div>
-		<label class="flex-1">
-			<span class="mb-1.5 block text-sm font-medium">Pilih file foto</span>
-			<input
-				type="file"
-				name="file"
-				accept="image/*"
-				required
-				class="file-input file-input-bordered w-full"
-				bind:this={photoInput} />
-		</label>
-		<button type="submit" class="btn btn-primary btn-sm">Unggah Foto</button>
-	</form>
+		<form method="POST" action="?/uploadPhoto" enctype="multipart/form-data" class="flex flex-1 items-end gap-3" onsubmit={(e) => {
+			if (!confirm('Unggah foto ini ke Google Drive?')) e.preventDefault();
+		}}>
+			<label class="flex-1">
+				<span class="mb-1.5 block text-sm font-medium">Pilih file foto</span>
+				<input
+					type="file"
+					name="file"
+					accept="image/*"
+					required
+					class="file-input file-input-bordered w-full"
+					bind:this={photoInput} />
+			</label>
+			<button type="submit" class="btn btn-primary btn-sm">Unggah Foto</button>
+		</form>
+	</div>
 {/if}
 
 {#if editing}
