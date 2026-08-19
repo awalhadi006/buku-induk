@@ -7,8 +7,11 @@ export const PERAN_LABEL: Record<string, string> = {
 };
 
 export type Profile = {
+	id?: string;
 	peran: keyof typeof PERAN_LABEL;
 	nama: string | null;
+	username?: string | null;
+	email?: string | null;
 	kamar_id: number | null;
 	kelas_id: number | null;
 };

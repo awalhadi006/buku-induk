@@ -166,16 +166,99 @@
 			Pengguna & peran
 		</h2>
 		<p class="mt-1 text-sm text-base-content/60">
-			Akun dibuat dari dashboard Supabase Auth; di sini Superadmin menetapkan peran dan cakupan
-			kamar/kelas untuk wali kamar & wali kelas.
+			Akun dibuat dari sini. Superadmin menetapkan peran dan cakupan kamar/kelas untuk wali kamar & wali kelas.
 		</p>
+
+		<!-- Toggle Admin TU Create Users -->
+		<div class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-4">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-sm font-medium">Izin Staff TU membuat akun</p>
+					<p class="text-xs text-base-content/60">
+						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif — Staff TU bisa membuat akun wali' : 'Nonaktif — Hanya Superadmin yang bisa membuat akun'}
+					</p>
+				</div>
+				<form method="POST" action="?/toggleAdminTuCreateUsers">
+					<button type="submit" class="btn btn-sm {settings['allow_admin_tu_create_users'] === 'true' ? 'btn-success' : 'btn-outline'}">
+						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif' : 'Nonaktif'}
+					</button>
+				</form>
+			</div>
+		</div>
+
+		<!-- Reset Password Result -->
+		{#if form?.newPassword}
+			<div class="alert alert-success mt-4" role="alert">
+				<div>
+					<p class="font-semibold">Password baru untuk {form.resetEmail}:</p>
+					<code class="font-mono text-lg">{form.newPassword}</code>
+					<p class="mt-1 text-xs">Bagikan password ini ke pengguna. Mereka bisa menggantinya setelah login.</p>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Create User Form -->
+		{#if data.isSuperadmin || data.canCreateUsers}
+			<form method="POST" action="?/createUser" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+				<h3 class="text-sm font-semibold">Tambah Pengguna Baru</h3>
+				<div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Username *</span>
+						<input name="username" type="text" required class="input input-bordered w-full" placeholder="username" />
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Email *</span>
+						<input name="email" type="email" required class="input input-bordered w-full" placeholder="nama@email.com" />
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Nama Lengkap</span>
+						<input name="nama" type="text" class="input input-bordered w-full" placeholder="Nama lengkap" />
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Password Awal *</span>
+						<input name="password" type="text" required class="input input-bordered w-full" placeholder="Minimal 6 karakter" />
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Peran</span>
+						<select name="peran" class="select select-bordered w-full">
+							{#each Object.entries(PERAN_LABEL) as [value, label] (value)}
+								<option value={value}>{label}</option>
+							{/each}
+						</select>
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Kamar (jika Wali Kamar)</span>
+						<select name="kamar_id" class="select select-bordered w-full">
+							<option value="">— Tanpa kamar —</option>
+							{#each kamar as k (k.id)}
+								<option value={k.id}>{`Kamar ${k.nomor}`}</option>
+							{/each}
+						</select>
+					</label>
+					<label class="block">
+						<span class="mb-1.5 block text-sm font-medium">Kelas (jika Wali Kelas)</span>
+						<select name="kelas_id" class="select select-bordered w-full">
+							<option value="">— Tanpa kelas —</option>
+							{#each kelas as k (k.id)}
+								<option value={k.id}>{`${k.tingkat} ${k.rombel}`}</option>
+							{/each}
+						</select>
+					</label>
+				</div>
+				<button type="submit" class="btn btn-primary btn-sm mt-4">
+					<IconPlus class="size-4" stroke-width={2} />
+					Buat Akun
+				</button>
+			</form>
+		{/if}
 
 		<div class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
 			<table class="table">
 				<thead>
 					<tr class="text-xs uppercase tracking-wide text-base-content/60">
 						<th>Nama</th>
-						<th>Peran</th>
+						<th>Username</th>
+						<th class="hidden sm:table-cell">Peran</th>
 						<th class="hidden sm:table-cell">Cakupan</th>
 						<th></th>
 					</tr>
@@ -196,6 +279,9 @@
 								{/if}
 							</td>
 							<td>
+								<span class="font-mono text-xs">{p.username || '—'}</span>
+							</td>
+							<td class="hidden sm:table-cell">
 								{#if editingId === p.id}
 									<select class="select select-bordered select-sm w-full" bind:value={editForm.peran}>
 										{#each Object.entries(PERAN_LABEL) as [value, label] (value)}
@@ -254,6 +340,12 @@
 										<button type="submit" class="btn btn-primary btn-sm">Simpan</button>
 										<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingId = null)}>
 											Batal
+										</button>
+									</form>
+									<form method="POST" action="?/resetPassword" class="flex justify-end gap-2 mt-2">
+										<input type="hidden" name="user_id" value={p.id} />
+										<button type="submit" class="btn btn-warning btn-sm" onclick={() => confirm('Kirim link reset password ke email pengguna ini?')}>
+											Reset Password
 										</button>
 									</form>
 								{:else}

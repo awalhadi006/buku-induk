@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { ROLES } from '$lib/permissions';
 import { ALL_METRIC_KEYS } from '$lib/types';
 import { parseSidebarNav } from '$lib/nav';
+import { supabaseAdmin } from '$lib/supabase-admin';
 
 function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
@@ -49,7 +50,7 @@ export async function load({ locals }) {
 		{ data: tahunAjaran },
 		{ data: gdrive }
 	] = await Promise.all([
-		supabase.from('profiles').select('*').order('created_at'),
+		supabase.from('profiles').select('id,peran,nama,username,email,kamar_id,kelas_id').order('created_at'),
 		supabase.from('kamar').select('id,nomor').order('nomor'),
 		supabase.from('kelas').select('id,tingkat,rombel').order('tingkat').order('rombel'),
 		supabase.from('permissions').select('role,abilities').order('role'),
@@ -64,6 +65,7 @@ export async function load({ locals }) {
 
 	return {
 		isSuperadmin: peran === 'superadmin',
+		canCreateUsers: peran === 'superadmin' || (peran === 'admin_tu' && settingsObj['allow_admin_tu_create_users'] === 'true'),
 		profiles: profiles ?? [],
 		kamar: kamar ?? [],
 		kelas: kelas ?? [],
@@ -94,6 +96,119 @@ export const actions = {
 		};
 		const { error } = await locals.supabase.from('profiles').update(payload).eq('id', id);
 		if (error) return fail(400, { error: error.message });
+	},
+
+	createUser: async ({ locals, request }) => {
+		const peran = await requireAdmin(locals);
+		const { supabase } = locals;
+
+		// Check if admin_tu is allowed to create users
+		if (peran === 'admin_tu') {
+			const { data: setting } = await supabase
+				.from('settings')
+				.select('value')
+				.eq('key', 'allow_admin_tu_create_users')
+				.maybeSingle();
+			if (setting?.value !== 'true') {
+				return fail(403, { error: 'Anda tidak memiliki izin membuat akun pengguna.' });
+			}
+		}
+
+		const fd = await request.formData();
+		const username = (fd.get('username') as string)?.trim().toLowerCase() ?? '';
+		const email = (fd.get('email') as string)?.trim().toLowerCase() ?? '';
+		const nama = (fd.get('nama') as string)?.trim() ?? '';
+		const password = (fd.get('password') as string) ?? '';
+		const userPeran = (fd.get('peran') as string) ?? '';
+		const kamarId = userPeran === 'wali_kamar' ? parseOptInt(fd.get('kamar_id')) : null;
+		const kelasId = userPeran === 'wali_kelas' ? parseOptInt(fd.get('kelas_id')) : null;
+
+		if (!username || !email || !password) {
+			return fail(400, { error: 'Username, email, dan password wajib diisi.' });
+		}
+		if (!ROLES.includes(userPeran)) {
+			return fail(400, { error: 'Peran tidak valid.' });
+		}
+		if (password.length < 6) {
+			return fail(400, { error: 'Password minimal 6 karakter.' });
+		}
+
+		// Check username uniqueness
+		const { data: existing } = await supabase
+			.from('profiles')
+			.select('id')
+			.eq('username', username)
+			.maybeSingle();
+		if (existing) {
+			return fail(400, { error: 'Username sudah digunakan.' });
+		}
+
+		// Create auth user using admin client
+		const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+			email,
+			password,
+			email_confirm: true,
+			user_metadata: { username }
+		});
+		if (authErr) return fail(400, { error: authErr.message });
+
+		// Update profile with username, nama, peran, and cakupan
+		const { error: profileErr } = await supabase
+			.from('profiles')
+			.update({
+				username,
+				nama,
+				peran: userPeran,
+				kamar_id: kamarId,
+				kelas_id: kelasId
+			})
+			.eq('id', authUser.user.id);
+		if (profileErr) return fail(400, { error: profileErr.message });
+
+		return { success: true };
+	},
+
+	resetPassword: async ({ locals, request }) => {
+		await requireSuperadmin(locals);
+		const fd = await request.formData();
+		const userId = (fd.get('user_id') as string)?.trim() ?? '';
+		if (!userId) return fail(400, { error: 'User ID tidak valid.' });
+
+		// Generate a new random password
+		const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+		let newPassword = '';
+		for (let i = 0; i < 12; i++) {
+			newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+
+		const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+			password: newPassword
+		});
+		if (error) return fail(400, { error: error.message });
+
+		// Get user email for display
+		const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+		return { newPassword, resetEmail: authUser?.user?.email ?? '' };
+	},
+
+	toggleAdminTuCreateUsers: async ({ locals }) => {
+		await requireSuperadmin(locals);
+		const { supabase } = locals;
+
+		const { data: current } = await supabase
+			.from('settings')
+			.select('value')
+			.eq('key', 'allow_admin_tu_create_users')
+			.maybeSingle();
+
+		const newValue = current?.value === 'true' ? 'false' : 'true';
+		const { error } = await supabase
+			.from('settings')
+			.upsert({ key: 'allow_admin_tu_create_users', value: newValue }, { onConflict: 'key' });
+		if (error) return fail(400, { error: error.message });
+
+		return { allowAdminTuCreateUsers: newValue === 'true' };
 	},
 
 	updatePermissions: async ({ locals, request }) => {

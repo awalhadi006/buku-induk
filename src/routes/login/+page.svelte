@@ -1,34 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { IconCheck, IconEye, IconEyeOff } from '@tabler/icons-svelte';
-	import { supabase } from '$lib/supabase';
 
-	let email = $state('');
-	let password = $state('');
+	let { form } = $props();
 	let show = $state(false);
-	let error = $state('');
-	let submitting = $state(false);
-
-	async function submit(e: SubmitEvent) {
-		e.preventDefault();
-		if (submitting) return;
-		submitting = true;
-		error = '';
-
-		try {
-			const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-			if (err) {
-				error = err.message;
-				password = '';
-				return;
-			}
-			goto('/');
-		} catch {
-			error = 'Terjadi kesalahan. Coba lagi.';
-		} finally {
-			submitting = false;
-		}
-	}
 </script>
 
 <svelte:head>
@@ -85,17 +59,17 @@
 				Masuk dengan akun pondok yang dibuat bagian tata usaha.
 			</p>
 
-			<form class="mt-8 space-y-5" onsubmit={submit}>
+			<form method="POST" class="mt-8 space-y-5">
 				<div>
-					<label for="email" class="mb-1.5 block text-sm font-medium">Email</label>
+					<label for="username" class="mb-1.5 block text-sm font-medium">Username</label>
 					<input
-						id="email"
-						type="email"
-						bind:value={email}
+						id="username"
+						name="username"
+						type="text"
 						required
-						autocomplete="email"
+						autocomplete="username"
 						class="input input-bordered w-full"
-						placeholder="nama@pengguna" />
+						placeholder="username" />
 				</div>
 
 				<div>
@@ -103,8 +77,8 @@
 					<div class="relative">
 						<input
 							id="password"
+							name="password"
 							type={show ? 'text' : 'password'}
-							bind:value={password}
 							required
 							autocomplete="current-password"
 							class="input input-bordered w-full pr-11"
@@ -123,16 +97,11 @@
 					</div>
 				</div>
 
-				{#if error}
-					<p class="text-sm text-error" role="alert">{error}</p>
+				{#if form?.error}
+					<p class="text-sm text-error" role="alert">{form.error}</p>
 				{/if}
 
-				<button type="submit" class="btn btn-primary btn-block" disabled={submitting}>
-					{#if submitting}
-						<span class="loading loading-spinner loading-sm"></span>
-					{/if}
-					{submitting ? 'Memasuki...' : 'Masuk'}
-				</button>
+				<button type="submit" class="btn btn-primary btn-block">Masuk</button>
 			</form>
 
 			<p class="mt-8 text-sm text-base-content/60">
