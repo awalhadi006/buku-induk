@@ -45,7 +45,7 @@
 		},
 		{ href: '/persetujuan', label: 'Persetujuan Data', icon: IconCheck, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/import', label: 'Import Excel', icon: IconFileImport, roles: ['superadmin', 'admin_tu'] },
-		{ href: '/pengaturan', label: 'Pengaturan', icon: IconSettings, roles: ['superadmin'] },
+		{ href: '/pengaturan', label: 'Pengaturan', icon: IconSettings, roles: ['superadmin', 'admin_tu'] },
 		{ href: '/updates', label: 'Apa yang Baru', icon: IconSparkles, roles: 'all' },
 		{
 			href: '/santri/alumni',
