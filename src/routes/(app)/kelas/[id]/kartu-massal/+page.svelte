@@ -25,7 +25,7 @@
 	const kelas = $derived(data.kelas as Kelas);
 	const santriList = $derived(data.santri as SantriForCard[]);
 
-	const title = `Kartu Santri ${kelas.tingkat} ${kelas.rombel}${kelas.tahun_ajaran ? ` (${kelas.tahun_ajaran})` : ''}`;
+	const title = $derived(`Kartu Santri ${kelas.tingkat} ${kelas.rombel}${kelas.tahun_ajaran ? ` (${kelas.tahun_ajaran})` : ''}`);
 
 	function getKelasLabel(k: Kelas) {
 		return `${k.tingkat}${k.rombel}`;

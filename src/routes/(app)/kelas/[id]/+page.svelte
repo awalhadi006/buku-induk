@@ -13,7 +13,7 @@
 		kamar: string | null;
 	}[]);
 	const r = $derived(data.rekap as { total: number; laki: number; perempuan: number });
-	const title = `${k.tingkat} ${k.rombel}${k.tahun_ajaran ? ` (${k.tahun_ajaran})` : ''}`;
+	const title = $derived(`${k.tingkat} ${k.rombel}${k.tahun_ajaran ? ` (${k.tahun_ajaran})` : ''}`);
 </script>
 
 <svelte:head>

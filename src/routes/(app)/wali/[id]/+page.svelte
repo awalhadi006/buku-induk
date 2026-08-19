@@ -20,7 +20,7 @@
 		kelas: string;
 	}[]);
 
-	const label = w.nama_wali || w.nama_ayah || w.nama_ibu || 'Wali Santri';
+	const label = $derived(w.nama_wali || w.nama_ayah || w.nama_ibu || 'Wali Santri');
 </script>
 
 <svelte:head>
