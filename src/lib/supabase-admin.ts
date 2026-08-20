@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/private';
 
-const SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+let _client: ReturnType<typeof createClient> | null = null;
 
-export const supabaseAdmin = createClient(
-	env.PUBLIC_SUPABASE_URL!,
-	SUPABASE_SERVICE_ROLE_KEY!,
-	{ auth: { persistSession: false } }
-);
+export function getSupabaseAdmin() {
+	if (!_client) {
+		_client = createClient(env.PUBLIC_SUPABASE_URL!, env.SUPABASE_SERVICE_ROLE_KEY!, {
+			auth: { persistSession: false }
+		});
+	}
+	return _client;
+}

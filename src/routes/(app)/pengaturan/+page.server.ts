@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { ROLES } from '$lib/permissions';
 import { ALL_METRIC_KEYS } from '$lib/types';
 import { parseSidebarNav } from '$lib/nav';
-import { supabaseAdmin } from '$lib/supabase-admin';
+import { getSupabaseAdmin } from '$lib/supabase-admin';
 
 function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
@@ -144,7 +144,7 @@ export const actions = {
 		}
 
 		// Create auth user using admin client
-		const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+		const { data: authUser, error: authErr } = await getSupabaseAdmin().auth.admin.createUser({
 			email,
 			password,
 			email_confirm: true,
@@ -181,13 +181,13 @@ export const actions = {
 			newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
 		}
 
-		const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+		const { error } = await getSupabaseAdmin().auth.admin.updateUserById(userId, {
 			password: newPassword
 		});
 		if (error) return fail(400, { error: error.message });
 
 		// Get user email for display
-		const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+		const { data: authUser } = await getSupabaseAdmin().auth.admin.getUserById(userId);
 
 		return { newPassword, resetEmail: authUser?.user?.email ?? '' };
 	},
