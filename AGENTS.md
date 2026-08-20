@@ -1,5 +1,9 @@
 # Buku Induk Santri
 
+## Conventions
+
+- **Git Commit Messages**: Gunakan bahasa Indonesia untuk pesan commit (contoh: `perbaiki: ...`, `tambah: ...`).
+
 ## Agent skills
 
 ### Issue tracker
