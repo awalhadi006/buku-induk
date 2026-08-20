@@ -153,7 +153,9 @@
 	{/if}
 	<a class="tab" class:tab-active={tab === 'fields'} href="/pengaturan?tab=fields">Field Kustom</a>
 	<a class="tab" class:tab-active={tab === 'ta'} href="/pengaturan?tab=ta">Tahun Ajaran</a>
-	<a class="tab" class:tab-active={tab === 'nis'} href="/pengaturan?tab=nis">NIS</a>
+	{#if data.isSuperadmin}
+		<a class="tab" class:tab-active={tab === 'nis'} href="/pengaturan?tab=nis">NIS</a>
+	{/if}
 	<a class="tab" class:tab-active={tab === 'gdrive'} href="/pengaturan?tab=gdrive">Google Drive</a>
 			<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
 			<a class="tab" class:tab-active={tab === 'school'} href="/pengaturan?tab=school">Identitas Sekolah</a>
@@ -593,7 +595,7 @@
 		</div>
 	</section>
 
-{:else if tab === 'nis'}
+{:else if tab === 'nis' && data.isSuperadmin}
 	<section class="mt-6 max-w-2xl">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconHash class="size-4" stroke-width={1.75} />

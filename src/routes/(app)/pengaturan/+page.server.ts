@@ -310,7 +310,7 @@ export const actions = {
 	},
 
 	updateNisPattern: async ({ locals, request }) => {
-		await requireAdmin(locals);
+		await requireSuperadmin(locals);
 		const fd = await request.formData();
 		const pattern = (fd.get('pattern') as string | null)?.trim() ?? '';
 		const jenjangRaw = (fd.get('jenjang_map') as string | null)?.trim() ?? '';
@@ -339,7 +339,7 @@ export const actions = {
 	},
 
 	bulkGenerateNis: async ({ locals, request }) => {
-		await requireAdmin(locals);
+		await requireSuperadmin(locals);
 		const fd = await request.formData();
 		const pattern = (fd.get('pattern') as string | null)?.trim() ?? '';
 		if (!pattern) return fail(400, { error: 'Pola NIS belum dikonfigurasi.' });
