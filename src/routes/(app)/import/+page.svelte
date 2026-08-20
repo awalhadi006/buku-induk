@@ -163,9 +163,9 @@
 {/if}
 
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
-	<a
-		href="/template-import-santri.xlsx?v=2"
-		download="template-import-santri.xlsx"
+	<form
+		method="POST"
+		action="?/template"
 		class="rounded-2xl border border-base-300 bg-base-100 p-5">
 		<span class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 			<IconFileDownload class="size-5" stroke-width={1.75} />
@@ -174,7 +174,7 @@
 		<p class="mt-1 text-sm text-base-content/60">
 			Template Excel siap isi. Unduh, isi, lalu upload kembali.
 		</p>
-	</a>
+	</form>
 
 	<form
 		method="POST"
