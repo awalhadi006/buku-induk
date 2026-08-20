@@ -160,16 +160,16 @@
 		class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-transform duration-200 lg:translate-x-0 motion-reduce:transition-none
 		{open ? 'translate-x-0' : ''}">
 		<div class="flex items-center justify-between px-5 pb-4 pt-6">
-			<div class="flex items-center gap-3">
+			<div class="flex min-w-0 items-center gap-3">
 				{#if schoolLogoUrl}
-					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-9 object-contain" />
+					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-9 shrink-0 object-contain" />
 				{:else}
 					<span
-						class="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary"
+						class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary"
 						>BI</span
 					>
 				{/if}
-				<span class="font-semibold tracking-tight">{schoolName}</span>
+				<span class="min-w-0 truncate text-sm font-semibold tracking-tight">{schoolName}</span>
 			</div>
 			<button
 				class="btn btn-ghost btn-square btn-sm lg:hidden"
@@ -273,7 +273,7 @@
 				onclick={() => (open = true)}>
 				<IconMenu class="size-5" stroke-width={1.75} />
 			</button>
-			<span class="font-semibold tracking-tight">{schoolName}</span>
+			<span class="min-w-0 truncate text-sm font-semibold tracking-tight">{schoolName}</span>
 			<button
 				class="btn btn-ghost btn-square btn-sm ml-auto"
 				aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"

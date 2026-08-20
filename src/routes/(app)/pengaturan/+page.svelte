@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
+	import { photoUrl } from '$lib/gdrive-url';
 	import {
 		IconUserCog,
 		IconShieldCheck,
