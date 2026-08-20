@@ -83,6 +83,15 @@ export function buildTemplateBuffer(): Uint8Array {
 
 export const IMPORT_HEADERS = IMPORT_COLUMNS.map((c) => c.header);
 
+export function normalizeHeader(h: string): string {
+	return h
+		.toLowerCase()
+		.replace(/\*/g, '')
+		.replace(/\(.*?\)/g, '')
+		.replace(/[^a-z0-9]/g, '')
+		.trim();
+}
+
 export function buildExportBuffer(headers: string[], rows: unknown[][]): Uint8Array {
 	const aoa: unknown[][] = [headers, ...rows];
 	const ws = XLSX.utils.aoa_to_sheet(aoa);

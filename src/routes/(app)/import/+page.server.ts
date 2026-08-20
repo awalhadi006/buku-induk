@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import * as XLSX from 'xlsx';
-import { IMPORT_COLUMNS } from '$lib/excel';
+import { IMPORT_COLUMNS, normalizeHeader } from '$lib/excel';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
 
@@ -99,8 +99,12 @@ export const actions = {
 			let kamarNomor = '';
 			let kelasKey = '';
 
+			const normKeyByNorm = new Map<string, string>();
+			for (const k of Object.keys(row)) normKeyByNorm.set(normalizeHeader(k), k);
+
 			for (const c of IMPORT_COLUMNS) {
-				const val = toText(row[c.header]);
+				const key = normKeyByNorm.get(normalizeHeader(c.header));
+				const val = toText(key ? row[key] : undefined);
 				if (!val) continue;
 				if (c.group === 'santri') s[c.field] = val;
 				else if (c.group === 'wali') w[c.field] = val;

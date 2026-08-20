@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { normalizeHeader } from '$lib/excel';
 
 function toText(v: unknown): string {
 	if (v == null) return '';
@@ -75,5 +76,23 @@ describe('toIsoDate', () => {
 
 	it('returns invalid for Infinity', () => {
 		expect(toIsoDate(Infinity)).toBe('invalid');
+	});
+});
+
+describe('normalizeHeader', () => {
+	it('lowercases and strips non-alphanumerics', () => {
+		expect(normalizeHeader('Nama lengkap *')).toBe('namalengkap');
+		expect(normalizeHeader('Nama lengkap')).toBe('namalengkap');
+	});
+
+	it('ignores case differences', () => {
+		expect(normalizeHeader('Tanggal Lahir')).toBe(normalizeHeader('Tanggal lahir'));
+		expect(normalizeHeader('Rt')).toBe(normalizeHeader('RT'));
+		expect(normalizeHeader('asal sekolah')).toBe(normalizeHeader('Asal sekolah'));
+	});
+
+	it('strips parenthetical hints', () => {
+		expect(normalizeHeader('Jenis kelamin (L/P)')).toBe('jeniskelamin');
+		expect(normalizeHeader('Jenis Kelamin')).toBe('jeniskelamin');
 	});
 });
