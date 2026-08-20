@@ -2,7 +2,7 @@
 
 ## Conventions
 
-- **Git Commit Messages**: Gunakan bahasa Indonesia untuk pesan commit (contoh: `perbaiki: ...`, `tambah: ...`).
+- **Git Commit Messages**: Gunakan prefix `feat`, `fix`, `dokumentasi`, `refactor`, dsb. (English), tapi deskripsi wajib bahasa Indonesia. Contoh: `feat: tambah menu NIS`, `fix: perbaiki login via email`, `dokumentasi: tambah panduan import`.
 
 ## Agent skills
 
