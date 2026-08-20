@@ -21,7 +21,34 @@ function toIsoDate(v: unknown): string {
 		if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
 	}
 	if (typeof v === 'string' && v.trim()) {
-		const d = new Date(v);
+		const raw = v.trim();
+		const months: Record<string, number> = {
+			januari: 0, februari: 1, maret: 2, april: 3, mei: 4, juni: 5,
+			juli: 6, agustus: 7, september: 8, oktober: 9, november: 10, desember: 11
+		};
+		const m = raw.toLowerCase().match(/^(\d{1,2})\s+(\w+)\s+(\d{2,4})$/);
+		if (m) {
+			const day = Number(m[1]);
+			const mi = months[m[2]];
+			if (mi != null) {
+				let yr = Number(m[3]);
+				if (yr < 100) yr += yr < 50 ? 2000 : 1900;
+				const d = new Date(yr, mi, day);
+				if (!Number.isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+			}
+		}
+		const numMatch = raw.match(/^(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})$/);
+		if (numMatch) {
+			const day = Number(numMatch[1]);
+			const month = Number(numMatch[2]) - 1;
+			let yr = Number(numMatch[3]);
+			if (yr < 100) yr += yr < 50 ? 2000 : 1900;
+			if (month >= 0 && month < 12 && day >= 1 && day <= 31) {
+				const d = new Date(yr, month, day);
+				if (!Number.isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+			}
+		}
+		const d = new Date(raw);
 		if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
 	}
 	return 'invalid';
@@ -114,6 +141,15 @@ export const actions = {
 
 			const nama = String(s.nama_lengkap ?? '');
 			const rowWarnings: string[] = [];
+
+			if (s.rt) {
+				const n = Number(s.rt);
+				s.rt = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rt).padStart(3, '0');
+			}
+			if (s.rw) {
+				const n = Number(s.rw);
+				s.rw = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rw).padStart(3, '0');
+			}
 
 			// REQUIRED (gagal): nama_lengkap, tempat_lahir, tanggal_lahir
 			if (!nama) {
