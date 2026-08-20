@@ -9,19 +9,19 @@ export const actions = {
 		if (locals.user) throw redirect(303, '/');
 
 		const fd = await request.formData();
-		const username = (fd.get('username') as string)?.trim().toLowerCase() ?? '';
+		const identifier = (fd.get('username') as string)?.trim().toLowerCase() ?? '';
 		const password = (fd.get('password') as string) ?? '';
 
-		if (!username || !password) {
-			return fail(400, { error: 'Username dan password wajib diisi.' });
+		if (!identifier || !password) {
+			return fail(400, { error: 'Username/email dan password wajib diisi.' });
 		}
 
 		// Lookup email via security-definer function (bypasses RLS)
 		const { data: email } = await locals.supabase
-			.rpc('login_lookup', { p_username: username });
+			.rpc('login_lookup', { p_identifier: identifier });
 
 		if (!email) {
-			return fail(400, { error: 'Username tidak ditemukan.' });
+			return fail(400, { error: 'Akun tidak ditemukan.' });
 		}
 
 		// Sign in with the resolved email
