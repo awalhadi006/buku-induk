@@ -1,5 +1,4 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { getSupabaseAdmin } from '$lib/supabase-admin';
 
 export async function load({ locals }) {
 	if (locals.user) throw redirect(303, '/');
@@ -17,21 +16,17 @@ export const actions = {
 			return fail(400, { error: 'Username dan password wajib diisi.' });
 		}
 
-		// Lookup email from profiles by username (admin bypasses RLS)
-		const admin = getSupabaseAdmin();
-		const { data: profile } = await admin
-			.from('profiles')
-			.select('email')
-			.eq('username', username)
-			.maybeSingle();
+		// Lookup email via security-definer function (bypasses RLS)
+		const { data: email } = await locals.supabase
+			.rpc('login_lookup', { p_username: username });
 
-		if (!profile?.email) {
+		if (!email) {
 			return fail(400, { error: 'Username tidak ditemukan.' });
 		}
 
 		// Sign in with the resolved email
 		const { error } = await locals.supabase.auth.signInWithPassword({
-			email: profile.email,
+			email,
 			password
 		});
 
