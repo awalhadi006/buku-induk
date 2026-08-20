@@ -157,7 +157,9 @@
 		<a class="tab" class:tab-active={tab === 'nis'} href="/pengaturan?tab=nis">NIS</a>
 	{/if}
 	<a class="tab" class:tab-active={tab === 'gdrive'} href="/pengaturan?tab=gdrive">Google Drive</a>
-			<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
+	{#if data.isSuperadmin}
+		<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
+	{/if}
 			<a class="tab" class:tab-active={tab === 'school'} href="/pengaturan?tab=school">Identitas Sekolah</a>
 	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
 	{#if data.isSuperadmin}
@@ -844,7 +846,7 @@
 		{/if}
 	</section>
 
-{:else if tab === 'sidebar'}
+{:else if tab === 'sidebar' && data.isSuperadmin}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconMenu class="size-4" stroke-width={1.75} />

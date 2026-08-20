@@ -376,7 +376,7 @@ export const actions = {
 	},
 
 	updateSidebarNav: async ({ locals, request }) => {
-		await requireAdmin(locals);
+		await requireSuperadmin(locals);
 		const fd = await request.formData();
 		const sidebarNav: Record<string, string[]> = {};
 
