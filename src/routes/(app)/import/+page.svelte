@@ -174,6 +174,10 @@
 		<p class="mt-1 text-sm text-base-content/60">
 			Template Excel siap isi. Unduh, isi, lalu upload kembali.
 		</p>
+		<button type="submit" class="btn btn-outline btn-sm mt-3">
+			<IconFileDownload class="size-4" />
+			Download
+		</button>
 	</form>
 
 	<form
