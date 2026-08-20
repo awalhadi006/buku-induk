@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { afterNavigate } from '$app/navigation';
 	import {
 		IconUserCog,
 		IconShieldCheck,
@@ -11,7 +10,8 @@
 		IconTrash,
 		IconPlus,
 		IconCloud,
-		IconHash
+		IconHash,
+		IconSchool
 	} from '@tabler/icons-svelte';
 	import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	import { ABILITIES } from '$lib/permissions';
@@ -64,9 +64,11 @@
 	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
-	let tab = $state(page.url.searchParams.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields'));
-	afterNavigate(() => {
-		tab = page.url.searchParams.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields');
+	let tab = $state(data.isSuperadmin ? 'users' : 'fields');
+	$effect(() => {
+		const search = page.url.search;
+		const params = new URLSearchParams(search);
+		tab = params.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields');
 	});
 	const actorName = $derived(
 		Object.fromEntries(profiles.map((p) => [p.id, p.nama ?? p.id.slice(0, 8)]))
