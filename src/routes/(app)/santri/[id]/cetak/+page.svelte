@@ -33,7 +33,7 @@
 				['1. Nama Lengkap', s.nama_lengkap],
 				['2. Nama Panggilan', s.nama_panggilan],
 				['3. NISN / NIK', [s.nisn, s.nik].filter(Boolean).join(' / ') || null],
-				['4. NIS / NIPD', [s.nis, s.nipd].filter(Boolean).join(' / ') || null],
+				['4. NIS', s.nis || null],
 				['5. Tempat, Tanggal Lahir', [s.tempat_lahir, d(s.tanggal_lahir)].filter(Boolean).join(', ') || null],
 				['6. Jenis Kelamin', GENDER_LABEL[s.jenis_kelamin] ?? s.jenis_kelamin],
 				['7. Agama', s.agama],

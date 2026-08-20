@@ -4,14 +4,13 @@ import * as XLSX from 'xlsx';
 import { EXPORT_FIELDS } from '$lib/export-fields';
 
 const SELECT =
-	'nama_lengkap,nisn,nik,nis,nipd,nama_panggilan,tempat_lahir,tanggal_lahir,jenis_kelamin,agama,kewarganegaraan,tempat_tinggal,transportasi,anak_ke,no_hp,alamat,rt,rw,desa,kecamatan,kabupaten,no_akta,no_kk,bantuan_kip,status_keluarga,status_santri,tanggal_masuk,asal_sekolah,jalur_masuk,kamar(nomor),kelas(tingkat,rombel),wali_santri(nama_ayah,nama_ibu,nama_wali,pekerjaan_ayah,pekerjaan_ibu,penghasilan,alamat,no_hp)';
+	'nama_lengkap,nisn,nik,nis,nama_panggilan,tempat_lahir,tanggal_lahir,jenis_kelamin,agama,kewarganegaraan,tempat_tinggal,transportasi,anak_ke,no_hp,alamat,rt,rw,desa,kecamatan,kabupaten,no_akta,no_kk,bantuan_kip,status_keluarga,status_santri,tanggal_masuk,asal_sekolah,jalur_masuk,kamar(nomor),kelas(tingkat,rombel),wali_santri(nama_ayah,nama_ibu,nama_wali,pekerjaan_ayah,pekerjaan_ibu,penghasilan,alamat,no_hp)';
 
 const ACCESSORS: Record<string, (s: any, k: any, cl: any, w: any) => string> = {
 	nama_lengkap: (s) => s.nama_lengkap ?? '',
 	nisn: (s) => s.nisn ?? '',
 	nik: (s) => s.nik ?? '',
 	nis: (s) => s.nis ?? '',
-	nipd: (s) => s.nipd ?? '',
 	nama_panggilan: (s) => s.nama_panggilan ?? '',
 	tempat_lahir: (s) => s.tempat_lahir ?? '',
 	tanggal_lahir: (s) => s.tanggal_lahir ?? '',

@@ -129,7 +129,6 @@
 				['NISN', s.nisn],
 				['NIK', s.nik],
 				['NIS', s.nis],
-				['NIPD', s.nipd],
 				[
 					'Tempat, tanggal lahir',
 					[s.tempat_lahir, d(s.tanggal_lahir)].filter(Boolean).join(', ') || null

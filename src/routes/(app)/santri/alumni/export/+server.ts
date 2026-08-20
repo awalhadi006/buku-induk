@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 	const [{ data: santri }, { data: history }] = await Promise.all([
 		supabase
 			.from('santri')
-			.select('id,nama_lengkap,nisn,nik,nipd,jenis_kelamin,status_keluarga,kabupaten,kelas(tingkat,rombel,tahun_ajaran)')
+			.select('id,nama_lengkap,nisn,nik,jenis_kelamin,status_keluarga,kabupaten,kelas(tingkat,rombel,tahun_ajaran)')
 			.eq('status_santri', 'lulus')
 			.order('nama_lengkap'),
 		supabase
@@ -46,7 +46,6 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			nama_lengkap: s.nama_lengkap ?? '',
 			nisn: s.nisn ?? '',
 			nik: s.nik ?? '',
-			nipd: s.nipd ?? '',
 			jenis_kelamin: s.jenis_kelamin === 'L' ? 'Laki-laki' : s.jenis_kelamin === 'P' ? 'Perempuan' : '',
 			kelas: kelasLabel,
 			status_keluarga: s.status_keluarga ?? '',
@@ -62,12 +61,11 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 		alumni = alumni.filter((a) => a.kelas === kelasFilter);
 	}
 
-	const headers = ['Nama Lengkap', 'NISN', 'NIK', 'NIPD', 'Jenis Kelamin', 'Kelas Terakhir', 'Status Keluarga', 'Kabupaten', 'Tanggal Lulus'];
+	const headers = ['Nama Lengkap', 'NISN', 'NIK', 'Jenis Kelamin', 'Kelas Terakhir', 'Status Keluarga', 'Kabupaten', 'Tanggal Lulus'];
 	const rows = alumni.map((a) => [
 		a.nama_lengkap,
 		a.nisn,
 		a.nik,
-		a.nipd,
 		a.jenis_kelamin,
 		a.kelas,
 		a.status_keluarga,

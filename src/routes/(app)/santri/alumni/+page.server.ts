@@ -16,7 +16,7 @@ export async function load({ locals }) {
 	const [{ data: santri }, { data: history }] = await Promise.all([
 		supabase
 			.from('santri')
-			.select('id,nama_lengkap,nisn,nik,nipd,jenis_kelamin,status_keluarga,kabupaten,kelas(tingkat,rombel,tahun_ajaran)')
+			.select('id,nama_lengkap,nisn,nik,jenis_kelamin,status_keluarga,kabupaten,kelas(tingkat,rombel,tahun_ajaran)')
 			.eq('status_santri', 'lulus')
 			.order('nama_lengkap'),
 		supabase
@@ -38,7 +38,6 @@ export async function load({ locals }) {
 			nama_lengkap: s.nama_lengkap,
 			nisn: s.nisn,
 			nik: s.nik,
-			nipd: s.nipd,
 			jenis_kelamin: s.jenis_kelamin,
 			status_keluarga: s.status_keluarga,
 			kabupaten: s.kabupaten,

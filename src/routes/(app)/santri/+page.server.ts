@@ -2,7 +2,7 @@ export async function load({ locals }) {
 	const [{ data: santriData }, { data: kamarData }, { data: kelasData }, { data: kabupatenData }] = await Promise.all([
 		locals.supabase
 			.from('santri')
-			.select('id,nama_lengkap,nisn,nik,nis,nipd,jenis_kelamin,status_santri,status_keluarga,kamar_id,kelas_id,kabupaten,tempat_lahir,tanggal_lahir,wali_santri_id,kamar(nomor),kelas(tingkat,rombel)')
+			.select('id,nama_lengkap,nisn,nik,nis,jenis_kelamin,status_santri,status_keluarga,kamar_id,kelas_id,kabupaten,tempat_lahir,tanggal_lahir,wali_santri_id,kamar(nomor),kelas(tingkat,rombel)')
 			.order('nama_lengkap'),
 		locals.supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
 		locals.supabase.from('kelas').select('id,tingkat,rombel').eq('aktif', true).order('tingkat').order('rombel'),
@@ -15,7 +15,6 @@ export async function load({ locals }) {
 		nisn: s.nisn,
 		nik: s.nik,
 		nis: s.nis,
-		nipd: s.nipd,
 		jenis_kelamin: s.jenis_kelamin,
 		status_santri: s.status_santri,
 		status_keluarga: s.status_keluarga,

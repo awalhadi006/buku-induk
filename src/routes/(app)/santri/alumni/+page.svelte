@@ -7,7 +7,6 @@
 		nama_lengkap: string;
 		nisn: string | null;
 		nik: string | null;
-		nipd: string | null;
 		jenis_kelamin: string | null;
 		status_keluarga: string | null;
 		kabupaten: string | null;
@@ -34,8 +33,7 @@
 				const matchNama = a.nama_lengkap.toLowerCase().includes(q);
 				const matchNisn = (a.nisn ?? '').toLowerCase().includes(q);
 				const matchNik = (a.nik ?? '').toLowerCase().includes(q);
-				const matchNipd = (a.nipd ?? '').toLowerCase().includes(q);
-				if (!matchNama && !matchNisn && !matchNik && !matchNipd) return false;
+				if (!matchNama && !matchNisn && !matchNik) return false;
 			}
 			if (filterTahun && a.tanggal_lulus.slice(0, 4) !== filterTahun) return false;
 			if (filterKelas && a.kelas !== filterKelas) return false;
