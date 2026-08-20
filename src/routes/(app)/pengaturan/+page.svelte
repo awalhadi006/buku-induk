@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { enhance } from '$app/forms';
 	import {
 		IconUserCog,
 		IconShieldCheck,
@@ -613,7 +614,7 @@
 					required
 					class="input input-bordered w-full font-mono"
 					value={settings['nis_pattern'] ?? '{TAHUN}.{JENJANG}.{NO}'}
-					placeholder="{TAHUN}.{JENJANG}.{NO}" />
+					placeholder={'{TAHUN}.{JENJANG}.{NO}'} />
 			</label>
 			<p class="mt-1 text-xs text-base-content/50">
 				Contoh: <code>{`{TAHUN}{JENJANG}{NO}`}</code> → <code>25MIA001</code> ·
@@ -730,6 +731,7 @@
 			method="POST"
 			action="?/updateSchoolIdentity"
 			enctype="multipart/form-data"
+			use:enhance
 			class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Nama Sekolah</span>

@@ -350,7 +350,7 @@ export const actions = {
 	},
 
 	updateSchoolIdentity: async ({ locals, request }) => {
-		await requireSuperadmin(locals); // Only superadmin can change school identity
+		await requireAdmin(locals);
 		const supabase = locals.supabase;
 		const fd = await request.formData();
 		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
