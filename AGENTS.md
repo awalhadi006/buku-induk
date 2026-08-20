@@ -2,7 +2,7 @@
 
 ## Conventions
 
-- **Git Commit Messages**: Gunakan prefix `feat`, `fix`, `dokumentasi`, `refactor`, dsb. (English), tapi deskripsi wajib bahasa Indonesia. Contoh: `feat: tambah menu NIS`, `fix: perbaiki login via email`, `dokumentasi: tambah panduan import`.
+- **Git Commit Messages**: Gunakan prefix `feat`, `fix`, `docs`, `refactor`, dsb. (English), tapi deskripsi wajib bahasa Indonesia. Contoh: `feat: tambah menu NIS`, `fix: perbaiki login via email`, `docs: tambah panduan import`.
 
 ## Agent skills
 
