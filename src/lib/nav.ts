@@ -20,6 +20,16 @@ export const NAV_ITEMS: NavItemDef[] = [
 	{ href: '/updates', label: 'Apa yang Baru' }
 ];
 
+export type NavGroupDef = { label: string; hrefs: string[] };
+
+export const NAV_GROUPS: NavGroupDef[] = [
+	{ label: 'Ringkasan', hrefs: ['/', '/rekap'] },
+	{ label: 'Data Santri', hrefs: ['/santri', '/wali', '/santri/alumni'] },
+	{ label: 'Pondok', hrefs: ['/kamar', '/kelas', '/kelas/mutasi'] },
+	{ label: 'Administrasi', hrefs: ['/persetujuan', '/import'] },
+	{ label: 'Sistem', hrefs: ['/pengaturan', '/updates'] }
+];
+
 export const DEFAULT_SIDEBAR_ROLES: Record<string, string[]> = {
 	'/': [...ROLES],
 	'/santri': [...ROLES],

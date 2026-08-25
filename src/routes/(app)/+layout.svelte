@@ -33,7 +33,7 @@
 
 	const profile = $derived((page.data.profile as Profile | null) ?? null);
 
-	import { NAV_ITEMS, type NavItemDef } from '$lib/nav';
+	import { NAV_GROUPS, NAV_ITEMS, type NavItemDef } from '$lib/nav';
 
 	type NavItem = NavItemDef & { icon: ComponentType };
 	const NAV_ICONS: Record<string, ComponentType> = {
@@ -60,6 +60,13 @@
 
 	const visible = $derived(
 		items.filter((i) => profile && sidebarNav[i.href]?.includes(profile.peran))
+	);
+
+	const groups = $derived(
+		NAV_GROUPS.map((g) => ({
+			label: g.label,
+			items: visible.filter((i) => g.hrefs.includes(i.href))
+		})).filter((g) => g.items.length > 0)
 	);
 
 	const initial = $derived(
@@ -146,34 +153,35 @@
 		</div>
 
 		<nav class="flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
-			<p
-				class="px-2.5 pb-1 pt-2 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase"
-				>Menu</p
-			>
-			<ul class="space-y-0.5">
-				{#each visible as item (item.href)}
-					{@const active = isActive(item.href)}
-					<li>
-						<a
-							href={item.href}
-							onclick={() => (open = false)}
-							class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
-								{active
-									? 'bg-base-200 font-medium text-base-content shadow-[inset_2px_0_0_var(--color-primary)]'
+			{#each groups as group (group.label)}
+				<p
+					class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase first:pt-2"
+					>{group.label}</p
+				>
+				<ul class="space-y-0.5">
+					{#each group.items as item (item.href)}
+						{@const active = isActive(item.href)}
+						<li>
+							<a
+								href={item.href}
+								onclick={() => (open = false)}
+								aria-current={active ? 'page' : undefined}
+								class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
+									{active
+									? 'bg-primary font-medium text-primary-content'
 									: 'text-base-content/70 hover:bg-base-200/60 hover:text-base-content'}">
-							<item.icon
-								class="size-[18px] shrink-0 {active ? 'text-primary' : ''}"
-								stroke-width={1.75} />
-							<span class="truncate">{item.label}</span>
-							{#if item.href === '/persetujuan' && pendingRequests > 0}
-								<span class="ml-auto badge badge-error badge-sm" aria-label="Pengajuan menunggu"
-									>{pendingRequests}</span
-								>
-							{/if}
-						</a>
-					</li>
-				{/each}
-			</ul>
+								<item.icon class="size-[18px] shrink-0" stroke-width={active ? 2 : 1.75} />
+								<span class="truncate">{item.label}</span>
+								{#if item.href === '/persetujuan' && pendingRequests > 0}
+									<span class="ml-auto badge badge-sm {active ? 'badge-neutral' : 'badge-error'}" aria-label="Pengajuan menunggu"
+										>{pendingRequests}</span
+									>
+								{/if}
+							</a>
+						</li>
+					{/each}
+				</ul>
+			{/each}
 		</nav>
 
 		<div class="space-y-1 border-t border-base-300 p-3">
