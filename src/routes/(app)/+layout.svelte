@@ -306,7 +306,7 @@
 					>
 				</button>
 
-				<details bind:open={userMenuOpen} class="dropdown dropdown-end group ml-1">
+				<details bind:open={userMenuOpen} class="dropdown dropdown-end group ml-2">
 					<summary
 						class="flex cursor-pointer list-none items-center rounded-full [&::-webkit-details-marker]:hidden"
 						aria-label="Menu pengguna">
