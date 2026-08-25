@@ -197,7 +197,7 @@
 	enctype="multipart/form-data"
 	class="space-y-6">
 	{#each groups as g (g.label)}
-		<fieldset class="rounded-2xl border border-base-300 bg-base-100 p-5">
+		<fieldset class="rounded-lg border border-base-300 bg-base-100 p-5">
 			<legend class="px-2 text-sm font-semibold">{g.label}</legend>
 			<div class="grid gap-4 sm:grid-cols-2">
 				{#each g.fields as f (f.key)}
