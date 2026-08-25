@@ -69,15 +69,10 @@
 
 <div class="mt-8 grid gap-8 lg:grid-cols-2">
 	<!-- BLOK 1: KENAIKAN / PEMINDAHAN KELAS -->
-	<div class="rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm">
-		<div class="flex items-center gap-3 border-b border-base-200 pb-4">
-			<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-				<IconRepeat class="size-5" stroke-width={1.75} />
-			</span>
-			<div>
-				<h2 class="text-lg font-semibold">Kenaikan Kelas</h2>
-				<p class="text-xs text-base-content/60">Pindahkan seluruh santri aktif dari satu kelas ke kelas lain</p>
-			</div>
+	<div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+		<div class="border-b border-base-200 pb-4">
+			<h2 class="text-lg font-semibold">Kenaikan Kelas</h2>
+			<p class="text-xs text-base-content/60">Pindahkan seluruh santri aktif dari satu kelas ke kelas lain</p>
 		</div>
 
 		<form
@@ -141,15 +136,10 @@
 	</div>
 
 	<!-- BLOK 2: KELULUSAN MASSAL -->
-	<div class="rounded-2xl border border-base-300 bg-base-100 p-6 shadow-sm">
-		<div class="flex items-center gap-3 border-b border-base-200 pb-4">
-			<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent-content">
-				<IconAward class="size-5 text-primary" stroke-width={1.75} />
-			</span>
-			<div>
-				<h2 class="text-lg font-semibold">Kelulusan Massal</h2>
-				<p class="text-xs text-base-content/60">Ubah status seluruh santri di tingkat akhir menjadi Lulus</p>
-			</div>
+	<div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+		<div class="border-b border-base-200 pb-4">
+			<h2 class="text-lg font-semibold">Kelulusan Massal</h2>
+			<p class="text-xs text-base-content/60">Ubah status seluruh santri di tingkat akhir menjadi Lulus</p>
 		</div>
 
 		<form

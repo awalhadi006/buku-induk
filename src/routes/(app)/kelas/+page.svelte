@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { IconEdit, IconPlus, IconSchool, IconTrash } from '@tabler/icons-svelte';
+	import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-svelte';
+import EmptyState from '$lib/components/EmptyState.svelte';
 
 	type Kelas = {
 		id: number;
@@ -46,7 +47,7 @@
 	<form
 		method="POST"
 		action="?/add"
-		class="mt-6 rounded-2xl border border-base-300 bg-base-100 p-5">
+		class="mt-6 rounded-lg border border-base-300 bg-base-100 p-5">
 		<h2 class="text-sm font-semibold">Tambah kelas</h2>
 		<div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
 			<label class="block">
@@ -75,7 +76,7 @@
 
 <ul class="mt-6 space-y-3">
 	{#each kelas as k (k.id)}
-		<li class="rounded-2xl border border-base-300 bg-base-100 p-4">
+		<li class="rounded-lg border border-base-300 bg-base-100 p-4">
 			{#if editingId === k.id}
 				<form method="POST" action="?/update" class="flex flex-wrap items-end gap-3">
 					<input type="hidden" name="id" value={k.id} />
@@ -116,10 +117,6 @@
 				</form>
 			{:else}
 				<div class="flex flex-wrap items-center gap-3">
-					<span
-						class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-						<IconSchool class="size-5" stroke-width={1.75} />
-					</span>
 					<div class="min-w-0 flex-1">
 						<a href="/kelas/{k.id}" class="font-medium hover:underline">
 							{k.tingkat}
@@ -158,7 +155,7 @@
 </ul>
 
 {#if kelas.length === 0}
-	<div class="mt-6 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<p class="text-base-content/60">Belum ada kelas. Tambahkan kelas pertama.</p>
+	<div class="mt-6">
+		<EmptyState title="Belum ada kelas" desc="Tambahkan kelas pertama lewat formulir di atas." />
 	</div>
 {/if}

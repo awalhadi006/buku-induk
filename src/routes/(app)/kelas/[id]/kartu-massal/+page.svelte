@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
 	import { photoUrl } from '$lib/gdrive-url';
 
@@ -27,6 +28,15 @@
 
 	const title = $derived(`Kartu Santri ${kelas.tingkat} ${kelas.rombel}${kelas.tahun_ajaran ? ` (${kelas.tahun_ajaran})` : ''}`);
 
+	const schoolName = $derived((page.data.schoolName as string | null) ?? 'Buku Induk');
+	const monogram = $derived(
+		schoolName
+			.split(/\s+/)
+			.slice(0, 2)
+			.map((w) => w.charAt(0).toUpperCase())
+			.join('') || 'BI'
+	);
+
 	function getKelasLabel(k: Kelas) {
 		return `${k.tingkat}${k.rombel}`;
 	}
@@ -36,22 +46,22 @@
 	<title>{title} | Buku Induk</title>
 </svelte:head>
 
-<div class="flex flex-col items-center justify-center gap-8 py-8 print:py-0">
+<div class="flex flex-col items-center justify-center gap-8 py-8 print:py-0" data-theme="bi-light">
 	<div class="flex flex-wrap items-center justify-center gap-6 print:gap-4">
 		{#each santriList as s (s.id)}
 			<!-- KARTU SANTRI CONTAINER -->
 			<div class="flex flex-col gap-6 sm:flex-row print:flex-row print:gap-4 print:mb-4">
 				<!-- SISI DEPAN (FRONT) -->
 				<div
-					class="relative flex h-[54mm] w-[85.6mm] flex-col justify-between overflow-hidden rounded-xl border border-gray-300 bg-gradient-to-br from-primary/10 via-base-100 to-primary/5 p-3.5 shadow-md print:shadow-none print:border-black">
+					class="relative flex h-[54mm] w-[85.6mm] flex-col justify-between overflow-hidden rounded-xl border border-stone-300 bg-white p-3.5 shadow-sm print:shadow-none print:border-black">
 					<!-- HEADER -->
-					<div class="flex items-center gap-2 border-b border-primary/20 pb-2">
+					<div class="flex items-center gap-2 border-b border-emerald-800/20 pb-2">
 						<span class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-content">
-							BI
+							{monogram}
 						</span>
 						<div class="min-w-0 flex-1">
 							<h1 class="truncate text-[10px] font-bold uppercase tracking-wider text-primary">Kartu Tanda Santri</h1>
-							<p class="truncate text-[8px] font-semibold text-base-content/70">Pondok Pesantren Buku Induk</p>
+							<p class="truncate text-[8px] font-semibold text-stone-600">{schoolName}</p>
 						</div>
 					</div>
 
@@ -90,31 +100,31 @@
 
 				<!-- SISI BELAKANG (BACK) -->
 				<div
-					class="relative flex h-[54mm] w-[85.6mm] flex-col justify-between overflow-hidden rounded-xl border border-gray-300 bg-base-100 p-3.5 shadow-md print:shadow-none print:border-black">
-					<div class="space-y-1 text-[8px] text-base-content/80">
-						<h2 class="font-bold text-center text-[9px] uppercase border-b border-base-200 pb-1">Ketentuan & Kontak Wali</h2>
+					class="relative flex h-[54mm] w-[85.6mm] flex-col justify-between overflow-hidden rounded-xl border border-stone-300 bg-white p-3.5 shadow-sm print:shadow-none print:border-black">
+					<div class="space-y-1 text-[8px] text-stone-800">
+						<h2 class="font-bold text-center text-[9px] uppercase border-b border-stone-200 pb-1">Ketentuan & Kontak Wali</h2>
 						<ol class="list-decimal pl-3 space-y-0.5 text-[7.5px]">
-							<li>Kartu ini adalah bukti identitas sah santri Pondok Pesantren.</li>
-							<li>Harap dibawa dan ditunjukkan saat kegiatan/perizinan pesantren.</li>
-							<li>Jika menemukan kartu ini, mohon kembalikan ke sekretariat pesantren.</li>
+							<li>Kartu ini adalah bukti identitas sah santri.</li>
+							<li>Harap dibawa dan ditunjukkan saat kegiatan/perizinan.</li>
+							<li>Jika menemukan kartu ini, mohon kembalikan ke sekretariat.</li>
 						</ol>
 					</div>
 
 					<!-- DATA WALI / KONTAK -->
-					<div class="rounded-lg bg-base-200/60 p-1.5 text-[7.5px]">
+					<div class="rounded-lg bg-stone-100 p-1.5 text-[7.5px]">
 						<p class="font-semibold truncate">Wali: {s.wali?.label ?? '-'}</p>
-						<p class="truncate text-base-content/70">HP Wali: {s.wali?.no_hp ?? '-'}</p>
-						<p class="truncate text-base-content/70">Alamat: {s.alamat || s.wali?.alamat || '-'}</p>
+						<p class="truncate text-stone-600">HP Wali: {s.wali?.no_hp ?? '-'}</p>
+						<p class="truncate text-stone-600">Alamat: {s.alamat || s.wali?.alamat || '-'}</p>
 					</div>
 
 					<!-- TTD / STEMPEL Pesantren -->
 					<div class="flex items-end justify-between text-[7px]">
 						<div>
-							<p class="text-base-content/50">Diterbitkan oleh:</p>
+							<p class="text-stone-500">Diterbitkan oleh:</p>
 							<p class="font-semibold">Sekretariat Pengurus</p>
 						</div>
 						<div class="text-center">
-							<p class="text-base-content/60">Pengurus Pesantren,</p>
+							<p class="text-stone-600">Pengurus,</p>
 							<div class="h-4"></div>
 							<p class="font-bold underline">( TTD & Stempel )</p>
 						</div>
