@@ -164,7 +164,7 @@
 	{#if data.isSuperadmin}
 		<a class="tab" class:tab-active={tab === 'sidebar'} href="/pengaturan?tab=sidebar">Sidebar</a>
 	{/if}
-			<a class="tab" class:tab-active={tab === 'school'} href="/pengaturan?tab=school">Identitas Sekolah</a>
+	<a class="tab" class:tab-active={tab === 'school'} href="/pengaturan?tab=school">Identitas Sekolah</a>
 	<a class="tab" class:tab-active={tab === 'dashboard'} href="/pengaturan?tab=dashboard">Dashboard</a>
 	{#if data.isSuperadmin}
 		<a class="tab" class:tab-active={tab === 'audit'} href="/pengaturan?tab=audit">Audit Log</a>
@@ -182,7 +182,7 @@
 		</p>
 
 		<!-- Toggle Admin TU Create Users -->
-		<div class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-4">
+		<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-4">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium">Izin Staff TU membuat akun</p>
@@ -211,7 +211,7 @@
 
 		<!-- Create User Form -->
 		{#if data.isSuperadmin || data.canCreateUsers}
-			<form method="POST" action="?/createUser" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+			<form method="POST" action="?/createUser" class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 				<h3 class="text-sm font-semibold">Tambah Pengguna Baru</h3>
 				<div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					<label class="block">
@@ -264,7 +264,7 @@
 			</form>
 		{/if}
 
-		<div class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<div class="mt-4 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<table class="table">
 				<thead>
 					<tr class="text-xs uppercase tracking-wide text-base-content/60">
@@ -389,7 +389,7 @@
 
 		<div class="mt-4 grid gap-4 lg:grid-cols-2">
 			{#each permissions as perm (perm.role)}
-				<form method="POST" action="?/updatePermissions" class="rounded-2xl border border-base-300 bg-base-100 p-5">
+				<form method="POST" action="?/updatePermissions" class="rounded-lg border border-base-300 bg-base-100 p-5">
 					<input type="hidden" name="role" value={perm.role} />
 					<h3 class="text-sm font-semibold">{PERAN_LABEL[perm.role] ?? perm.role}</h3>
 					<div class="mt-3 grid gap-2 sm:grid-cols-2">
@@ -421,7 +421,7 @@
 			Kolom tambahan di luar field bawaan santri. Nilainya tersimpan di data santri (JSONB).
 		</p>
 
-		<form method="POST" action="?/createField" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+		<form method="POST" action="?/createField" class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<h3 class="text-sm font-semibold">Tambah field</h3>
 			<div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				<label class="block">
@@ -461,7 +461,7 @@
 
 		<ul class="mt-4 space-y-3">
 			{#each fields as f (f.id)}
-				<li class="rounded-2xl border border-base-300 bg-base-100 p-4">
+				<li class="rounded-lg border border-base-300 bg-base-100 p-4">
 					{#if editingField === f.id}
 						<form method="POST" action="?/updateField" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 							<input type="hidden" name="id" value={f.id} />
@@ -532,7 +532,7 @@
 		</ul>
 
 		{#if fields.length === 0}
-			<div class="mt-4 rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
+			<div class="mt-4 rounded-lg border border-dashed border-base-300 bg-base-100 p-8 text-center">
 				<p class="text-base-content/60">Belum ada field kustom.</p>
 			</div>
 		{/if}
@@ -548,7 +548,7 @@
 			Menjadi konteks dashboard dan rekap "saat ini".
 		</p>
 
-		<form method="POST" action="?/updateSetting" class="mt-4 max-w-md rounded-2xl border border-base-300 bg-base-100 p-5">
+		<form method="POST" action="?/updateSetting" class="mt-4 max-w-md rounded-lg border border-base-300 bg-base-100 p-5">
 			<input type="hidden" name="key" value="tahun_ajaran_aktif" />
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Tahun ajaran aktif</span>
@@ -567,7 +567,7 @@
 			{#if tahunAjaran.length === 0}
 				<p class="mt-2 text-sm text-base-content/60">Belum ada tahun ajaran.</p>
 			{:else}
-				<ul class="mt-2 divide-y divide-base-200 rounded-2xl border border-base-300 bg-base-100">
+				<ul class="mt-2 divide-y divide-base-200 rounded-lg border border-base-300 bg-base-100">
 					{#each tahunAjaran as ta (ta.id)}
 						<li class="flex items-center justify-between gap-3 px-4 py-2.5">
 							<span class="text-sm font-medium">{ta.nama}</span>
@@ -614,7 +614,7 @@
 			Token bisa di-ordered ulang, ditambah, atau dikurangi.
 		</p>
 
-		<form method="POST" action="?/updateNisPattern" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+		<form method="POST" action="?/updateNisPattern" class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Pola NIS *</span>
 				<input
@@ -658,7 +658,7 @@
 			</button>
 		</form>
 
-		<form method="POST" action="?/bulkGenerateNis" class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+		<form method="POST" action="?/bulkGenerateNis" class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<input type="hidden" name="pattern" value={settings['nis_pattern'] ?? '{TAHUN}.{JENJANG}.{NO}'} />
 			<h3 class="text-sm font-semibold">Generate NIS Massal</h3>
 			<p class="mt-1 text-sm text-base-content/60">
@@ -682,7 +682,7 @@
 			Foto akan dibagikan sebagai "siapa saja dengan tautan dapat melihat".
 		</p>
 
-		<div class="mt-4 rounded-2xl border p-5 {gdrive?.refresh_token ? 'border-success/40 bg-success/5' : 'border-base-300 bg-base-100'}">
+		<div class="mt-4 rounded-lg border p-5 {gdrive?.refresh_token ? 'border-success/40 bg-success/5' : 'border-base-300 bg-base-100'}">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="text-sm font-medium">Status Koneksi</p>
@@ -741,7 +741,7 @@
 			action="?/updateSchoolIdentity"
 			enctype="multipart/form-data"
 			use:enhance
-			class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5">
+			class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Nama Sekolah</span>
 				<input
@@ -787,7 +787,7 @@
 		<form
 			method="POST"
 			action="?/updateDashboardMetrics"
-			class="mt-4 max-w-md rounded-2xl border border-base-300 bg-base-100 p-5">
+			class="mt-4 max-w-md rounded-lg border border-base-300 bg-base-100 p-5">
 			<div class="grid gap-2">
 				{#each DASHBOARD_METRICS as m (m.key)}
 					<label class="flex items-center gap-2 text-sm">
@@ -815,7 +815,7 @@
 			Riwayat perubahan append-only — tidak bisa diubah/dihapus. 100 catatan terbaru.
 		</p>
 
-		<div class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<div class="mt-4 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<table class="table">
 				<thead>
 					<tr class="text-xs uppercase tracking-wide text-base-content/60">
@@ -844,7 +844,7 @@
 		</div>
 
 		{#if auditLogs.length === 0}
-			<div class="mt-4 rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
+			<div class="mt-4 rounded-lg border border-dashed border-base-300 bg-base-100 p-8 text-center">
 				<p class="text-base-content/60">Belum ada catatan audit.</p>
 			</div>
 		{/if}
@@ -860,7 +860,7 @@
 			Atur menu mana saja yang terlihat untuk setiap peran. Superadmin selalu bisa mengakses halaman melalui URL jika disembunyikan dari sidebar.
 		</p>
 
-		<form method="POST" action="?/updateSidebarNav" class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<form method="POST" action="?/updateSidebarNav" class="mt-4 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<table class="table">
 				<thead>
 					<tr class="text-xs uppercase tracking-wide text-base-content/60">
@@ -897,7 +897,7 @@
 	</section>
 
 {:else}
-	<div class="mt-6 rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
+	<div class="mt-6 rounded-lg border border-dashed border-base-300 bg-base-100 p-8 text-center">
 		<p class="text-base-content/60">Anda tidak memiliki akses ke bagian ini.</p>
 	</div>
 {/if}

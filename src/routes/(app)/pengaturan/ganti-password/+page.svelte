@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { page } from '$app/stores';
 	import { IconPassword } from '@tabler/icons-svelte';
 
-	let { form, data } = $props();
+	let { form } = $props();
 
 	let password = $state('');
 	let passwordConfirm = $state('');
@@ -45,17 +44,15 @@
 	</div>
 {/if}
 
-<form method="POST" action="?/changePassword" use:enhance class="mt-6 max-w-lg rounded-2xl border border-base-300 bg-base-100 p-5">
+<form method="POST" action="?/changePassword" use:enhance class="mt-6 max-w-lg rounded-lg border border-base-300 bg-base-100 p-5">
 	<h2 class="flex items-center gap-2 text-sm font-semibold">
 		<IconPassword class="size-4" stroke-width={1.75} />
 		Form Ganti Kata Sandi
 	</h2>
 
 	<div class="mt-4 space-y-4">
-		<label class="form-control w-full">
-			<div class="label">
-				<span class="label-text">Kata sandi baru</span>
-			</div>
+		<label class="block">
+			<span class="mb-1.5 block text-sm font-medium">Kata sandi baru</span>
 			<input
 				type="password"
 				name="password"
@@ -66,10 +63,8 @@
 				autocomplete="new-password" />
 		</label>
 
-		<label class="form-control w-full">
-			<div class="label">
-				<span class="label-text">Konfirmasi kata sandi baru</span>
-			</div>
+		<label class="block">
+			<span class="mb-1.5 block text-sm font-medium">Konfirmasi kata sandi baru</span>
 			<input
 				type="password"
 				name="passwordConfirm"
