@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconFileDownload, IconFileUpload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconInfoCircle } from '@tabler/icons-svelte';
+	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable } from '@tabler/icons-svelte';
 
 	type ImportError = { row: number; nama: string; reason: string; kategori: string };
 	type Warning = { row: number; nama: string; warnings: string[] };
@@ -72,22 +72,22 @@
 {/if}
 
 {#if result}
-	<div class="mt-6 rounded-2xl border border-base-300 bg-base-100 p-5">
+	<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-5">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconTable class="size-4" stroke-width={1.75} />
 			Hasil import
 		</h2>
 
-		<div class="mt-4 grid gap-4 sm:grid-cols-3">
-			<div class="rounded-xl border border-base-300 p-4">
+		<div class="mt-4 grid grid-cols-3 divide-x divide-base-300 overflow-hidden rounded-lg border border-base-300 bg-base-100">
+			<div class="p-4">
 				<span class="text-xs text-base-content/60">Total baris</span>
 				<span class="mt-1 block font-mono text-2xl">{result.total}</span>
 			</div>
-			<div class="rounded-xl border border-success/40 bg-success/5 p-4">
+			<div class="border-l border-success/40 bg-success/5 p-4">
 				<span class="text-xs text-success">Berhasil</span>
 				<span class="mt-1 block font-mono text-2xl text-success">{result.berhasil}</span>
 			</div>
-			<div class="rounded-xl border border-error/40 bg-error/5 p-4">
+			<div class="border-l border-error/40 bg-error/5 p-4">
 				<span class="text-xs text-error">Gagal</span>
 				<span class="mt-1 block font-mono text-2xl text-error">{result.gagal}</span>
 			</div>
@@ -166,11 +166,8 @@
 	<a
 		href="/template-import-santri.xlsx?v=2"
 		download="template-import-santri.xlsx"
-		class="rounded-2xl border border-base-300 bg-base-100 p-5">
-		<span class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-			<IconFileDownload class="size-5" stroke-width={1.75} />
-		</span>
-		<h2 class="mt-3 text-sm font-semibold">1. Download template</h2>
+		class="rounded-lg border border-base-300 bg-base-100 p-5 transition-colors hover:bg-base-200/50">
+		<h2 class="text-sm font-semibold">1. Download template</h2>
 		<p class="mt-1 text-sm text-base-content/60">
 			Template Excel siap isi. Unduh, isi, lalu upload kembali.
 		</p>
@@ -180,11 +177,8 @@
 		method="POST"
 		action="?/upload"
 		enctype="multipart/form-data"
-		class="rounded-2xl border border-base-300 bg-base-100 p-5">
-		<span class="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-			<IconFileUpload class="size-5" stroke-width={1.75} />
-		</span>
-		<h2 class="mt-3 text-sm font-semibold">2. Upload file terisi</h2>
+		class="rounded-lg border border-base-300 bg-base-100 p-5">
+		<h2 class="text-sm font-semibold">2. Upload file terisi</h2>
 		<p class="mt-1 text-sm text-base-content/60">
 			File Excel (.xlsx atau .xls) yang sudah diisi. Minimal kolom Nama Lengkap, Tempat Lahir, dan Tanggal Lahir terisi.
 		</p>
