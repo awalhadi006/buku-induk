@@ -28,7 +28,6 @@
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
 	import QuickSearch from '$lib/components/QuickSearch.svelte';
-	import favicon from '$lib/assets/favicon.svg';
 	import { photoUrl } from '$lib/gdrive-url';
 
 	let { data, children } = $props();
@@ -134,7 +133,7 @@
 <svelte:head>
 	<title>{schoolName}</title>
 	{#if schoolLogoUrl}
-		<!-- Menimpa favicon bawaan root layout; tanpa logo, fallback favicon.svg dari root tetap berlaku -->
+		<!-- Menimpa favicon fallback app.html; tanpa logo, fallback favicon.svg dari app.html tetap berlaku -->
 		<link rel="icon" href={photoUrl(schoolLogoUrl, 'w64')} />
 	{/if}
 </svelte:head>
