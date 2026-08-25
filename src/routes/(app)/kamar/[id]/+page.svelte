@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { IconBed } from '@tabler/icons-svelte';
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
 
 	let { data } = $props();
@@ -20,12 +19,9 @@
 </svelte:head>
 
 <header class="flex items-center gap-3">
-	<a class="btn btn-ghost btn-sm" href="/kamar" aria-label="Kembali ke daftar kamar">
+	<a class="btn btn-ghost btn-square btn-sm" href="/kamar" aria-label="Kembali ke daftar kamar">
 		&larr;
 	</a>
-	<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-		<IconBed class="size-5" stroke-width={1.75} />
-	</span>
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight">Kamar {k.nomor}</h1>
 		<p class="mt-0.5 text-base-content/70">
@@ -36,22 +32,22 @@
 	</div>
 </header>
 
-<section class="mt-8 grid gap-4 sm:grid-cols-3">
-	<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-		<span class="text-sm text-base-content/70">Total santri</span>
-		<span class="mt-2 block font-mono text-3xl">{r.total}</span>
+<section class="mt-8 grid grid-cols-3 divide-x divide-base-300 rounded-lg border border-base-300 bg-base-100" aria-label="Rekap kamar">
+	<div class="p-4 sm:p-5">
+		<span class="text-xs text-base-content/60">Total santri</span>
+		<span class="mt-1 block font-mono text-3xl">{r.total}</span>
 	</div>
-	<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-		<span class="text-sm text-base-content/70">Laki-laki</span>
-		<span class="mt-2 block font-mono text-3xl">{r.laki}</span>
+	<div class="p-4 sm:p-5">
+		<span class="text-xs text-base-content/60">Laki-laki</span>
+		<span class="mt-1 block font-mono text-3xl">{r.laki}</span>
 	</div>
-	<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-		<span class="text-sm text-base-content/70">Perempuan</span>
-		<span class="mt-2 block font-mono text-3xl">{r.perempuan}</span>
+	<div class="p-4 sm:p-5">
+		<span class="text-xs text-base-content/60">Perempuan</span>
+		<span class="mt-1 block font-mono text-3xl">{r.perempuan}</span>
 	</div>
 </section>
 
-<div class="mt-6 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+<div class="mt-6 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 	<table class="table">
 		<thead>
 			<tr class="text-xs uppercase tracking-wider text-base-content/60">
