@@ -206,12 +206,12 @@
 		{/if}
 
 		<nav class="sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
-			{#each groups as group (group.label)}
-				{#if rail}
-					<div class="mx-auto my-1 hidden h-px w-5 bg-base-300 lg:block" aria-hidden="true"
+			{#each groups as group, gi (group.label)}
+				{#if rail && gi > 0}
+					<div class="mt-1 mb-0.5 mx-auto hidden h-px w-4 bg-base-300/60 lg:block" aria-hidden="true"
 					></div>
-				{:else}
-					<p class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase"
+				{:else if !rail}
+					<p class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase {gi === 0 ? 'pt-2' : ''}"
 						>{group.label}</p
 					>
 				{/if}
@@ -284,10 +284,11 @@
 				</button>
 
 				<button
-					class="btn btn-ghost btn-square btn-sm lg:hidden"
+					class="btn btn-ghost btn-square btn-sm"
 					aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"
+					title="Cari (Ctrl+K)"
 					onclick={() => window.dispatchEvent(new Event('quicksearch:open'))}>
-					<IconSearch class="size-5" stroke-width={1.75} />
+					<IconSearch class="size-[18px]" stroke-width={1.75} />
 				</button>
 
 				<details bind:open={userMenuOpen} class="dropdown dropdown-end">
