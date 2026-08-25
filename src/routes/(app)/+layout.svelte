@@ -134,9 +134,8 @@
 <svelte:head>
 	<title>{schoolName}</title>
 	{#if schoolLogoUrl}
-		<link rel="icon" href={photoUrl(schoolLogoUrl)} />
-	{:else}
-		<link rel="icon" href={favicon} />
+		<!-- Menimpa favicon bawaan root layout; tanpa logo, fallback favicon.svg dari root tetap berlaku -->
+		<link rel="icon" href={photoUrl(schoolLogoUrl, 'w64')} />
 	{/if}
 </svelte:head>
 
