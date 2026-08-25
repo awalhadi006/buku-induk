@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconCheck, IconX, IconClock, IconUserCheck } from '@tabler/icons-svelte';
+import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let { data, form } = $props();
 
@@ -50,20 +51,21 @@
 	</h2>
 
 	{#if pendingRequests.length === 0}
-		<div class="mt-4 rounded-2xl border border-dashed border-base-300 bg-base-100 p-8 text-center">
-			<p class="text-sm text-base-content/60">Tidak ada pengajuan perubahan yang menunggu persetujuan.</p>
+		<div class="mt-4">
+			<EmptyState
+				title="Tidak ada pengajuan"
+				desc="Tidak ada pengajuan perubahan yang menunggu persetujuan." />
 		</div>
 	{:else}
-		<div class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<div class="mt-4 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<table class="table">
 				<thead>
-					<tr class="bg-base-200/50 text-xs uppercase tracking-wider text-base-content/60">
+					<tr class="text-xs uppercase tracking-wider text-base-content/60 bg-base-200/50">
 						<th>Tanggal</th>
 						<th>Santri</th>
 						<th>Pengaju</th>
 						<th>Field</th>
-						<th>Nilai Lama</th>
-						<th>Nilai Baru</th>
+						<th>Perubahan</th>
 						<th class="text-right">Aksi</th>
 					</tr>
 				</thead>
@@ -80,8 +82,14 @@
 							</td>
 							<td>{req.applicant?.nama ?? 'Wali'}</td>
 							<td class="font-mono text-xs font-semibold text-base-content/80">{req.field}</td>
-							<td class="max-w-[150px] truncate text-base-content/60" title={req.old_value ?? ''}>{req.old_value ?? '—'}</td>
-							<td class="max-w-[150px] truncate font-semibold text-success" title={req.new_value ?? ''}>{req.new_value ?? '—'}</td>
+							<td class="min-w-[180px]">
+								<p class="max-w-[240px] truncate text-xs text-base-content/55" title={req.old_value ?? ''}>
+									{req.old_value ?? '—'}
+								</p>
+								<p class="mt-0.5 max-w-[240px] truncate text-sm font-medium text-success" title={req.new_value ?? ''}>
+									{req.new_value ?? '—'}
+								</p>
+							</td>
 							<td class="text-right">
 								<div class="flex items-center justify-end gap-2">
 									<form method="POST" action="?/approve">
@@ -114,7 +122,7 @@
 			<IconUserCheck class="size-5 text-base-content/60" stroke-width={1.75} />
 			Riwayat Persetujuan
 		</h2>
-		<div class="mt-4 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<div class="mt-4 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<table class="table">
 				<thead>
 					<tr class="bg-base-200/50 text-xs uppercase tracking-wider text-base-content/60">
