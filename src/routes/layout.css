@@ -168,3 +168,19 @@
 		opacity: 0.5;
 	}
 }
+
+/* Sidebar: gutter scrollbar simetris agar ikon mode rail tetap center */
+.sidebar-scroll {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-base-300) transparent;
+	scrollbar-gutter: stable both-edges;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+	width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+	background: var(--color-base-300);
+	border-radius: 9999px;
+}

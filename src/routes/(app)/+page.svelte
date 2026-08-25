@@ -79,8 +79,13 @@
 		</p>
 	</div>
 	{#if data.tahunAjaranAktif}
-		<div class="badge badge-primary badge-outline gap-1.5 p-3 text-xs font-semibold">
-			Tahun Ajaran: {data.tahunAjaranAktif}
+		<div class="self-start sm:self-auto">
+			<span
+				class="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-medium text-primary"
+				title="Tahun ajaran aktif">
+				<span class="size-1.5 rounded-full bg-primary" aria-hidden="true"></span>
+				T.A. {data.tahunAjaranAktif}
+			</span>
 		</div>
 	{/if}
 </header>

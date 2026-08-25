@@ -205,7 +205,7 @@
 			</div>
 		{/if}
 
-		<nav class="flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
+		<nav class="sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
 			{#each groups as group (group.label)}
 				{#if rail}
 					<div class="mx-auto my-2 hidden h-px w-6 bg-base-300 lg:block" aria-hidden="true"
@@ -245,61 +245,6 @@
 				</ul>
 			{/each}
 		</nav>
-
-		<div class="space-y-2 border-t border-base-300 p-3">
-			<div class="flex justify-center">
-				<button
-					type="button"
-					class="btn btn-ghost btn-square btn-sm text-base-content/60 hover:text-base-content"
-					onclick={toggleTheme}
-					aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
-					title={dark ? 'Mode terang' : 'Mode gelap'}>
-					{#if dark}
-						<IconSun class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
-					{:else}
-						<IconMoon class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
-					{/if}
-				</button>
-			</div>
-
-			<details
-				bind:open={userMenuOpen}
-				class="dropdown dropdown-top dropdown-end w-full">
-				<summary
-					class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg p-1 hover:bg-base-200/60 [&::-webkit-details-marker]:hidden {rail
-						? 'lg:justify-center lg:p-0.5'
-						: ''}">
-					<span
-						class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-base-200 font-medium text-base-content"
-						>{initial}</span
-					>
-					<div class="min-w-0 flex-1 {rail ? 'lg:hidden' : ''}">
-						<p class="truncate text-sm font-medium leading-tight">{profile?.nama ?? 'Pengguna'}</p>
-						<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
-					</div>
-				</summary>
-				<div
-					class="dropdown-content z-50 mb-2 w-56 rounded-lg border border-base-300 bg-base-100 p-2 shadow-lg">
-					<div class="border-b border-base-200 px-2 pb-2 pt-1 {rail ? '' : 'hidden'}">
-						<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
-						<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
-					</div>
-					<a
-						href="/pengaturan/ganti-password"
-						onclick={() => (userMenuOpen = false)}
-						class="mt-1 block rounded-md px-2 py-1.5 text-sm text-base-content/80 hover:bg-base-200/60 hover:text-base-content">
-						Ganti kata sandi
-					</a>
-					<button
-						type="button"
-						class="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-error hover:bg-error/10"
-						onclick={logout}>
-						<IconLogout class="size-4" stroke-width={1.75} aria-hidden="true" />
-						Keluar
-					</button>
-				</div>
-			</details>
-		</div>
 	</aside>
 
 	<div class={rail ? 'lg:pl-[76px]' : 'lg:pl-64'}>
@@ -313,20 +258,69 @@
 		{/if}
 
 		<header
-			class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-base-300 bg-base-100/90 px-4 backdrop-blur lg:hidden">
+			class="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-base-300 bg-base-100/90 px-4 backdrop-blur">
 			<button
-				class="btn btn-ghost btn-square btn-sm"
+				class="btn btn-ghost btn-square btn-sm lg:hidden"
 				aria-label="Buka menu"
 				onclick={() => (open = true)}>
 				<IconMenu class="size-5" stroke-width={1.75} />
 			</button>
-			<span class="min-w-0 truncate text-sm font-semibold tracking-tight">{schoolName}</span>
-			<button
-				class="btn btn-ghost btn-square btn-sm ml-auto"
-				aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"
-				onclick={() => window.dispatchEvent(new Event('quicksearch:open'))}>
-				<IconSearch class="size-5" stroke-width={1.75} />
-			</button>
+			<span class="min-w-0 truncate text-sm font-semibold tracking-tight lg:hidden"
+				>{schoolName}</span
+			>
+
+			<div class="ml-auto flex items-center gap-1">
+				<button
+					type="button"
+					class="btn btn-ghost btn-square btn-sm text-base-content/60 hover:text-base-content"
+					onclick={toggleTheme}
+					aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
+					title={dark ? 'Mode terang' : 'Mode gelap'}>
+					{#if dark}
+						<IconSun class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
+					{:else}
+						<IconMoon class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
+					{/if}
+				</button>
+
+				<button
+					class="btn btn-ghost btn-square btn-sm lg:hidden"
+					aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"
+					onclick={() => window.dispatchEvent(new Event('quicksearch:open'))}>
+					<IconSearch class="size-5" stroke-width={1.75} />
+				</button>
+
+				<details bind:open={userMenuOpen} class="dropdown dropdown-end">
+					<summary
+						class="flex cursor-pointer list-none items-center rounded-full [&::-webkit-details-marker]:hidden"
+						aria-label="Menu pengguna">
+						<span
+							class="flex size-8 items-center justify-center rounded-full bg-primary font-medium text-primary-content"
+							>{initial}</span
+						>
+					</summary>
+					<div
+						class="dropdown-content z-50 mt-2 w-56 rounded-lg border border-base-300 bg-base-100 p-2 shadow-lg">
+						<div class="border-b border-base-200 px-2 pb-2 pt-1">
+							<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
+							<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+						</div>
+						<a
+							href="/pengaturan/ganti-password"
+							onclick={() => (userMenuOpen = false)}
+							class="mt-1 block rounded-md px-2 py-1.5 text-sm text-base-content/80 hover:bg-base-200/60 hover:text-base-content">
+							Ganti kata sandi
+						</a>
+						<button
+							type="button"
+							class="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-error hover:bg-error/10"
+							onclick={logout}>
+							<IconLogout class="size-4" stroke-width={1.75} aria-hidden="true" />
+							Keluar
+						</button>
+					</div>
+				</details>
+			</div>
 		</header>
 
 		<main id="konten-utama" class="mx-auto w-full max-w-[1400px] px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:py-8">
