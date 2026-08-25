@@ -14,12 +14,14 @@
 		IconMenu,
 		IconX,
 		IconLogout,
-		IconChevronDown,
 		IconCheck,
-		IconSparkles,
+		IconTable,
 		IconSearch,
 		IconRepeat,
-		IconAward
+		IconAward,
+		IconHistory,
+		IconSun,
+		IconMoon
 	} from '@tabler/icons-svelte';
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
@@ -37,7 +39,7 @@
 	const NAV_ICONS: Record<string, ComponentType> = {
 		'/': IconLayoutDashboard,
 		'/santri': IconUsers,
-		'/rekap': IconChevronDown,
+		'/rekap': IconTable,
 		'/wali': IconUserHeart,
 		'/kamar': IconBed,
 		'/kelas': IconSchool,
@@ -46,7 +48,7 @@
 		'/import': IconFileImport,
 		'/pengaturan': IconSettings,
 		'/santri/alumni': IconAward,
-		'/updates': IconSparkles
+		'/updates': IconHistory
 	};
 
 	const items: NavItem[] = NAV_ITEMS.map((item) => ({
@@ -72,61 +74,20 @@
 	const schoolLogoUrl = $derived(data.schoolLogoUrl as string | null);
 
 	let open = $state(false);
-	let theme = $state('');
+	let dark = $state(false);
 
 	onMount(() => {
-		const saved = localStorage.getItem('theme');
-		if (saved) {
-			theme = saved;
-			document.documentElement.setAttribute('data-theme', saved);
-		}
+		const attr = document.documentElement.getAttribute('data-theme');
+		dark =
+			attr === 'bi-dark' ||
+			(attr === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
 	});
 
-	function setTheme(value: string) {
-		theme = value;
-		if (value) {
-			document.documentElement.setAttribute('data-theme', value);
-			localStorage.setItem('theme', value);
-		} else {
-			document.documentElement.removeAttribute('data-theme');
-			localStorage.removeItem('theme');
-		}
+	function toggleTheme() {
+		dark = !dark;
+		document.documentElement.setAttribute('data-theme', dark ? 'bi-dark' : 'bi-light');
+		localStorage.setItem('theme', dark ? 'bi-dark' : 'bi-light');
 	}
-
-	const THEMES = [
-		{ value: 'light', label: 'Light' },
-		{ value: 'dark', label: 'Dark' },
-		{ value: 'cupcake', label: 'Cupcake' },
-		{ value: 'bumblebee', label: 'Bumblebee' },
-		{ value: 'emerald', label: 'Emerald' },
-		{ value: 'corporate', label: 'Corporate' },
-		{ value: 'synthwave', label: 'Synthwave' },
-		{ value: 'retro', label: 'Retro' },
-		{ value: 'cyberpunk', label: 'Cyberpunk' },
-		{ value: 'valentine', label: 'Valentine' },
-		{ value: 'halloween', label: 'Halloween' },
-		{ value: 'garden', label: 'Garden' },
-		{ value: 'forest', label: 'Forest' },
-		{ value: 'aqua', label: 'Aqua' },
-		{ value: 'lofi', label: 'Lofi' },
-		{ value: 'pastel', label: 'Pastel' },
-		{ value: 'fantasy', label: 'Fantasy' },
-		{ value: 'wireframe', label: 'Wireframe' },
-		{ value: 'black', label: 'Black' },
-		{ value: 'luxury', label: 'Luxury' },
-		{ value: 'dracula', label: 'Dracula' },
-		{ value: 'cmyk', label: 'CMYK' },
-		{ value: 'autumn', label: 'Autumn' },
-		{ value: 'business', label: 'Business' },
-		{ value: 'acid', label: 'Acid' },
-		{ value: 'lemonade', label: 'Lemonade' },
-		{ value: 'night', label: 'Night' },
-		{ value: 'coffee', label: 'Coffee' },
-		{ value: 'winter', label: 'Winter' },
-		{ value: 'dim', label: 'Dim (gelap)' },
-		{ value: 'nord', label: 'Nord' },
-		{ value: 'sunset', label: 'Sunset' }
-	];
 
 	function isActive(href: string) {
 		const path = page.url.pathname;
@@ -157,15 +118,15 @@
 	{/if}
 
 	<aside
-		class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-transform duration-200 lg:translate-x-0 motion-reduce:transition-none
+		class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-transform duration-200 lg:translate-x-0 motion-reduce:transition-none
 		{open ? 'translate-x-0' : ''}">
-		<div class="flex items-center justify-between px-5 pb-4 pt-6">
-			<div class="flex min-w-0 items-center gap-3">
+		<div class="flex items-center justify-between px-4 pb-3 pt-5">
+			<div class="flex min-w-0 items-center gap-2.5">
 				{#if schoolLogoUrl}
-					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-9 shrink-0 object-contain" />
+					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-8 shrink-0 object-contain" />
 				{:else}
 					<span
-						class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary"
+						class="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary font-display text-sm font-bold text-primary-content"
 						>BI</span
 					>
 				{/if}
@@ -179,79 +140,63 @@
 			</button>
 		</div>
 
-		<nav class="flex-1 space-y-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
-			{#each visible as item}
-			{@const active = isActive(item.href)}
-			<a
-				href={item.href}
-				onclick={() => (open = false)}
-				class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors
-					{active ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}">
-				<item.icon class="size-5" stroke-width={1.75} />
-				<span>{item.label}</span>
-				{#if item.href === '/persetujuan' && pendingRequests > 0}
-					<span class="ml-auto badge badge-error badge-sm" aria-label="Pengajuan menunggu">{pendingRequests}</span>
-				{/if}
-			</a>
-			{/each}
+		<nav class="flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
+			<p
+				class="px-2.5 pb-1 pt-2 text-[10px] font-medium tracking-[0.08em] text-base-content/40 uppercase"
+				>Menu</p
+			>
+			<ul class="space-y-0.5">
+				{#each visible as item (item.href)}
+					{@const active = isActive(item.href)}
+					<li>
+						<a
+							href={item.href}
+							onclick={() => (open = false)}
+							class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
+								{active
+									? 'bg-base-200 font-medium text-base-content shadow-[inset_2px_0_0_var(--color-primary)]'
+									: 'text-base-content/70 hover:bg-base-200/60 hover:text-base-content'}">
+							<item.icon
+								class="size-[18px] shrink-0 {active ? 'text-primary' : ''}"
+								stroke-width={1.75} />
+							<span class="truncate">{item.label}</span>
+							{#if item.href === '/persetujuan' && pendingRequests > 0}
+								<span class="ml-auto badge badge-error badge-sm" aria-label="Pengajuan menunggu"
+									>{pendingRequests}</span
+								>
+							{/if}
+						</a>
+					</li>
+				{/each}
+			</ul>
 		</nav>
 
-		<div class="space-y-4 border-t border-base-300 p-4">
-			<div class="dropdown">
-				<div tabindex="0" role="button" class="btn btn-ghost btn-sm w-full justify-between">
-					<span class="text-xs font-medium text-base-content/60">Tema</span>
-					<IconChevronDown class="size-4 text-base-content/50" stroke-width={1.75} />
-				</div>
-				<div
-					tabindex="0"
-					role="menu"
-					class="dropdown-content fixed bottom-32 left-4 z-[60] w-64 rounded-box border border-base-300 bg-base-100 p-3 shadow-xl">
-					<p class="mb-2 text-xs font-medium text-base-content/50">Pilih tema</p>
-					<div class="grid max-h-64 grid-cols-3 gap-1.5 overflow-y-auto p-0.5 pr-1">
-						<button
-							type="button"
-							onclick={() => setTheme('')}
-							class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200
-							{theme === '' ? 'ring-1 ring-primary' : ''}">
-							<span
-								class="flex size-8 w-full items-center justify-center rounded-lg border border-dashed border-base-content/30 text-[10px] font-medium"
-								style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)"
-								>Auto</span
-							>
-							<span class="w-full truncate text-center">Ikut perangkat</span>
-						</button>
-						{#each THEMES as t (t.value)}
-							<button
-								type="button"
-								onclick={() => setTheme(t.value)}
-								class="flex flex-col items-center gap-1.5 rounded-xl p-1.5 text-[11px] text-base-content/80 hover:bg-base-200
-								{theme === t.value ? 'ring-1 ring-primary' : ''}">
-								<span
-									class="relative size-8 w-full rounded-lg ring-1 ring-base-content/15"
-									data-theme={t.value}
-									style="background: linear-gradient(135deg, var(--color-primary) 50%, var(--color-base-100) 50%)">
-									{#if theme === t.value}
-										<IconCheck
-											class="absolute inset-0 m-auto size-4 text-base-content mix-blend-difference"
-											stroke-width={3} />
-									{/if}
-								</span>
-								<span class="w-full truncate text-center">{t.label}</span>
-							</button>
-						{/each}
-					</div>
-				</div>
-			</div>
+		<div class="space-y-1 border-t border-base-300 p-3">
+			<button
+				type="button"
+				class="btn btn-ghost btn-sm w-full justify-start gap-2.5 px-2.5 text-sm font-normal text-base-content/70"
+				onclick={toggleTheme}>
+				{#if dark}
+					<IconSun class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
+					Mode terang
+				{:else}
+					<IconMoon class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
+					Mode gelap
+				{/if}
+			</button>
 
-			<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2.5 px-1 pt-2">
 				<span
-					class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary"
+					class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-base-200 font-medium text-base-content"
 					>{initial}</span
 				>
 				<div class="min-w-0 flex-1">
-					<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
+					<p class="truncate text-sm font-medium leading-tight">{profile?.nama ?? 'Pengguna'}</p>
 					<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
-					<a href="/pengaturan/ganti-password" class="text-[10px] text-primary hover:underline">Ganti kata sandi</a>
+					<a
+						href="/pengaturan/ganti-password"
+						class="text-[11px] text-primary hover:underline">Ganti kata sandi</a
+					>
 				</div>
 				<button
 					class="btn btn-ghost btn-square btn-sm"
@@ -264,7 +209,7 @@
 		</div>
 	</aside>
 
-	<div class="lg:pl-72">
+	<div class="lg:pl-64">
 		<header
 			class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-base-300 bg-base-100/90 px-4 backdrop-blur lg:hidden">
 			<button
