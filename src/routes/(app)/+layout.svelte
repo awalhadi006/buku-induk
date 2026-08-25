@@ -280,29 +280,33 @@
 				>{schoolName}</span
 			>
 
-			<div class="ml-auto flex items-center gap-1.5">
+			<div class="ml-auto flex items-center gap-1">
 				<button
 					type="button"
-					class="btn btn-ghost btn-square btn-sm"
+					class="group relative btn btn-ghost btn-square btn-sm"
 					onclick={toggleTheme}
-					aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
-					title={dark ? 'Mode terang' : 'Mode gelap'}>
+					aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}>
 					{#if dark}
 						<IconSun class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
 					{:else}
 						<IconMoon class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
 					{/if}
+					<span class="pointer-events-none absolute -bottom-9 left-1/2 z-50 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 sm:block motion-reduce:transition-none"
+						role="tooltip">{dark ? 'Mode terang' : 'Mode gelap'}</span
+					>
 				</button>
 
 				<button
-					class="btn btn-ghost btn-square btn-sm"
+					class="group relative btn btn-ghost btn-square btn-sm"
 					aria-label="Cari santri, kamar, atau kelas (Ctrl+K)"
-					title="Cari (Ctrl+K)"
 					onclick={() => window.dispatchEvent(new Event('quicksearch:open'))}>
 					<IconSearch class="size-[18px]" stroke-width={1.75} />
+					<span class="pointer-events-none absolute -bottom-9 left-1/2 z-50 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 sm:block motion-reduce:transition-none"
+						role="tooltip">Cari (Ctrl+K)</span
+					>
 				</button>
 
-				<details bind:open={userMenuOpen} class="dropdown dropdown-end">
+				<details bind:open={userMenuOpen} class="dropdown dropdown-end group">
 					<summary
 						class="flex cursor-pointer list-none items-center rounded-full [&::-webkit-details-marker]:hidden"
 						aria-label="Menu pengguna">
@@ -311,6 +315,9 @@
 							>{initial}</span
 						>
 					</summary>
+					<span class="pointer-events-none absolute -bottom-9 left-1/2 z-50 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 sm:block motion-reduce:transition-none"
+						role="tooltip">{profile?.nama ?? 'Pengguna'}</span
+					>
 					<div
 						class="dropdown-content z-50 mt-2 w-56 rounded-lg border border-base-300 bg-base-100 p-2 shadow-lg">
 						<div class="border-b border-base-200 px-2 pb-2 pt-1">
