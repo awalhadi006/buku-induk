@@ -21,7 +21,9 @@
 		IconAward,
 		IconHistory,
 		IconSun,
-		IconMoon
+		IconMoon,
+		IconLayoutSidebarLeftCollapse,
+		IconLayoutSidebarLeftExpand
 	} from '@tabler/icons-svelte';
 	import { supabase } from '$lib/supabase';
 	import { PERAN_LABEL, type Profile } from '$lib/types';
@@ -79,9 +81,11 @@
 
 	const schoolName = $derived(data.schoolName ?? 'Buku Induk');
 	const schoolLogoUrl = $derived(data.schoolLogoUrl as string | null);
+	const tahunAjaran = $derived(data.tahunAjaranAktif as string | null);
 
 	let open = $state(false);
 	let dark = $state(false);
+	let rail = $state(typeof localStorage !== 'undefined' && localStorage.getItem('sidebar-rail') === '1');
 
 	onMount(() => {
 		const attr = document.documentElement.getAttribute('data-theme');
@@ -91,9 +95,18 @@
 	});
 
 	function toggleTheme() {
-		dark = !dark;
-		document.documentElement.setAttribute('data-theme', dark ? 'bi-dark' : 'bi-light');
-		localStorage.setItem('theme', dark ? 'bi-dark' : 'bi-light');
+		setDark(!dark);
+	}
+
+	function setDark(value: boolean) {
+		dark = value;
+		document.documentElement.setAttribute('data-theme', value ? 'bi-dark' : 'bi-light');
+		localStorage.setItem('theme', value ? 'bi-dark' : 'bi-light');
+	}
+
+	function toggleRail() {
+		rail = !rail;
+		localStorage.setItem('sidebar-rail', rail ? '1' : '0');
 	}
 
 	function isActive(href: string) {
@@ -130,9 +143,10 @@
 	{/if}
 
 	<aside
-		class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-transform duration-200 lg:translate-x-0 motion-reduce:transition-none
-		{open ? 'translate-x-0' : ''}">
-		<div class="flex items-center justify-between px-4 pb-3 pt-5">
+		class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-all duration-200 lg:translate-x-0 motion-reduce:transition-none {rail
+			? 'lg:w-[76px]'
+			: ''} {open ? 'translate-x-0' : ''}">
+		<div class="flex items-center justify-between gap-2 px-4 pb-3 pt-5">
 			<div class="flex min-w-0 items-center gap-2.5">
 				{#if schoolLogoUrl}
 					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-8 shrink-0 object-contain" />
@@ -142,9 +156,24 @@
 						>BI</span
 					>
 				{/if}
-				<span class="min-w-0 truncate text-sm font-semibold tracking-tight">{schoolName}</span>
+				<span class="min-w-0 truncate text-sm font-semibold tracking-tight {rail ? 'lg:hidden' : ''}"
+					>{schoolName}</span
+				>
 			</div>
 			<button
+				type="button"
+				class="btn btn-ghost btn-square btn-sm hidden lg:inline-flex"
+				aria-label={rail ? 'Perlebar menu' : 'Persempit menu'}
+				title={rail ? 'Perlebar menu' : 'Persempit menu'}
+				onclick={toggleRail}>
+				{#if rail}
+					<IconLayoutSidebarLeftExpand class="size-[18px]" stroke-width={1.75} />
+				{:else}
+					<IconLayoutSidebarLeftCollapse class="size-[18px]" stroke-width={1.75} />
+				{/if}
+			</button>
+			<button
+				type="button"
 				class="btn btn-ghost btn-square btn-sm lg:hidden"
 				aria-label="Tutup menu"
 				onclick={() => (open = false)}>
@@ -152,12 +181,25 @@
 			</button>
 		</div>
 
+		{#if tahunAjaran}
+			<div class="px-4 pb-1 {rail ? 'lg:hidden' : ''}">
+				<span
+					class="inline-flex items-center rounded-md border border-base-300 bg-base-200/50 px-2 py-1 text-[11px] font-medium text-base-content/70"
+					title="Tahun ajaran aktif">TA {tahunAjaran}</span
+				>
+			</div>
+		{/if}
+
 		<nav class="flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
 			{#each groups as group (group.label)}
-				<p
-					class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase first:pt-2"
-					>{group.label}</p
-				>
+				{#if rail}
+					<div class="mx-auto my-2 hidden h-px w-6 bg-base-300 lg:block" aria-hidden="true"
+					></div>
+				{:else}
+					<p class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase"
+						>{group.label}</p
+					>
+				{/if}
 				<ul class="space-y-0.5">
 					{#each group.items as item (item.href)}
 						{@const active = isActive(item.href)}
@@ -166,15 +208,20 @@
 								href={item.href}
 								onclick={() => (open = false)}
 								aria-current={active ? 'page' : undefined}
-								class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
+								title={rail ? item.label : undefined}
+								class="relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
 									{active
 									? 'bg-primary font-medium text-primary-content'
-									: 'text-base-content/70 hover:bg-base-200/60 hover:text-base-content'}">
+									: 'text-base-content/70 hover:bg-base-200/60 hover:text-base-content'}
+									{rail ? 'lg:justify-center lg:px-0' : ''}">
 								<item.icon class="size-[18px] shrink-0" stroke-width={active ? 2 : 1.75} />
-								<span class="truncate">{item.label}</span>
+								<span class="truncate {rail ? 'lg:hidden' : ''}">{item.label}</span>
 								{#if item.href === '/persetujuan' && pendingRequests > 0}
-									<span class="ml-auto badge badge-sm {active ? 'badge-neutral' : 'badge-error'}" aria-label="Pengajuan menunggu"
-										>{pendingRequests}</span
+									<span
+										class="badge badge-sm ml-auto {active ? 'badge-neutral' : 'badge-error'} {rail
+											? 'lg:absolute lg:top-0.5 lg:right-1.5 lg:ml-0 lg:min-h-0 lg:px-1 lg:py-0 lg:text-[9px] lg:leading-4'
+											: ''}"
+										aria-label="Pengajuan menunggu">{pendingRequests}</span
 									>
 								{/if}
 							</a>
@@ -184,45 +231,86 @@
 			{/each}
 		</nav>
 
-		<div class="space-y-1 border-t border-base-300 p-3">
-			<button
-				type="button"
-				class="btn btn-ghost btn-sm w-full justify-start gap-2.5 px-2.5 text-sm font-normal text-base-content/70"
-				onclick={toggleTheme}>
-				{#if dark}
-					<IconSun class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
-					Mode terang
+		<div class="space-y-2 border-t border-base-300 p-3">
+			<div
+				class="flex items-center justify-center gap-1 rounded-lg border border-base-300 p-1"
+				role="group"
+				aria-label="Pilih tema">
+				{#if rail}
+					<button
+						type="button"
+						class="btn btn-ghost btn-square btn-xs"
+						onclick={toggleTheme}
+						aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
+						title={dark ? 'Mode terang' : 'Mode gelap'}>
+						{#if dark}
+							<IconSun class="size-4" stroke-width={1.75} />
+						{:else}
+							<IconMoon class="size-4" stroke-width={1.75} />
+						{/if}
+					</button>
 				{:else}
-					<IconMoon class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
-					Mode gelap
+					<button
+						type="button"
+						class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors {!dark
+							? 'bg-base-200 font-medium text-base-content'
+							: 'text-base-content/60 hover:text-base-content'}"
+						onclick={() => setDark(false)}
+						aria-pressed={!dark}>
+						<IconSun class="size-4" stroke-width={1.75} aria-hidden="true" />
+						Terang
+					</button>
+					<button
+						type="button"
+						class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors {dark
+							? 'bg-base-200 font-medium text-base-content'
+							: 'text-base-content/60 hover:text-base-content'}"
+						onclick={() => setDark(true)}
+						aria-pressed={dark}>
+						<IconMoon class="size-4" stroke-width={1.75} aria-hidden="true" />
+						Gelap
+					</button>
 				{/if}
-			</button>
+			</div>
 
-			<div class="flex items-center gap-2.5 px-1 pt-2">
-				<span
-					class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-base-200 font-medium text-base-content"
-					>{initial}</span
-				>
-				<div class="min-w-0 flex-1">
-					<p class="truncate text-sm font-medium leading-tight">{profile?.nama ?? 'Pengguna'}</p>
-					<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+			<details class="dropdown dropdown-top dropdown-end w-full">
+				<summary
+					class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg p-1 hover:bg-base-200/60 [&::-webkit-details-marker]:hidden {rail
+						? 'lg:justify-center lg:p-0.5'
+						: ''}">
+					<span
+						class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-base-200 font-medium text-base-content"
+						>{initial}</span
+					>
+					<div class="min-w-0 flex-1 {rail ? 'lg:hidden' : ''}">
+						<p class="truncate text-sm font-medium leading-tight">{profile?.nama ?? 'Pengguna'}</p>
+						<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+					</div>
+				</summary>
+				<div
+					class="dropdown-content z-50 mb-2 w-56 rounded-lg border border-base-300 bg-base-100 p-2 shadow-lg">
+					<div class="border-b border-base-200 px-2 pb-2 pt-1 {rail ? '' : 'hidden'}">
+						<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
+						<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+					</div>
 					<a
 						href="/pengaturan/ganti-password"
-						class="text-[11px] text-primary hover:underline">Ganti kata sandi</a
-					>
+						class="mt-1 block rounded-md px-2 py-1.5 text-sm text-base-content/80 hover:bg-base-200/60 hover:text-base-content">
+						Ganti kata sandi
+					</a>
+					<button
+						type="button"
+						class="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-error hover:bg-error/10"
+						onclick={logout}>
+						<IconLogout class="size-4" stroke-width={1.75} aria-hidden="true" />
+						Keluar
+					</button>
 				</div>
-				<button
-					class="btn btn-ghost btn-square btn-sm"
-					aria-label="Keluar"
-					title="Keluar"
-					onclick={logout}>
-					<IconLogout class="size-5" stroke-width={1.75} />
-				</button>
-			</div>
+			</details>
 		</div>
 	</aside>
 
-	<div class="lg:pl-64">
+	<div class={rail ? 'lg:pl-[76px]' : 'lg:pl-64'}>
 		{#if navigating.to}
 			<div
 				class="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-primary/20"

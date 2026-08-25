@@ -38,14 +38,21 @@ export async function load(event) {
 		.eq('key', 'school_logo_url')
 		.maybeSingle();
 
+	const { data: taSetting } = await supabase
+		.from('settings')
+		.select('value')
+		.eq('key', 'tahun_ajaran_aktif')
+		.maybeSingle();
+
 	const sidebarNav = parseSidebarNav(sidebarSetting?.value);
 
-	return { 
+	return {
 		user,
 		profile: profile ?? null,
 		pendingRequests,
 		sidebarNav,
 		schoolName: schoolNameSetting?.value ?? null,
-		schoolLogoUrl: schoolLogoUrlSetting?.value ?? null
+		schoolLogoUrl: schoolLogoUrlSetting?.value ?? null,
+		tahunAjaranAktif: taSetting?.value ?? null
 	};
 }
