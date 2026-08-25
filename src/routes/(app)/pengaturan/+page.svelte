@@ -22,6 +22,7 @@
 		id: string;
 		peran: string;
 		nama: string | null;
+		username?: string | null;
 		kamar_id: number | null;
 		kelas_id: number | null;
 	};
@@ -660,7 +661,7 @@
 			<p class="mt-1 text-sm text-base-content/60">
 				Buatkan NIS otomatis untuk semua santri yang belum memiliki NIS.
 			</p>
-			<button type="submit" class="btn btn-outline btn-sm mt-3" onclick={() => !confirm('Generate NIS untuk semua santri yang belum punya NIS?') && event.preventDefault()}>
+			<button type="submit" class="btn btn-outline btn-sm mt-3" onclick={(e) => !confirm('Generate NIS untuk semua santri yang belum punya NIS?') && e.preventDefault()}>
 				<IconHash class="size-4" stroke-width={2} />
 				Generate Sekarang
 			</button>
