@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { IconPrinter } from '@tabler/icons-svelte';
-	import type { Rekap } from '$lib/types';
+import { IconPrinter } from '@tabler/icons-svelte';
+import type { Rekap } from '$lib/types';
+import PageHeader from '$lib/components/PageHeader.svelte';
+import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let { data } = $props();
 
@@ -25,28 +27,26 @@
 	<title>Rekap Kamar & Kelas | Buku Induk</title>
 </svelte:head>
 
-<header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Rekap per Kamar & Kelas</h1>
-		<p class="mt-1 max-w-[65ch] text-base-content/70">
-			Tabel rekapitulasi jumlah santri per kamar dan per kelas. Dapat dicetak untuk arsip.
-		</p>
-	</div>
-	<div class="print:hidden">
-		<button class="btn btn-outline btn-sm" onclick={() => window.print()}>
-			<IconPrinter class="size-4" stroke-width={1.75} />
-			Cetak
-		</button>
-	</div>
-</header>
+<PageHeader
+	title="Rekap per Kamar & Kelas"
+	desc="Tabel rekapitulasi jumlah santri per kamar dan per kelas. Dapat dicetak untuk arsip.">
+	{#snippet actions()}
+		<div class="print:hidden">
+			<button class="btn btn-outline btn-sm" onclick={() => window.print()}>
+				<IconPrinter class="size-4" stroke-width={1.75} />
+				Cetak
+			</button>
+		</div>
+	{/snippet}
+</PageHeader>
 
 {#if !rekap}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<p class="text-base-content/60">Data belum dapat dimuat.</p>
+	<div class="mt-8">
+		<EmptyState title="Data belum dapat dimuat" desc="Coba muat ulang halaman ini." />
 	</div>
 {:else}
 	<div class="mt-6 grid gap-4 lg:grid-cols-2">
-		<section class="overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<section class="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<h2 class="border-b border-base-200 px-5 py-3 text-sm font-semibold">Rekap per Kamar</h2>
 			<table class="table">
 				<thead>
@@ -75,7 +75,7 @@
 			</table>
 		</section>
 
-		<section class="overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+		<section class="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 			<h2 class="border-b border-base-200 px-5 py-3 text-sm font-semibold">Rekap per Kelas</h2>
 			<table class="table">
 				<thead>
