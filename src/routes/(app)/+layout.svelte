@@ -280,10 +280,10 @@
 				>{schoolName}</span
 			>
 
-			<div class="ml-auto flex items-center gap-1">
+			<div class="ml-auto flex items-center gap-1.5">
 				<button
 					type="button"
-					class="btn btn-ghost btn-square btn-sm text-base-content/60 hover:text-base-content"
+					class="btn btn-ghost btn-square btn-sm"
 					onclick={toggleTheme}
 					aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
 					title={dark ? 'Mode terang' : 'Mode gelap'}>
