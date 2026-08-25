@@ -59,25 +59,37 @@ function humanize(subject: string): string {
 	return type ? `${type}: ${humanized}` : humanized;
 }
 
-export async function load({ locals, fetch, setHeaders }) {
+export async function load({ locals, fetch, setHeaders, url }) {
 	const { user } = locals;
 	if (!user) throw redirect(303, '/login');
 
-	const res = await fetch('https://api.github.com/repos/awalhadi006/buku-induk/commits?per_page=30', {
-		headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'buku-induk' }
-	});
+	const headers: Record<string, string> = {
+		Accept: 'application/vnd.github+json',
+		'User-Agent': 'buku-induk'
+	};
+	// ponytail: token opsional — tanpa token, API publik bisa kena rate-limit IP bersama Cloudflare
+	const token = url.searchParams.get('token') ?? '';
+	if (token) headers.Authorization = `Bearer ${token}`;
 
-	let commits: { short: string; date: string; subject: string; label: string }[] = [];
-	if (res.ok) {
-		const data = (await res.json()) as any[];
-		commits = data.map((c) => ({
-			short: c.sha.slice(0, 7),
-			date: (c.commit?.author?.date ?? '').slice(0, 10),
-			subject: c.commit?.message?.split('\n')[0] ?? '',
-			label: humanize(c.commit?.message?.split('\n')[0] ?? '')
-		}));
-		setHeaders({ 'cache-control': 'public, max-age=300' });
+	let commitsError = false;
+	let data: any[] | null = null;
+	try {
+		const res = await fetch('https://api.github.com/repos/awalhadi006/buku-induk/commits?per_page=30', { headers });
+		if (!res.ok) commitsError = true;
+		else {
+			data = (await res.json()) as any[];
+			setHeaders({ 'cache-control': 'public, max-age=300' });
+		}
+	} catch {
+		commitsError = true;
 	}
 
-	return { commits };
+	const commits = (commitsError ? [] : (data ?? []).map((c) => ({
+		short: c.sha.slice(0, 7),
+		date: (c.commit?.author?.date ?? '').slice(0, 10),
+		subject: c.commit?.message?.split('\n')[0] ?? '',
+		label: humanize(c.commit?.message?.split('\n')[0] ?? '')
+	})));
+
+	return { commits, commitsError };
 }

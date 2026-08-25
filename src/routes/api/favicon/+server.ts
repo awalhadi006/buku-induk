@@ -1,12 +1,18 @@
-import { getSupabaseAdmin } from '$lib/supabase-admin';
+import { createClient } from '@supabase/supabase-js';
+import { env } from '$env/dynamic/private';
 import { photoUrl } from '$lib/gdrive-url';
 import type { RequestHandler } from './$types';
 
 const FALLBACK = new Response(null, { status: 302, headers: { location: '/favicon.svg' } });
 
 // Proksi logo sekolah agar favicon same-origin: bebas RLS/anon maupun keanehan Drive.
+// Self-contained: jika service key tak dikonfigurasi di environment, jatuh ke fallback (bukan 500).
 export const GET: RequestHandler = async () => {
-	const sb = getSupabaseAdmin();
+	const url = env.PUBLIC_SUPABASE_URL;
+	const key = env.SUPABASE_SERVICE_ROLE_KEY;
+	if (!url || !key) return FALLBACK;
+	const sb = createClient(url, key, { auth: { persistSession: false } });
+
 	// ponytail: admin client tanpa generik Database — cast manual, rapikan saat skema DB diketik penuh
 	const { data } = (await sb
 		.from('settings')

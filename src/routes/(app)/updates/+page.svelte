@@ -4,6 +4,7 @@
 	type Commit = { short: string; date: string; subject: string; label: string };
 	let { data } = $props();
 	const commits = $derived(data.commits as Commit[]);
+	const commitsError = $derived(Boolean(data.commitsError));
 </script>
 
 <svelte:head>
@@ -24,8 +25,12 @@
 
 <div class="mt-4 space-y-6">
 	{#if commits.length === 0}
-		<div class="rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-			<p class="text-sm text-base-content/60">Belum ada catatan pembaruan yang bisa dimuat.</p>
+		<div class="rounded-lg border border-dashed border-base-300 bg-base-200/40 p-10 text-center">
+			<p class="text-sm text-base-content/60">
+				{commitsError
+					? 'Catatan pembaruan sementara tidak dapat dimuat dari GitHub. Coba muat ulang halaman nanti.'
+					: 'Belum ada catatan pembaruan yang bisa dimuat.'}
+			</p>
 		</div>
 	{:else}
 		{#each commits as commit (commit.short)}
