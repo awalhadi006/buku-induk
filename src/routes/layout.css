@@ -20,21 +20,21 @@
 	--color-base-300: oklch(91% 0.007 95);
 	--color-base-content: oklch(26% 0.012 95);
 
-	/* Hijau institusi desaturasi — satu aksen untuk semuanya */
-	--color-primary: oklch(48% 0.085 155);
+	/* Emerald pesantren pekat + aksen emas — satu pasangan identitas */
+	--color-primary: oklch(44% 0.115 158);
 	--color-primary-content: oklch(98% 0.005 120);
 	--color-secondary: oklch(40% 0.015 95);
 	--color-secondary-content: oklch(97% 0.005 95);
-	--color-accent: oklch(36% 0.07 160);
-	--color-accent-content: oklch(97% 0.008 140);
+	--color-accent: oklch(63% 0.125 80);
+	--color-accent-content: oklch(24% 0.04 80);
 
 	--color-neutral: oklch(30% 0.012 95);
 	--color-neutral-content: oklch(96% 0.005 95);
 
 	--color-info: oklch(52% 0.08 240);
 	--color-info-content: oklch(97% 0.005 240);
-	--color-success: oklch(50% 0.09 150);
-	--color-success-content: oklch(97% 0.01 150);
+	--color-success: oklch(50% 0.1 152);
+	--color-success-content: oklch(97% 0.01 152);
 	--color-warning: oklch(66% 0.13 70);
 	--color-warning-content: oklch(25% 0.03 70);
 	--color-error: oklch(52% 0.14 25);
@@ -60,12 +60,12 @@
 	--color-base-300: oklch(26% 0.01 95);
 	--color-base-content: oklch(90% 0.008 95);
 
-	--color-primary: oklch(72% 0.11 155);
-	--color-primary-content: oklch(20% 0.03 155);
+	--color-primary: oklch(76% 0.135 155);
+	--color-primary-content: oklch(20% 0.045 155);
 	--color-secondary: oklch(75% 0.012 95);
 	--color-secondary-content: oklch(20% 0.008 95);
-	--color-accent: oklch(78% 0.09 145);
-	--color-accent-content: oklch(20% 0.02 145);
+	--color-accent: oklch(80% 0.12 85);
+	--color-accent-content: oklch(22% 0.035 85);
 
 	--color-neutral: oklch(30% 0.012 95);
 	--color-neutral-content: oklch(90% 0.008 95);
