@@ -10,6 +10,8 @@
 
 	let { data } = $props();
 
+	const schoolName = $derived((page.data.schoolName as string | null) ?? 'Pesantren');
+
 	const s = $derived(data.santri as Record<string, any>);
 	const kamar = $derived(data.kamar as { id: number; nomor: number }[]);
 	const kelas = $derived(data.kelas as { id: number; tingkat: string; rombel: string }[]);
@@ -80,12 +82,12 @@
 	<title>Kutipan Buku Induk - {s.nama_lengkap} | Buku Induk</title>
 </svelte:head>
 
-<div class="mx-auto max-w-[210mm] bg-white p-8 text-black shadow-sm print:shadow-none print:p-0">
+<div class="mx-auto max-w-[210mm] bg-white p-8 text-stone-900 shadow-sm print:shadow-none print:p-0" data-theme="bi-light">
 	<!-- KOP SURAT -->
 	<div class="border-b-2 border-black pb-4 text-center">
 		<h1 class="text-xl font-bold uppercase tracking-wider">Kutipan Buku Induk Santri</h1>
-		<h2 class="text-lg font-semibold">PONDOK PESANTREN</h2>
-		<p class="text-xs text-gray-600">Arsip Resmi Data Santri Pesantren</p>
+		<h2 class="text-lg font-semibold">{schoolName}</h2>
+		<p class="text-xs text-stone-600">Arsip Resmi Data Santri</p>
 	</div>
 
 	<!-- FOTO & INFO UTAMA -->
@@ -96,7 +98,7 @@
 			<p><span class="font-semibold w-36 inline-block">NISN:</span> {s.nisn || '-'}</p>
 			<p><span class="font-semibold w-36 inline-block">Status Aktif:</span> {STATUS_SANTRI_LABEL[s.status_santri] ?? s.status_santri}</p>
 		</div>
-		<div class="size-28 shrink-0 overflow-hidden rounded border border-gray-400 bg-gray-100 flex items-center justify-center text-xs text-gray-400">
+		<div class="size-28 shrink-0 overflow-hidden rounded border border-stone-400 bg-stone-100 flex items-center justify-center text-xs text-stone-400">
 			{#if foto}
 				<img src={foto} alt="Foto santri" class="h-full w-full object-cover" />
 			{:else}
@@ -109,13 +111,13 @@
 	<div class="mt-6 space-y-6 text-sm">
 		{#each sections as sec (sec.label)}
 			<div>
-				<h3 class="font-bold bg-gray-100 px-2 py-1 border border-gray-300">{sec.label}</h3>
-				<table class="w-full border-collapse border border-gray-300 mt-1">
+				<h3 class="font-bold bg-stone-100 px-2 py-1 border border-stone-300">{sec.label}</h3>
+				<table class="w-full border-collapse border border-stone-300 mt-1">
 					<tbody>
 						{#each sec.rows as [label, value] (label)}
 							<tr>
-								<td class="w-1/3 border border-gray-300 px-2 py-1 font-medium text-gray-700">{label}</td>
-								<td class="w-2/3 border border-gray-300 px-2 py-1">{value ?? '—'}</td>
+								<td class="w-1/3 border border-stone-300 px-2 py-1 font-medium text-stone-700">{label}</td>
+								<td class="w-2/3 border border-stone-300 px-2 py-1">{value ?? '—'}</td>
 							</tr>
 						{/each}
 					</tbody>

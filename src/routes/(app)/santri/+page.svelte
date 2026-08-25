@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconUsers, IconSearch, IconPlus, IconDownload, IconFilter, IconX } from '@tabler/icons-svelte';
+	import { IconSearch, IconPlus, IconDownload, IconFilter } from '@tabler/icons-svelte';
 	import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
+import PageHeader from '$lib/components/PageHeader.svelte';
+import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let { data } = $props();
 
@@ -66,15 +68,8 @@
 	<title>Santri | Buku Induk</title>
 </svelte:head>
 
-<header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Santri</h1>
-		<p class="mt-1 max-w-[65ch] text-base-content/70">
-			Daftar santri pesantren. Menampilkan <span class="font-mono">{filtered.length}</span> dari
-			<span class="font-mono">{santri.length}</span> santri total.
-		</p>
-	</div>
-	<div class="flex flex-wrap items-center gap-3">
+<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {filtered.length} dari {santri.length} santri total.">
+	{#snippet actions()}
 		<label class="relative flex-1 sm:w-72 sm:flex-none">
 			<span class="sr-only">Cari santri</span>
 			<IconSearch class="pointer-events-none absolute inset-y-0 left-3 my-auto size-4 text-base-content/50" />
@@ -105,12 +100,12 @@
 				Tambah
 			</a>
 		{/if}
-	</div>
-</header>
+	{/snippet}
+</PageHeader>
 
 <!-- PANEL FILTER LANJUTAN -->
 {#if showFilters}
-	<div class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">
+	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm">
 		<div class="flex items-center justify-between pb-3 border-b border-base-200">
 			<h2 class="text-sm font-semibold flex items-center gap-2">
 				<IconFilter class="size-4 text-primary" />
@@ -188,26 +183,24 @@
 {/if}
 
 {#if santri.length === 0}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<IconUsers class="mx-auto size-10 text-base-content/40" stroke-width={1.5} />
-		<h2 class="mt-4 text-lg font-semibold">Belum ada data santri</h2>
-		<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">
-			Data diisi lewat import Excel dari halaman Import, atau ditambahkan manual.
-		</p>
-		<div class="mt-5">
+	<div class="mt-8">
+		<EmptyState
+			title="Belum ada data santri"
+			desc="Data diisi lewat import Excel dari halaman Import, atau ditambahkan manual.">
 			<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
 			{#if canCreate}
 				<a class="btn btn-outline btn-sm" href="/santri/baru">Tambah manual</a>
 			{/if}
-		</div>
+		</EmptyState>
 	</div>
 {:else if filtered.length === 0}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<p class="text-base-content/60">Tidak ada santri yang cocok dengan pencarian atau filter.</p>
-		<button class="btn btn-ghost btn-sm mt-3" onclick={resetFilters}>Reset filter</button>
+	<div class="mt-8">
+		<EmptyState title="Tidak ada hasil" desc="Tidak ada santri yang cocok dengan pencarian atau filter.">
+			<button class="btn btn-outline btn-sm" onclick={resetFilters}>Reset filter</button>
+		</EmptyState>
 	</div>
 {:else}
-	<div class="mt-8 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+	<div class="mt-8 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 		<table class="table">
 			<thead>
 				<tr class="text-xs uppercase tracking-wide text-base-content/60">

@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { IconAward, IconSearch, IconFilter, IconX } from '@tabler/icons-svelte';
-	import { STATUS_KELUARGA_LABEL, GENDER_LABEL } from '$lib/santri';
+import { IconAward, IconSearch, IconFilter } from '@tabler/icons-svelte';
+import { STATUS_KELUARGA_LABEL, GENDER_LABEL } from '$lib/santri';
+import PageHeader from '$lib/components/PageHeader.svelte';
+import EmptyState from '$lib/components/EmptyState.svelte';
 
 	type Alumni = {
 		id: string;
@@ -67,14 +69,8 @@
 	<title>Arsip Alumni | Buku Induk</title>
 </svelte:head>
 
-<header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Arsip Alumni</h1>
-		<p class="mt-1 max-w-[65ch] text-base-content/70">
-			Riwayat santri yang telah lulus beserta kelas terakhir dan tahun kelulusannya.
-		</p>
-	</div>
-	<div class="flex flex-wrap items-center gap-3">
+<PageHeader title="Arsip Alumni" desc="Riwayat santri yang telah lulus beserta kelas terakhir dan tahun kelulusannya.">
+	{#snippet actions()}
 		<label class="relative flex-1 sm:w-72 sm:flex-none">
 			<span class="sr-only">Cari alumni</span>
 			<IconSearch class="pointer-events-none absolute inset-y-0 left-3 my-auto size-4 text-base-content/50" />
@@ -102,8 +98,8 @@
 			<IconAward class="size-4" stroke-width={1.75} />
 			Export
 		</a>
-	</div>
-</header>
+	{/snippet}
+</PageHeader>
 
 {#if jumlahPerTahun.length > 0}
 	<div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -111,7 +107,7 @@
 			<button
 				type="button"
 				onclick={() => (filterTahun = filterTahun === j.tahun ? '' : j.tahun)}
-				class="rounded-2xl border border-base-300 bg-base-100 p-4 text-left transition-colors
+				class="rounded-lg border border-base-300 bg-base-100 p-4 text-left transition-colors
 					{filterTahun === j.tahun ? 'border-primary bg-primary/5' : 'hover:bg-base-200/50'}">
 				<p class="text-xs font-medium text-base-content/60">Tahun lulus</p>
 				<p class="mt-1 text-2xl font-semibold tracking-tight">{j.tahun}</p>
@@ -122,7 +118,7 @@
 {/if}
 
 {#if showFilters}
-	<div class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5 shadow-sm">
+	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm">
 		<div class="flex items-center justify-between pb-3 border-b border-base-200">
 			<h2 class="text-sm font-semibold flex items-center gap-2">
 				<IconFilter class="size-4 text-primary" />
@@ -160,23 +156,21 @@
 {/if}
 
 {#if alumni.length === 0}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<IconAward class="mx-auto size-10 text-base-content/40" stroke-width={1.5} />
-		<h2 class="mt-4 text-lg font-semibold">Belum ada alumni</h2>
-		<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">
-			Santri yang diubah statusnya menjadi Lulus (lewat kelulusan massal atau edit manual) akan muncul di sini.
-		</p>
-		<div class="mt-5">
+	<div class="mt-8">
+		<EmptyState
+			title="Belum ada alumni"
+			desc="Santri yang diubah statusnya menjadi Lulus (lewat kelulusan massal atau edit manual) akan muncul di sini.">
 			<a class="btn btn-primary btn-sm" href="/kelas/mutasi">Kelulusan Massal</a>
-		</div>
+		</EmptyState>
 	</div>
 {:else if filtered.length === 0}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<p class="text-base-content/60">Tidak ada alumni yang cocok dengan pencarian atau filter.</p>
-		<button class="btn btn-ghost btn-sm mt-3" onclick={resetFilters}>Reset filter</button>
+	<div class="mt-8">
+		<EmptyState title="Tidak ada hasil" desc="Tidak ada alumni yang cocok dengan pencarian atau filter.">
+			<button class="btn btn-outline btn-sm" onclick={resetFilters}>Reset filter</button>
+		</EmptyState>
 	</div>
 {:else}
-	<div class="mt-8 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
+	<div class="mt-8 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 		<table class="table">
 			<thead>
 				<tr class="text-xs uppercase tracking-wide text-base-content/60">

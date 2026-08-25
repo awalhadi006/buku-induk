@@ -224,7 +224,7 @@
 </header>
 
 {#if data.gdrive && !editing}
-	<div class="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-base-300 bg-base-100 p-5">
+	<div class="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-base-300 bg-base-100 p-5">
 		<div class="flex items-center gap-4">
 			{#if s.foto_url}
 				<img src={photoUrl(s.foto_url)} alt="Foto" class="size-16 rounded-xl object-cover" />
@@ -271,7 +271,7 @@
 {:else}
 	<div class="mt-6 space-y-4">
 		{#each detailSections as sec (sec.label)}
-			<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+			<section class="rounded-lg border border-base-300 bg-base-100 p-5">
 				<h2 class="text-sm font-semibold">{sec.label}</h2>
 				<dl class="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
 					{#each sec.rows as [label, value] (label)}
@@ -285,20 +285,20 @@
 				</dl>
 			</section>
 		{/each}
-		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+		<section class="rounded-lg border border-base-300 bg-base-100 p-5">
 			<h2 class="text-sm font-semibold">Histori</h2>
 			{#if data._status_history.length > 0}
-				<ol class="mt-4 space-y-4">
+				<ol class="mt-4 ml-1 space-y-4 border-l border-base-300 pl-5">
 					{#each data._status_history as h (h.id)}
-						<li class="flex gap-3">
-							<div class="mt-1 flex h-2.5 w-2.5 shrink-0 rounded-full bg-primary/40"></div>
-							<div class="min-w-0 flex-1">
-								<p class="text-sm font-medium capitalize">{h.jenis.replace(/_/g, ' ')}</p>
-								<p class="text-xs text-base-content/60">
-									<span class="font-mono">{d(h.tanggal_efektif)}</span>
-									&middot; {histVal(h.jenis, h.nilai_lama)} <span class="px-1 text-base-content/40">&rarr;</span> {histVal(h.jenis, h.nilai_baru)}
-								</p>
-							</div>
+						<li class="relative">
+							<span
+								class="absolute top-1 -left-[25px] size-2.5 rounded-full bg-primary/50"
+								aria-hidden="true"></span>
+							<p class="text-sm font-medium capitalize">{h.jenis.replace(/_/g, ' ')}</p>
+							<p class="text-xs text-base-content/60">
+								<span class="font-mono">{d(h.tanggal_efektif)}</span>
+								&middot; {histVal(h.jenis, h.nilai_lama)} <span class="px-1 text-base-content/40">&rarr;</span> {histVal(h.jenis, h.nilai_baru)}
+							</p>
 						</li>
 					{/each}
 				</ol>
@@ -307,7 +307,7 @@
 			{/if}
 		</section>
 
-		<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+		<section class="rounded-lg border border-base-300 bg-base-100 p-5">
 			<h2 class="text-sm font-semibold">Dokumen santri</h2>
 
 			{#if docs.length === 0}
@@ -409,7 +409,7 @@
 			{/if}
 		</section>
 		{#if canRequest}
-			<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+			<section class="rounded-lg border border-base-300 bg-base-100 p-5">
 				<h2 class="text-sm font-semibold">Ajukan Perubahan Data</h2>
 				<p class="mt-1 text-sm text-base-content/60">Ajukan perubahan data santri untuk dikonfirmasi Admin TU.</p>
 				<form method="POST" action="?/requestChange" class="mt-4 grid gap-3 sm:grid-cols-2">

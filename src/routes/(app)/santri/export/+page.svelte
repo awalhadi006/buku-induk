@@ -39,7 +39,7 @@
 
 <div class="mt-6 max-w-2xl space-y-6">
 	<!-- Format Selection -->
-	<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+	<section class="rounded-lg border border-base-300 bg-base-100 p-5">
 		<h2 class="text-sm font-semibold">Format File</h2>
 		<div class="mt-3 flex gap-4">
 			<label class="flex items-center gap-2 cursor-pointer text-sm font-medium">
@@ -54,7 +54,7 @@
 	</section>
 
 	<!-- Field Selection -->
-	<section class="rounded-2xl border border-base-300 bg-base-100 p-5">
+	<section class="rounded-lg border border-base-300 bg-base-100 p-5">
 		<div class="flex items-center justify-between border-b border-base-200 pb-3">
 			<h2 class="text-sm font-semibold">
 				Pilih Kolom ({selectedFields.length}/{EXPORT_FIELDS.length})

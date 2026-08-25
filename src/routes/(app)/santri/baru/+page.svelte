@@ -3,6 +3,7 @@
 	import { supabase } from '$lib/supabase';
 	import { uploadSantriPdf } from '$lib/storage';
 	import SantriForm from '$lib/components/SantriForm.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
 	import { EMPTY_SANTRI, JENIS_DOKUMEN_OPTIONS, parseSantriForm } from '$lib/santri';
 
 	let { data } = $props();
@@ -101,15 +102,7 @@
 	<title>Tambah Santri | Buku Induk</title>
 </svelte:head>
 
-<header class="flex items-center gap-3">
-	<a class="btn btn-ghost btn-sm" href="/santri" aria-label="Kembali ke daftar santri">
-		&larr;
-	</a>
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Tambah Santri</h1>
-		<p class="mt-1 text-base-content/70">Isi identitas santri sesuai buku induk.</p>
-	</div>
-</header>
+<PageHeader title="Tambah Santri" desc="Isi identitas santri sesuai buku induk." backHref="/santri" />
 
 <div class="mt-6">
 	<SantriForm
@@ -125,7 +118,7 @@
 		error={error}
 		submitting={submitting}>
 		{#snippet extra()}
-			<fieldset class="rounded-2xl border border-base-300 bg-base-100 p-5">
+			<fieldset class="rounded-lg border border-base-300 bg-base-100 p-5">
 				<legend class="px-2 text-sm font-semibold">Dokumen santri (PDF)</legend>
 				<p class="mb-3 text-sm text-base-content/60">
 					Upload berkas asli (KK, akta, ijazah, SKL, dsb.). Hanya file PDF.
