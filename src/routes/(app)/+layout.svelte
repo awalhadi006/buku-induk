@@ -133,8 +133,8 @@
 <svelte:head>
 	<title>{schoolName}</title>
 	{#if schoolLogoUrl}
-		<!-- Menimpa favicon fallback app.html; tanpa logo, fallback favicon.svg dari app.html tetap berlaku -->
-		<link rel="icon" href={photoUrl(schoolLogoUrl, 'w64')} />
+		<!-- Proksi same-origin: tak terpengaruh RLS maupun keanehan Drive sebagai favicon -->
+		<link rel="icon" href="/api/favicon?v={encodeURIComponent(schoolLogoUrl)}" />
 	{/if}
 </svelte:head>
 
