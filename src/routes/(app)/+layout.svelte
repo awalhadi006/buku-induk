@@ -306,7 +306,7 @@
 					>
 				</button>
 
-				<details bind:open={userMenuOpen} class="dropdown dropdown-end group">
+				<details bind:open={userMenuOpen} class="dropdown dropdown-end group ml-1">
 					<summary
 						class="flex cursor-pointer list-none items-center rounded-full [&::-webkit-details-marker]:hidden"
 						aria-label="Menu pengguna">
@@ -314,10 +314,13 @@
 							class="flex size-8 items-center justify-center rounded-full bg-primary font-medium text-primary-content"
 							>{initial}</span
 						>
+						{#if !userMenuOpen}
+							<span
+								class="pointer-events-none absolute -bottom-9 left-1/2 z-50 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 sm:block motion-reduce:transition-none"
+								role="tooltip">{profile?.nama ?? 'Pengguna'}</span
+							>
+						{/if}
 					</summary>
-					<span class="pointer-events-none absolute -bottom-9 left-1/2 z-50 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 sm:block motion-reduce:transition-none"
-						role="tooltip">{profile?.nama ?? 'Pengguna'}</span
-					>
 					<div
 						class="dropdown-content z-50 mt-2 w-56 rounded-lg border border-base-300 bg-base-100 p-2 shadow-lg">
 						<div class="border-b border-base-200 px-2 pb-2 pt-1">
