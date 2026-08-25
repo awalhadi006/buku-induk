@@ -71,7 +71,7 @@
 	<title>Rekapitulasi | Buku Induk</title>
 </svelte:head>
 
-<header class="flex items-center justify-between">
+<header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight">Rekapitulasi</h1>
 		<p class="mt-1 max-w-[65ch] text-base-content/70">

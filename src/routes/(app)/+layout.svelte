@@ -208,7 +208,7 @@
 		<nav class="sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
 			{#each groups as group (group.label)}
 				{#if rail}
-					<div class="mx-auto my-2 hidden h-px w-6 bg-base-300 lg:block" aria-hidden="true"
+					<div class="mx-auto my-1 hidden h-px w-5 bg-base-300 lg:block" aria-hidden="true"
 					></div>
 				{:else}
 					<p class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase"
