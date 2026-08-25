@@ -67,11 +67,14 @@
 	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
-	let tab = $state(data.isSuperadmin ? 'users' : 'fields');
+	let selectedTab = $state<string | null>(null);
+	const tab = $derived(
+		selectedTab ?? (data.isSuperadmin ? 'users' : 'fields')
+	);
 	$effect(() => {
 		const search = page.url.search;
 		const params = new URLSearchParams(search);
-		tab = params.get('tab') ?? (data.isSuperadmin ? 'users' : 'fields');
+		selectedTab = params.get('tab');
 	});
 	const actorName = $derived(
 		Object.fromEntries(profiles.map((p) => [p.id, p.nama ?? p.id.slice(0, 8)]))
