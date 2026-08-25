@@ -85,6 +85,7 @@
 
 	let open = $state(false);
 	let dark = $state(false);
+	let userMenuOpen = $state(false);
 	let rail = $state(typeof localStorage !== 'undefined' && localStorage.getItem('sidebar-rail') === '1');
 
 	onMount(() => {
@@ -114,6 +115,16 @@
 		return href === '/' ? path === '/' : path.startsWith(href);
 	}
 
+	function onWindowClick(e: MouseEvent) {
+		if (!userMenuOpen) return;
+		const target = e.target as HTMLElement | null;
+		if (!target?.closest('details')) userMenuOpen = false;
+	}
+
+	function onWindowKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') userMenuOpen = false;
+	}
+
 	async function logout() {
 		await supabase.auth.signOut();
 		goto('/login');
@@ -128,6 +139,8 @@
 		<link rel="icon" href={favicon} />
 	{/if}
 </svelte:head>
+
+<svelte:window onclick={onWindowClick} onkeydown={onWindowKeydown} />
 
 <div class="min-h-[100dvh] bg-base-100 text-base-content">
 	<a
@@ -182,11 +195,13 @@
 		</div>
 
 		{#if tahunAjaran}
-			<div class="px-4 pb-1 {rail ? 'lg:hidden' : ''}">
-				<span
-					class="inline-flex items-center rounded-md border border-base-300 bg-base-200/50 px-2 py-1 text-[11px] font-medium text-base-content/70"
-					title="Tahun ajaran aktif">TA {tahunAjaran}</span
-				>
+			<div class="px-3 pb-1 {rail ? 'lg:hidden' : ''}">
+				<div
+					class="flex items-center gap-2 rounded-lg bg-base-200/60 px-3 py-1.5 text-[11px] font-medium text-base-content/70"
+					title="Tahun ajaran aktif">
+					<span class="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true"></span>
+					<span class="truncate">T.A. {tahunAjaran}</span>
+				</div>
 			</div>
 		{/if}
 
@@ -232,48 +247,24 @@
 		</nav>
 
 		<div class="space-y-2 border-t border-base-300 p-3">
-			<div
-				class="flex items-center justify-center gap-1 rounded-lg border border-base-300 p-1"
-				role="group"
-				aria-label="Pilih tema">
-				{#if rail}
-					<button
-						type="button"
-						class="btn btn-ghost btn-square btn-xs"
-						onclick={toggleTheme}
-						aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
-						title={dark ? 'Mode terang' : 'Mode gelap'}>
-						{#if dark}
-							<IconSun class="size-4" stroke-width={1.75} />
-						{:else}
-							<IconMoon class="size-4" stroke-width={1.75} />
-						{/if}
-					</button>
-				{:else}
-					<button
-						type="button"
-						class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors {!dark
-							? 'bg-base-200 font-medium text-base-content'
-							: 'text-base-content/60 hover:text-base-content'}"
-						onclick={() => setDark(false)}
-						aria-pressed={!dark}>
-						<IconSun class="size-4" stroke-width={1.75} aria-hidden="true" />
-						Terang
-					</button>
-					<button
-						type="button"
-						class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors {dark
-							? 'bg-base-200 font-medium text-base-content'
-							: 'text-base-content/60 hover:text-base-content'}"
-						onclick={() => setDark(true)}
-						aria-pressed={dark}>
-						<IconMoon class="size-4" stroke-width={1.75} aria-hidden="true" />
-						Gelap
-					</button>
-				{/if}
+			<div class="flex justify-center">
+				<button
+					type="button"
+					class="btn btn-ghost btn-square btn-sm text-base-content/60 hover:text-base-content"
+					onclick={toggleTheme}
+					aria-label={dark ? 'Ganti ke mode terang' : 'Ganti ke mode gelap'}
+					title={dark ? 'Mode terang' : 'Mode gelap'}>
+					{#if dark}
+						<IconSun class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
+					{:else}
+						<IconMoon class="size-[18px]" stroke-width={1.75} aria-hidden="true" />
+					{/if}
+				</button>
 			</div>
 
-			<details class="dropdown dropdown-top dropdown-end w-full">
+			<details
+				bind:open={userMenuOpen}
+				class="dropdown dropdown-top dropdown-end w-full">
 				<summary
 					class="flex cursor-pointer list-none items-center gap-2.5 rounded-lg p-1 hover:bg-base-200/60 [&::-webkit-details-marker]:hidden {rail
 						? 'lg:justify-center lg:p-0.5'
@@ -295,6 +286,7 @@
 					</div>
 					<a
 						href="/pengaturan/ganti-password"
+						onclick={() => (userMenuOpen = false)}
 						class="mt-1 block rounded-md px-2 py-1.5 text-sm text-base-content/80 hover:bg-base-200/60 hover:text-base-content">
 						Ganti kata sandi
 					</a>
