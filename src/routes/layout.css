@@ -103,6 +103,11 @@
 	h3 {
 		font-family: var(--font-display);
 		font-weight: var(--weight-semibold, 600);
+		text-wrap: balance;
+	}
+
+	p {
+		text-wrap: pretty;
 	}
 
 	/* Angka data sejajar kolom — inti Operator Console */
@@ -113,7 +118,53 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	html {
-		scroll-behavior: smooth;
+	/* Fokus keyboard selalu terlihat (WCAG 2.4.7) */
+	:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
+	}
+
+	/* Elemen fokus tak tertutup header sticky (WCAG 2.4.11) */
+	:focus-visible {
+		scroll-margin-top: 5rem;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}
+
+/* Indikator navigasi — hanya properti compositor */
+@keyframes nav-progress {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(400%);
+	}
+}
+
+.nav-progress {
+	animation: nav-progress 1s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nav-progress {
+		animation: none;
+		width: 100%;
+		opacity: 0.5;
 	}
 }

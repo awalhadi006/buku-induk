@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/state';
+	import { page, navigating } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { ComponentType } from 'svelte';
 	import {
@@ -110,6 +110,11 @@
 </svelte:head>
 
 <div class="min-h-[100dvh] bg-base-100 text-base-content">
+	<a
+		href="#konten-utama"
+		class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none"
+	>Lewati ke konten utama</a>
+
 	{#if open}
 		<button
 			class="fixed inset-0 z-30 bg-black/40 lg:hidden motion-reduce:transition-none"
@@ -142,7 +147,7 @@
 
 		<nav class="flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
 			<p
-				class="px-2.5 pb-1 pt-2 text-[10px] font-medium tracking-[0.08em] text-base-content/40 uppercase"
+				class="px-2.5 pb-1 pt-2 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase"
 				>Menu</p
 			>
 			<ul class="space-y-0.5">
@@ -210,6 +215,15 @@
 	</aside>
 
 	<div class="lg:pl-64">
+		{#if navigating.to}
+			<div
+				class="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-primary/20"
+				role="status"
+				aria-label="Memuat halaman">
+				<div class="nav-progress h-full w-1/3 rounded-full bg-primary"></div>
+			</div>
+		{/if}
+
 		<header
 			class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-base-300 bg-base-100/90 px-4 backdrop-blur lg:hidden">
 			<button
@@ -227,7 +241,7 @@
 			</button>
 		</header>
 
-		<main class="mx-auto w-full max-w-[1400px] px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:py-8">
+		<main id="konten-utama" class="mx-auto w-full max-w-[1400px] px-4 pb-16 pt-6 sm:px-6 lg:px-10 lg:py-8">
 			{@render children()}
 		</main>
 	</div>
