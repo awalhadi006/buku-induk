@@ -159,7 +159,10 @@
 		class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-all duration-200 lg:translate-x-0 motion-reduce:transition-none {rail
 			? 'lg:w-[76px]'
 			: ''} {open ? 'translate-x-0' : ''}">
-		<div class="flex items-center justify-between gap-2 px-4 pb-3 pt-5">
+		<div
+		class="flex items-center justify-between gap-2 px-4 pb-3 pt-5 {rail
+			? 'lg:flex-col lg:items-center lg:justify-start lg:px-2 lg:pt-4 lg:pb-2'
+			: ''}">
 			<div class="flex min-w-0 items-center gap-2.5">
 				{#if schoolLogoUrl}
 					<img src={photoUrl(schoolLogoUrl)} alt="Logo" class="size-8 shrink-0 object-contain" />
@@ -208,7 +211,7 @@
 		<nav class="sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
 			{#each groups as group, gi (group.label)}
 				{#if rail && gi > 0}
-					<div class="mt-1 mb-0.5 mx-auto hidden h-px w-4 bg-base-300/60 lg:block" aria-hidden="true"
+					<div class="mt-px mb-px mx-auto hidden h-px w-4 bg-base-300/60 lg:block" aria-hidden="true"
 					></div>
 				{:else if !rail}
 					<p class="px-2.5 pb-1 pt-3 text-[10px] font-medium tracking-[0.08em] text-base-content/55 uppercase {gi === 0 ? 'pt-2' : ''}"
