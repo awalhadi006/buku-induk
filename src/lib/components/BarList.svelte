@@ -5,7 +5,7 @@
 {#each rows as r}
 	<div class="flex items-center gap-3 py-1.5">
 		<span class="w-32 truncate text-sm">{r.label}</span>
-		<div class="h-2 flex-1 overflow-hidden rounded-full bg-base-200">
+		<div class="h-2 flex-1 overflow-hidden rounded-full bg-base-200" aria-hidden="true">
 			<div
 				class="h-full rounded-full bg-primary"
 				style="width:{max > 0 ? Math.round((r.value / max) * 100) : 0}%"></div>

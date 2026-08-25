@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconUsers, IconAward } from '@tabler/icons-svelte';
+	import { IconAward } from '@tabler/icons-svelte';
 	import BarList from '$lib/components/BarList.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { PERAN_LABEL, type Profile, type Rekap, ALL_METRIC_KEYS } from '$lib/types';
 
 	let { data } = $props();
@@ -86,18 +87,15 @@
 
 {#if rekap}
 	{#if rekap.total === 0}
-		<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-			<IconUsers class="mx-auto size-10 text-base-content/40" stroke-width={1.5} />
-			<h2 class="mt-4 text-lg font-semibold">Belum ada data santri</h2>
-			<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">
-				Rekapitulasi muncul setelah data santri diimpor atau ditambahkan.
-			</p>
-			<div class="mt-5 flex justify-center gap-3">
+		<div class="mt-6">
+			<EmptyState
+				title="Belum ada data santri"
+				desc="Rekapitulasi muncul setelah data santri diimpor atau ditambahkan.">
 				{#if canImport}
 					<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
 				{/if}
 				<a class="btn btn-outline btn-sm" href="/santri">Lihat santri</a>
-			</div>
+			</EmptyState>
 		</div>
 	{:else}
 		{#if enabledMetrics.includes('total')}
@@ -196,18 +194,19 @@
 		{/if}
 	{/if}
 {:else}
-		<div class="mt-8 rounded-2xl border border-base-300 bg-base-100 p-10">
-			<p class="text-base-content/60">
+		<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-6">
+			<p class="text-base-content/70">
 				Rekapitulasi tidak dapat ditampilkan untuk akun ini.
 			</p>
 			{#if rekapError}
-				<p class="mt-2 text-sm text-error">Error teknis: {rekapError}</p>
+				<p class="mt-2 text-sm text-error" role="alert">Penyebab teknis: {rekapError}</p>
 			{:else}
-				<p class="mt-2 text-sm text-base-content/60">
-					Pastikan peran Anda memiliki izin <span class="font-medium">Dashboard rekap</span> (Rekapitulsi hanya bisa
+				<p class="mt-2 max-w-[65ch] text-sm text-base-content/60">
+					Pastikan peran Anda memiliki izin <span class="font-medium">Dashboard rekap</span> (Rekapitulasi hanya bisa
 					dilihat oleh Superadmin, Admin TU, atau Asatidz). Jika Anda Superadmin/Admin, periksa pada
 					Pengaturan → Peran & Izin bahwa kemampuan <em>Dashboard rekap</em> aktif.
 				</p>
+				<a href="/pengaturan?tab=permissions" class="btn btn-outline btn-sm mt-4">Buka Peran & Izin</a>
 			{/if}
 		</div>
 	{/if}

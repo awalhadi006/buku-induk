@@ -156,7 +156,7 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 {/if}
 
 {#if alumni.length === 0}
-	<div class="mt-8">
+	<div class="mt-6">
 		<EmptyState
 			title="Belum ada alumni"
 			desc="Santri yang diubah statusnya menjadi Lulus (lewat kelulusan massal atau edit manual) akan muncul di sini.">
@@ -164,13 +164,13 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 		</EmptyState>
 	</div>
 {:else if filtered.length === 0}
-	<div class="mt-8">
+	<div class="mt-6">
 		<EmptyState title="Tidak ada hasil" desc="Tidak ada alumni yang cocok dengan pencarian atau filter.">
 			<button class="btn btn-outline btn-sm" onclick={resetFilters}>Reset filter</button>
 		</EmptyState>
 	</div>
 {:else}
-	<div class="mt-8 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
+	<div class="mt-6 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 		<table class="table">
 			<thead>
 				<tr class="text-xs uppercase tracking-wide text-base-content/60">

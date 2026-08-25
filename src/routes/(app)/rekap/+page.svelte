@@ -41,7 +41,7 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 </PageHeader>
 
 {#if !rekap}
-	<div class="mt-8">
+	<div class="mt-6">
 		<EmptyState title="Data belum dapat dimuat" desc="Coba muat ulang halaman ini." />
 	</div>
 {:else}

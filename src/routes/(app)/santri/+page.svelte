@@ -183,7 +183,7 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 {/if}
 
 {#if santri.length === 0}
-	<div class="mt-8">
+	<div class="mt-6">
 		<EmptyState
 			title="Belum ada data santri"
 			desc="Data diisi lewat import Excel dari halaman Import, atau ditambahkan manual.">
@@ -194,22 +194,22 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 		</EmptyState>
 	</div>
 {:else if filtered.length === 0}
-	<div class="mt-8">
+	<div class="mt-6">
 		<EmptyState title="Tidak ada hasil" desc="Tidak ada santri yang cocok dengan pencarian atau filter.">
 			<button class="btn btn-outline btn-sm" onclick={resetFilters}>Reset filter</button>
 		</EmptyState>
 	</div>
 {:else}
-	<div class="mt-8 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
+	<div class="mt-6 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
 		<table class="table">
 			<thead>
 				<tr class="text-xs uppercase tracking-wide text-base-content/60">
-					<th>Nama</th>
-					<th>NISN</th>
-					<th class="hidden sm:table-cell">JK</th>
-					<th>Kamar</th>
-					<th class="hidden md:table-cell">Kelas</th>
-					<th>Status</th>
+					<th scope="col">Nama</th>
+					<th scope="col">NISN</th>
+					<th scope="col" class="hidden sm:table-cell">JK</th>
+					<th scope="col">Kamar</th>
+					<th scope="col" class="hidden md:table-cell">Kelas</th>
+					<th scope="col">Status</th>
 				</tr>
 			</thead>
 			<tbody>
