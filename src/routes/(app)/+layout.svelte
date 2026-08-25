@@ -208,7 +208,9 @@
 			</div>
 		{/if}
 
-		<nav class="sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" aria-label="Navigasi utama">
+		<nav
+			class="sidebar-scroll flex-1 overflow-y-auto px-3 pb-4 {rail ? 'lg:overflow-visible' : ''}"
+			aria-label="Navigasi utama">
 			{#each groups as group, gi (group.label)}
 				{#if rail && gi > 0}
 					<div class="mt-px mb-px mx-auto hidden h-px w-4 bg-base-300/60 lg:block" aria-hidden="true"
@@ -226,14 +228,20 @@
 								href={item.href}
 								onclick={() => (open = false)}
 								aria-current={active ? 'page' : undefined}
-								title={rail ? item.label : undefined}
-								class="relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
+								aria-label={rail ? item.label : undefined}
+								class="group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors motion-reduce:transition-none
 									{active
 									? 'bg-primary font-medium text-primary-content'
 									: 'text-base-content/70 hover:bg-base-200/60 hover:text-base-content'}
 									{rail ? 'lg:justify-center lg:px-0' : ''}">
 								<item.icon class="size-[18px] shrink-0" stroke-width={active ? 2 : 1.75} />
 								<span class="truncate {rail ? 'lg:hidden' : ''}">{item.label}</span>
+								{#if rail}
+									<span
+										class="pointer-events-none absolute left-full top-1/2 z-50 ml-2 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 lg:block motion-reduce:transition-none"
+										role="tooltip">{item.label}</span
+									>
+								{/if}
 								{#if item.href === '/persetujuan' && pendingRequests > 0}
 									<span
 										class="badge badge-sm ml-auto {active ? 'badge-neutral' : 'badge-error'} {rail
