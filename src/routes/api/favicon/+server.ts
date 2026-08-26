@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { env } from '$env/dynamic/private';
 import { photoUrl } from '$lib/gdrive-url';
 import type { RequestHandler } from './$types';
@@ -9,12 +10,11 @@ const fallback = (reason: string) =>
 // Proksi logo sekolah agar favicon same-origin: bebas RLS/anon maupun keanehan Drive.
 // Self-contained: jika service key tak dikonfigurasi di environment, jatuh ke fallback (bukan 500).
 export const GET: RequestHandler = async () => {
-	const url = env.PUBLIC_SUPABASE_URL;
+	// PUBLIC_SUPABASE_URL aman dibaca statis (var publik, ter-bake saat build);
+	// SUPABASE_SERVICE_ROLE_KEY wajib dinamis (secret runtime dari CF Pages env).
 	const key = env.SUPABASE_SERVICE_ROLE_KEY;
-	if (!url && !key) return fallback('missing-both');
-	if (!url) return fallback('missing-url');
-	if (!key) return fallback('missing-key');
-	const sb = createClient(url, key, { auth: { persistSession: false } });
+	if (!PUBLIC_SUPABASE_URL || !key) return fallback('missing-key');
+	const sb = createClient(PUBLIC_SUPABASE_URL, key, { auth: { persistSession: false } });
 
 	// ponytail: admin client tanpa generik Database — cast manual, rapikan saat skema DB diketik penuh
 	const { data } = (await sb
