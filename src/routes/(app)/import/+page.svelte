@@ -164,12 +164,12 @@
 
 <div class="mt-6 grid gap-4 lg:grid-cols-2">
 	<a
-		href="/template-import-santri.xlsx?v=2"
+		href="/template-import-santri.xlsx?v=3"
 		download="template-import-santri.xlsx"
 		class="rounded-lg border border-base-300 bg-base-100 p-5 transition-colors hover:bg-base-200/50">
 		<h2 class="text-sm font-semibold">1. Download template</h2>
 		<p class="mt-1 text-sm text-base-content/60">
-			Template Excel siap isi. Unduh, isi, lalu upload kembali.
+			Template Excel siap isi (sheet data wajib, data opsional, panduan). Unduh, isi, lalu upload kembali.
 		</p>
 	</a>
 

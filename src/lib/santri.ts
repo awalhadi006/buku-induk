@@ -93,6 +93,8 @@ export function parseSantriForm(
 		if (col === 'anak_ke' || col === 'kamar_id' || col === 'kelas_id') {
 			const n = Number(val);
 			payload[col] = Number.isFinite(n) ? n : null;
+		} else if (col === 'rt' || col === 'rw') {
+			payload[col] = val.padStart(3, '0');
 		} else {
 			payload[col] = val;
 		}

@@ -8,9 +8,9 @@ export type ImportColumn = {
 
 export const IMPORT_COLUMNS: ImportColumn[] = [
 	{ header: 'Nama lengkap *', field: 'nama_lengkap', group: 'santri' },
+	{ header: 'NIS', field: 'nis', group: 'santri' },
 	{ header: 'NISN', field: 'nisn', group: 'santri' },
 	{ header: 'NIK', field: 'nik', group: 'santri' },
-	{ header: 'NIS', field: 'nis', group: 'santri' },
 	{ header: 'Nama panggilan', field: 'nama_panggilan', group: 'santri' },
 	{ header: 'Tempat lahir', field: 'tempat_lahir', group: 'santri' },
 	{ header: 'Tanggal lahir', field: 'tanggal_lahir', group: 'santri' },
@@ -46,37 +46,58 @@ export const IMPORT_COLUMNS: ImportColumn[] = [
 	{ header: 'No. HP wali', field: 'no_hp', group: 'wali' }
 ];
 
+export const WAJIB_FIELDS = [
+	'nama_lengkap',
+	'nis',
+	'nisn',
+	'tempat_lahir',
+	'tanggal_lahir',
+	'jenis_kelamin',
+	'alamat',
+	'nama_ayah',
+	'nama_ibu'
+] as const;
+
+// ponytail: find() ambil kemunculan pertama — kolom 'alamat'/'no_hp' ada di grup santri DAN wali
+export const WAJIB_COLUMNS = WAJIB_FIELDS.map((f) =>
+	IMPORT_COLUMNS.find((c) => c.field === f)
+).filter((c) => c != null);
+export const OPSIONAL_COLUMNS = IMPORT_COLUMNS.filter((c) => !WAJIB_COLUMNS.includes(c));
+
+function sheetFromColumns(columns: ImportColumn[], tableName: string) {
+	const ws = XLSX.utils.aoa_to_sheet([columns.map((c) => c.header)]);
+	const ref = ws['!ref'] || 'A1';
+	const range = XLSX.utils.decode_range(ref);
+	ws['!tbls'] = [{
+		name: tableName,
+		ref: XLSX.utils.encode_range({ s: range.s, e: { r: range.e.r, c: range.e.c } }),
+		style: { theme: 'TableStyleMedium2', showRowStripes: true }
+	}];
+	return ws;
+}
+
 export function buildTemplateBuffer(): Uint8Array {
-	const ws = XLSX.utils.aoa_to_sheet([IMPORT_COLUMNS.map((c) => c.header)]);
 	const guide = XLSX.utils.aoa_to_sheet([
 		['Panduan import data santri'],
 		[''],
-		['1. Isi sheet "data". Baris pertama adalah header — jangan diubah. Data mulai baris 2.'],
-		['2. Kolom "Nama lengkap" wajib diisi; kolom lain opsional.'],
-		['3. Jenis kelamin: L atau P'],
-		['4. Status santri: aktif, khusus, mutasi_keluar, lulus, wafat, drop_out'],
-		['5. Status keluarga: yatim, yatim_piatu, dhuafa, umum'],
-		['6. Kamar: nomor kamar (contoh: 3). Kelas: tingkat+rombel (contoh: 7A).'],
-		['7. Isi nama ayah/ibu/wali agar wali santri ikut tercatat.'],
+		['1. Ada dua sheet data: "data wajib" dan "data opsional". Baris pertama adalah header — jangan diubah. Data mulai baris 2.'],
+		['2. Baris di kedua sheet harus sejajar: baris 2 "data wajib" dan baris 2 "data opsional" adalah santri yang sama.'],
+		['3. Kolom wajib (Nama, NIS, NISN, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Alamat, Nama Ayah, Nama Ibu) sebaiknya terisi semua; sisanya opsional.'],
+		['4. Jenis kelamin: L atau P'],
+		['5. RT/RW otomatis jadi 3 digit (contoh: 9 atau 09 tersimpan sebagai 009).'],
+		['6. Tanggal lahir bebas formatnya: 10/11/2026, 10-11-2026, atau 10 November 2026 — otomatis dirapikan sistem.'],
+		['7. Status santri: aktif, khusus, mutasi_keluar, lulus, wafat, drop_out'],
+		['8. Status keluarga: yatim, yatim_piatu, dhuafa, umum'],
+		['9. Kamar: nomor kamar (contoh: 3). Kelas: tingkat+rombel (contoh: 7A).'],
 		[''],
-		['Contoh baris 2:'],
-		['Nama lengkap', 'NISN', 'Jenis kelamin (L/P)', 'Status santri', 'Kamar (nomor)', 'Kelas (mis. 7A)', 'Nama ayah'],
-		['Ahmad Fauzi', '0012345678', 'L', 'aktif', '3', '7A', 'Haji Salim']
+		['Contoh baris 2 sheet "data wajib":'],
+		['Nama lengkap', 'NIS', 'NISN', 'Jenis kelamin (L/P)', 'Tempat lahir', 'Tanggal lahir', 'Alamat', 'Nama ayah', 'Nama ibu'],
+		['Ahmad Fauzi', '2410001', '0012345678', 'L', 'Yogyakarta', '10 November 2010', 'Jl. Kaliurang No. 9 RT 009 RW 012', 'Haji Salim', 'Siti Aminah']
 	]);
 
-	// Apply Table (ListObject) definition for header styling
-	const ref = ws['!ref'] || 'A1:AM1';
-	const range = XLSX.utils.decode_range(ref);
-	const tableRange = { s: range.s, e: { r: range.e.r, c: range.e.c } };
-
-	ws['!tbls'] = [{
-		name: 'ImportTemplate',
-		ref: XLSX.utils.encode_range(tableRange),
-		style: { theme: 'TableStyleMedium2', showRowStripes: true }
-	}];
-
 	const wb = XLSX.utils.book_new();
-	XLSX.utils.book_append_sheet(wb, ws, 'data');
+	XLSX.utils.book_append_sheet(wb, sheetFromColumns(WAJIB_COLUMNS, 'DataWajib'), 'data wajib');
+	XLSX.utils.book_append_sheet(wb, sheetFromColumns(OPSIONAL_COLUMNS, 'DataOpsional'), 'data opsional');
 	XLSX.utils.book_append_sheet(wb, guide, 'panduan');
 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }
@@ -90,6 +111,16 @@ export function normalizeHeader(h: string): string {
 		.replace(/\(.*?\)/g, '')
 		.replace(/[^a-z0-9]/g, '')
 		.trim();
+}
+
+export function mergeSheetRows(
+	wajib: Record<string, string>[],
+	opsional: Record<string, string>[]
+): Record<string, string>[] {
+	const len = Math.max(wajib.length, opsional.length);
+	const merged: Record<string, string>[] = [];
+	for (let i = 0; i < len; i++) merged.push({ ...(opsional[i] ?? {}), ...(wajib[i] ?? {}) });
+	return merged;
 }
 
 export function buildExportBuffer(headers: string[], rows: unknown[][]): Uint8Array {

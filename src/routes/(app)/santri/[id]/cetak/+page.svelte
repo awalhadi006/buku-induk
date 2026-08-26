@@ -7,6 +7,7 @@
 		STATUS_SANTRI_LABEL
 	} from '$lib/santri';
 	import { photoUrl } from '$lib/gdrive-url';
+	import { formatTanggal as d } from '$lib/format';
 
 	let { data } = $props();
 
@@ -21,12 +22,6 @@
 	const kelasLabel = $derived(kelas.find((k) => k.id === s.kelas_id) ?? null);
 	const waliLabel = $derived(wali.find((w) => w.id === s.wali_santri_id)?.label ?? null);
 	const foto = $derived(photoUrl(s.foto_url));
-
-	const d = (v: string | null) => {
-		if (!v) return null;
-		const date = new Date(`${v}T00:00:00`);
-		return Number.isNaN(date.getTime()) ? v : date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-	};
 
 	const sections = $derived([
 		{

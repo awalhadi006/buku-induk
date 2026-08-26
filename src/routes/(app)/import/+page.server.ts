@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import * as XLSX from 'xlsx';
-import { IMPORT_COLUMNS, normalizeHeader } from '$lib/excel';
+import { IMPORT_COLUMNS, normalizeHeader, mergeSheetRows } from '$lib/excel';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
 
@@ -99,9 +99,20 @@ export const actions = {
 
 		const buf = await file.arrayBuffer();
 		const wb = XLSX.read(new Uint8Array(buf), { type: 'array', cellDates: true });
-		const ws = wb.Sheets[wb.SheetNames[0]];
-		if (!ws) return fail(400, { error: 'Sheet tidak ditemukan.' });
-		const rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, string>[];
+
+		const sheetRows = (needle: string) => {
+			const name = wb.SheetNames.find((n) => n.toLowerCase().trim() === needle);
+			if (!name) return null;
+			return XLSX.utils.sheet_to_json(wb.Sheets[name], { defval: '' }) as Record<string, string>[];
+		};
+
+		let rows = mergeSheetRows(sheetRows('data wajib') ?? [], sheetRows('data opsional') ?? []);
+		if (rows.length === 0) {
+			// ponytail: fallback file lama satu-sheet "data" — hapus saat template baru sudah dipakai semua
+			const ws = wb.Sheets[wb.SheetNames[0]];
+			if (!ws) return fail(400, { error: 'Sheet tidak ditemukan.' });
+			rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, string>[];
+		}
 		if (rows.length === 0) return fail(400, { error: 'File kosong.' });
 
 		const [{ data: kamar }, { data: kelas }] = await Promise.all([

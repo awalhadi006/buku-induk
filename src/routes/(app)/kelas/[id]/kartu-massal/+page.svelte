@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
 	import { photoUrl } from '$lib/gdrive-url';
+	import { formatTanggal } from '$lib/format';
 
 	type SantriForCard = {
 		id: string;
@@ -86,7 +87,7 @@
 								{getKelasLabel(kelas)} / {s.kamar_nomor ? `K.${s.kamar_nomor}` : '-'}
 							</p>
 							<p class="text-base-content/70">
-								<span class="font-semibold">TTL:</span> {s.tempat_lahir || '-'}, {s.tanggal_lahir || '-'}
+								<span class="font-semibold">TTL:</span> {s.tempat_lahir || '-'}, {formatTanggal(s.tanggal_lahir) || '-'}
 							</p>
 						</div>
 					</div>

@@ -3,6 +3,7 @@
 	import { IconTrash, IconPrinter, IconIdBadge, IconEye, IconEdit, IconPhoto } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
 	import { photoUrl, docUrl } from '$lib/gdrive-url';
+	import { formatTanggal } from '$lib/format';
 	import {
 		GENDER_LABEL,
 		JENIS_DOKUMEN_LABEL,
@@ -76,11 +77,7 @@
 	const kelasLabel = $derived(kelas.find((k) => k.id === s.kelas_id) ?? null);
 	const waliLabel = $derived(wali.find((w) => w.id === s.wali_santri_id)?.label ?? null);
 
-	const d = (v: string | null) => {
-		if (!v) return null;
-		const date = new Date(`${v}T00:00:00`);
-		return Number.isNaN(date.getTime()) ? v : date.toLocaleDateString('id-ID');
-	};
+	const d = formatTanggal;
 
 	function kelasLabelStr(k: { tingkat: string; rombel: string; tahun_ajaran?: string | null } | null) {
 		if (!k) return null;

@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { IMPORT_COLUMNS, IMPORT_HEADERS } from './excel';
+import * as XLSX from 'xlsx';
+import {
+	IMPORT_COLUMNS,
+	IMPORT_HEADERS,
+	WAJIB_COLUMNS,
+	OPSIONAL_COLUMNS,
+	buildTemplateBuffer,
+	mergeSheetRows
+} from './excel';
 
 describe('IMPORT_COLUMNS', () => {
 	it('starts with nama_lengkap as the first column', () => {
@@ -21,6 +29,61 @@ describe('IMPORT_COLUMNS', () => {
 	it('contains all four groups', () => {
 		const groups = new Set(IMPORT_COLUMNS.map((c) => c.group));
 		expect(groups).toEqual(new Set(['santri', 'wali', 'kamar', 'kelas']));
+	});
+});
+
+describe('WAJIB_COLUMNS / OPSIONAL_COLUMNS', () => {
+	it('splits IMPORT_COLUMNS into disjoint halves', () => {
+		expect(WAJIB_COLUMNS.length + OPSIONAL_COLUMNS.length).toBe(IMPORT_COLUMNS.length);
+		const wajibSet = new Set(WAJIB_COLUMNS);
+		expect(OPSIONAL_COLUMNS.every((c) => !wajibSet.has(c))).toBe(true);
+	});
+
+	it('has the 9 required columns in order', () => {
+		expect(WAJIB_COLUMNS.map((c) => c.field)).toEqual([
+			'nama_lengkap',
+			'nis',
+			'nisn',
+			'tempat_lahir',
+			'tanggal_lahir',
+			'jenis_kelamin',
+			'alamat',
+			'nama_ayah',
+			'nama_ibu'
+		]);
+	});
+});
+
+describe('buildTemplateBuffer', () => {
+	it('produces a workbook with data wajib, data opsional, and panduan sheets', () => {
+		const wb = XLSX.read(buildTemplateBuffer(), { type: 'array' });
+		expect(wb.SheetNames).toEqual(['data wajib', 'data opsional', 'panduan']);
+	});
+
+	it('sheet headers match the column split', () => {
+		const wb = XLSX.read(buildTemplateBuffer(), { type: 'array' });
+		const wajib = XLSX.utils.sheet_to_json<string[]>(wb.Sheets['data wajib'], { header: 1 });
+		const opsional = XLSX.utils.sheet_to_json<string[]>(wb.Sheets['data opsional'], { header: 1 });
+		expect(wajib[0]).toEqual(WAJIB_COLUMNS.map((c) => c.header));
+		expect(opsional[0]).toEqual(OPSIONAL_COLUMNS.map((c) => c.header));
+	});
+});
+
+describe('mergeSheetRows', () => {
+	it('merges by row position, wajib wins on collision', () => {
+		const merged = mergeSheetRows(
+			[{ 'Nama lengkap *': 'A', NIS: '1' }, { 'Nama lengkap *': 'B' }],
+			[{ Agama: 'islam' }, {}, { Alamat: 'x' }]
+		);
+		expect(merged).toEqual([
+			{ 'Nama lengkap *': 'A', NIS: '1', Agama: 'islam' },
+			{ 'Nama lengkap *': 'B' },
+			{ Alamat: 'x' }
+		]);
+	});
+
+	it('returns empty array when both empty', () => {
+		expect(mergeSheetRows([], [])).toEqual([]);
 	});
 });
 
