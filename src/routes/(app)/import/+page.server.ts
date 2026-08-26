@@ -106,11 +106,36 @@ export const actions = {
 			return XLSX.utils.sheet_to_json(wb.Sheets[name], { defval: '' }) as Record<string, string>[];
 		};
 
+		const pickByHeader = (row: Record<string, string>, header: string) => {
+			const key = Object.keys(row).find((k) => normalizeHeader(k) === header);
+			return key ? toText(row[key]) : '';
+		};
+
 		const wajibRows = sheetRows('data wajib');
 		const opsionalRows = sheetRows('data opsional');
-		let rows = mergeSheetRows(wajibRows ?? [], opsionalRows ?? []);
+
+		// Build NIS map from opsional sheet (only rows that actually have NIS filled)
+		const opsionalByNis = new Map<string, Record<string, string>>();
+		if (opsionalRows) {
+			for (const row of opsionalRows) {
+				const nis = pickByHeader(row, 'nis');
+				if (nis) opsionalByNis.set(nis, row);
+			}
+		}
+
+		// Merge: each wajib row + matching opsional row by NIS (if any)
+		const mergedRows: Record<string, string>[] = [];
+		if (wajibRows) {
+			for (const wrow of wajibRows) {
+				const nis = pickByHeader(wrow, 'nis');
+				const orow = nis ? opsionalByNis.get(nis) : null;
+				mergedRows.push({ ...(orow ?? {}), ...wrow }); // wajib wins on collision
+			}
+		}
+
+		let rows = mergedRows;
 		if (rows.length === 0) {
-			// ponytail: fallback file lama satu-sheet "data" — hapus saat template baru sudah dipakai semua
+			// ponytail: fallback file lama satu-sheet "data"
 			const ws = wb.Sheets[wb.SheetNames[0]];
 			if (!ws) return fail(400, { error: 'Sheet tidak ditemukan.' });
 			rows = XLSX.utils.sheet_to_json(ws, { defval: '' }) as Record<string, string>[];
@@ -131,31 +156,7 @@ export const actions = {
 		const peringatan: { row: number; nama: string; warnings: string[] }[] = [];
 		let berhasil = 0;
 
-		const pickByHeader = (row: Record<string, string>, header: string) => {
-			const key = Object.keys(row).find((k) => normalizeHeader(k) === header);
-			return key ? toText(row[key]) : '';
-		};
-
-		// NIS jadi kunci verifikasi baris antara "data wajib" dan "data opsional"
-		const mismatch = new Set<number>();
-		if (wajibRows && opsionalRows) {
-			for (let i = 0; i < Math.min(wajibRows.length, opsionalRows.length); i++) {
-				const a = pickByHeader(wajibRows[i], 'nis');
-				const b = pickByHeader(opsionalRows[i], 'nis');
-				if (a && b && a !== b) {
-					mismatch.add(i);
-					errors.push({
-						row: i + 2,
-						nama: pickByHeader(wajibRows[i], 'namalengkap'),
-						reason: `NIS di sheet "data wajib" (${a}) dan "data opsional" (${b}) berbeda — pastikan baris kedua sheet sejajar`,
-						kategori: 'format'
-					});
-				}
-			}
-		}
-
 		for (let i = 0; i < rows.length; i++) {
-			if (mismatch.has(i)) continue;
 			const row = rows[i];
 			const line = i + 2;
 			const s: Record<string, unknown> = {};
