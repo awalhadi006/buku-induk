@@ -7,7 +7,8 @@
 
 <svelte:head>
 	<title>Masuk | Buku Induk</title>
-	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<!-- Proksi sama dengan halaman app: logo sekolah bila sudah diatur, fallback svg bila belum -->
+	<link rel="icon" href="/api/favicon" />
 </svelte:head>
 
 <div class="grid min-h-[100dvh] bg-base-100 text-base-content lg:grid-cols-[1.15fr_1fr]">
