@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 
 const TYPE_LABELS: Record<string, string> = {
 	feat: 'Penambahan Fitur',
@@ -59,7 +60,7 @@ function humanize(subject: string): string {
 	return type ? `${type}: ${humanized}` : humanized;
 }
 
-export async function load({ locals, fetch, setHeaders, url }) {
+export async function load({ locals, fetch, setHeaders }) {
 	const { user } = locals;
 	if (!user) throw redirect(303, '/login');
 
@@ -68,8 +69,7 @@ export async function load({ locals, fetch, setHeaders, url }) {
 		'User-Agent': 'buku-induk'
 	};
 	// ponytail: token opsional — tanpa token, API publik bisa kena rate-limit IP bersama Cloudflare
-	const token = url.searchParams.get('token') ?? '';
-	if (token) headers.Authorization = `Bearer ${token}`;
+	if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
 
 	let commitsError = false;
 	let data: any[] | null = null;
