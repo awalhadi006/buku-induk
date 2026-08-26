@@ -7,6 +7,7 @@
 
 <svelte:head>
 	<title>Masuk | Buku Induk</title>
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 </svelte:head>
 
 <div class="grid min-h-[100dvh] bg-base-100 text-base-content lg:grid-cols-[1.15fr_1fr]">

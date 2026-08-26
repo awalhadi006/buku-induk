@@ -132,9 +132,11 @@
 
 <svelte:head>
 	<title>{schoolName}</title>
+	<!-- Satu-satunya link icon di halaman app: logo sekolah bila ada, fallback bila tidak -->
 	{#if schoolLogoUrl}
-		<!-- Proksi same-origin: tak terpengaruh RLS maupun keanehan Drive sebagai favicon -->
 		<link rel="icon" href="/api/favicon?v={encodeURIComponent(schoolLogoUrl)}" />
+	{:else}
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 	{/if}
 </svelte:head>
 
