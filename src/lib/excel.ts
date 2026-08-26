@@ -82,13 +82,14 @@ export function buildTemplateBuffer(): Uint8Array {
 		[''],
 		['1. Ada dua sheet data: "data wajib" dan "data opsional". Baris pertama adalah header — jangan diubah. Data mulai baris 2.'],
 		['2. Baris di kedua sheet harus sejajar: baris 2 "data wajib" dan baris 2 "data opsional" adalah santri yang sama.'],
-		['3. Kolom wajib (Nama, NIS, NISN, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Alamat, Nama Ayah, Nama Ibu) sebaiknya terisi semua; sisanya opsional.'],
-		['4. Jenis kelamin: L atau P'],
-		['5. RT/RW otomatis jadi 3 digit (contoh: 9 atau 09 tersimpan sebagai 009).'],
-		['6. Tanggal lahir bebas formatnya: 10/11/2026, 10-11-2026, atau 10 November 2026 — otomatis dirapikan sistem.'],
-		['7. Status santri: aktif, khusus, mutasi_keluar, lulus, wafat, drop_out'],
-		['8. Status keluarga: yatim, yatim_piatu, dhuafa, umum'],
-		['9. Kamar: nomor kamar (contoh: 3). Kelas: tingkat+rombel (contoh: 7A).'],
+		['3. Kolom NIS ada di KEDUA sheet sebagai kunci pencocokan — isinya harus sama. Kalau berbeda, baris tersebut ditolak saat import.'],
+		['4. Kolom wajib (Nama, NIS, NISN, Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Alamat, Nama Ayah, Nama Ibu) sebaiknya terisi semua; sisanya opsional.'],
+		['5. Jenis kelamin: L atau P'],
+		['6. RT/RW otomatis jadi 3 digit (contoh: 9 atau 09 tersimpan sebagai 009).'],
+		['7. Tanggal lahir bebas formatnya: 10/11/2026, 10-11-2026, atau 10 November 2026 — otomatis dirapikan sistem.'],
+		['8. Status santri: aktif, khusus, mutasi_keluar, lulus, wafat, drop_out'],
+		['9. Status keluarga: yatim, yatim_piatu, dhuafa, umum'],
+		['10. Kamar: nomor kamar (contoh: 3). Kelas: tingkat+rombel (contoh: 7A).'],
 		[''],
 		['Contoh baris 2 sheet "data wajib":'],
 		['Nama lengkap', 'NIS', 'NISN', 'Jenis kelamin (L/P)', 'Tempat lahir', 'Tanggal lahir', 'Alamat', 'Nama ayah', 'Nama ibu'],
@@ -96,8 +97,13 @@ export function buildTemplateBuffer(): Uint8Array {
 	]);
 
 	const wb = XLSX.utils.book_new();
+	const nisCol = IMPORT_COLUMNS.find((c) => c.field === 'nis');
 	XLSX.utils.book_append_sheet(wb, sheetFromColumns(WAJIB_COLUMNS, 'DataWajib'), 'data wajib');
-	XLSX.utils.book_append_sheet(wb, sheetFromColumns(OPSIONAL_COLUMNS, 'DataOpsional'), 'data opsional');
+	XLSX.utils.book_append_sheet(
+		wb,
+		sheetFromColumns([nisCol!, ...OPSIONAL_COLUMNS], 'DataOpsional'),
+		'data opsional'
+	);
 	XLSX.utils.book_append_sheet(wb, guide, 'panduan');
 	return new Uint8Array(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }));
 }

@@ -106,7 +106,9 @@ export const actions = {
 			return XLSX.utils.sheet_to_json(wb.Sheets[name], { defval: '' }) as Record<string, string>[];
 		};
 
-		let rows = mergeSheetRows(sheetRows('data wajib') ?? [], sheetRows('data opsional') ?? []);
+		const wajibRows = sheetRows('data wajib');
+		const opsionalRows = sheetRows('data opsional');
+		let rows = mergeSheetRows(wajibRows ?? [], opsionalRows ?? []);
 		if (rows.length === 0) {
 			// ponytail: fallback file lama satu-sheet "data" — hapus saat template baru sudah dipakai semua
 			const ws = wb.Sheets[wb.SheetNames[0]];
@@ -129,7 +131,31 @@ export const actions = {
 		const peringatan: { row: number; nama: string; warnings: string[] }[] = [];
 		let berhasil = 0;
 
+		const pickByHeader = (row: Record<string, string>, header: string) => {
+			const key = Object.keys(row).find((k) => normalizeHeader(k) === header);
+			return key ? toText(row[key]) : '';
+		};
+
+		// NIS jadi kunci verifikasi baris antara "data wajib" dan "data opsional"
+		const mismatch = new Set<number>();
+		if (wajibRows && opsionalRows) {
+			for (let i = 0; i < Math.min(wajibRows.length, opsionalRows.length); i++) {
+				const a = pickByHeader(wajibRows[i], 'nis');
+				const b = pickByHeader(opsionalRows[i], 'nis');
+				if (a && b && a !== b) {
+					mismatch.add(i);
+					errors.push({
+						row: i + 2,
+						nama: pickByHeader(wajibRows[i], 'namalengkap'),
+						reason: `NIS di sheet "data wajib" (${a}) dan "data opsional" (${b}) berbeda — pastikan baris kedua sheet sejajar`,
+						kategori: 'format'
+					});
+				}
+			}
+		}
+
 		for (let i = 0; i < rows.length; i++) {
+			if (mismatch.has(i)) continue;
 			const row = rows[i];
 			const line = i + 2;
 			const s: Record<string, unknown> = {};

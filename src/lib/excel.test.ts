@@ -64,8 +64,9 @@ describe('buildTemplateBuffer', () => {
 		const wb = XLSX.read(buildTemplateBuffer(), { type: 'array' });
 		const wajib = XLSX.utils.sheet_to_json<string[]>(wb.Sheets['data wajib'], { header: 1 });
 		const opsional = XLSX.utils.sheet_to_json<string[]>(wb.Sheets['data opsional'], { header: 1 });
+		const nisHeader = IMPORT_COLUMNS.find((c) => c.field === 'nis')!.header;
 		expect(wajib[0]).toEqual(WAJIB_COLUMNS.map((c) => c.header));
-		expect(opsional[0]).toEqual(OPSIONAL_COLUMNS.map((c) => c.header));
+		expect(opsional[0]).toEqual([nisHeader, ...OPSIONAL_COLUMNS.map((c) => c.header)]);
 	});
 });
 
@@ -80,6 +81,11 @@ describe('mergeSheetRows', () => {
 			{ 'Nama lengkap *': 'B' },
 			{ Alamat: 'x' }
 		]);
+	});
+
+	it('duplicate key column (NIS) resolves to the wajib value', () => {
+		const merged = mergeSheetRows([{ NIS: '111' }], [{ NIS: '999', Agama: 'islam' }]);
+		expect(merged[0].NIS).toBe('111');
 	});
 
 	it('returns empty array when both empty', () => {
