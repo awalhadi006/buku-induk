@@ -143,7 +143,7 @@
 
 <style>
 	@media print {
-		body {
+		:global(body) {
 			background: white !important;
 		}
 		/* Page breaks between cards */

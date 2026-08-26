@@ -126,7 +126,7 @@
 
 <style>
 	@media print {
-		body {
+		:global(body) {
 			background: white !important;
 		}
 	}
