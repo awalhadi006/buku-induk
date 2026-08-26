@@ -11,7 +11,9 @@ const fallback = (reason: string) =>
 export const GET: RequestHandler = async () => {
 	const url = env.PUBLIC_SUPABASE_URL;
 	const key = env.SUPABASE_SERVICE_ROLE_KEY;
-	if (!url || !key) return fallback('missing-env');
+	if (!url && !key) return fallback('missing-both');
+	if (!url) return fallback('missing-url');
+	if (!key) return fallback('missing-key');
 	const sb = createClient(url, key, { auth: { persistSession: false } });
 
 	// ponytail: admin client tanpa generik Database — cast manual, rapikan saat skema DB diketik penuh
