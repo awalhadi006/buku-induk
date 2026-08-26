@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import { ROLES } from '$lib/permissions';
 import { ALL_METRIC_KEYS } from '$lib/types';
 import { parseSidebarNav } from '$lib/nav';
@@ -350,10 +351,19 @@ export const actions = {
 	},
 
 	updateSchoolIdentity: async ({ locals, request }) => {
-		await requireAdmin(locals);
-		// RLS settings hanya mengizinkan superadmin; admin_tu lolos verifikasi peran di atas,
-		// jadi penulisan settings memakai service role.
-		const supabase = getSupabaseAdmin();
+		const peran = await requireAdmin(locals);
+		// RLS settings hanya mengizinkan superadmin menulis. Superadmin cukup pakai klien user;
+		// admin_tu butuh service role — kalau env server belum diisi, beri pesan jelas (bukan 500).
+		let supabase = locals.supabase;
+		if (peran !== 'superadmin') {
+			if (!env.PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+				return fail(500, {
+					error:
+						'Server belum dikonfigurasi (SUPABASE_SERVICE_ROLE_KEY kosong). Hubungi superadmin untuk melengkapi environment Cloudflare Pages.'
+				});
+			}
+			supabase = getSupabaseAdmin();
+		}
 		const fd = await request.formData();
 		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
 		const logoFile = fd.get('school_logo') as File | null;
