@@ -37,7 +37,14 @@ export const actions = {
 		const tahun = (fd.get('tahun_ajaran') as string | null)?.trim() || null;
 		if (!tingkat || !rombel) return fail(400, { error: 'Tingkat dan rombel wajib diisi.' });
 
-		const payload = { tingkat, rombel, tahun_ajaran: tahun, aktif: fd.get('aktif') === 'on' };
+		// Default ke tahun ajaran aktif jika tidak diisi
+		const { data: settings } = await locals.supabase
+			.from('settings')
+			.select('value')
+			.eq('key', 'tahun_ajaran_aktif')
+			.maybeSingle();
+		const tahunAjaranAktif = settings?.value ?? '';
+		const payload = { tingkat, rombel, tahun_ajaran: tahun ?? tahunAjaranAktif, aktif: fd.get('aktif') === 'on' };
 		const { error } = await locals.supabase.from('kelas').insert(payload);
 		if (error) return fail(400, { error: error.message });
 		throw redirect(303, '/kelas');

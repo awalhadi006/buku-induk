@@ -60,7 +60,7 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 			</label>
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Tahun Ajaran</span>
-				<input name="tahun_ajaran" type="text" class="input input-bordered w-full" placeholder={taAktif || '202X/202Y'} />
+				<input name="tahun_ajaran" type="text" class="input input-bordered w-full" value={taAktif} placeholder={taAktif || '202X/202Y'} />
 			</label>
 			<label class="flex items-end gap-2 pb-1.5">
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary" />
