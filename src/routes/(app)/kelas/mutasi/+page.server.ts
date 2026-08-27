@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { humanizeError } from '$lib/errors';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
 
@@ -67,7 +68,7 @@ export const actions = {
 			p_tanggal_efektif: tanggal
 		});
 
-		if (rpcErr) return fail(400, { error: rpcErr.message });
+		if (rpcErr) return fail(400, { error: humanizeError(rpcErr) });
 		if (!count || count === 0) {
 			return fail(400, { error: 'Tidak ada santri aktif di kelas asal.' });
 		}
@@ -91,7 +92,7 @@ export const actions = {
 			p_tanggal_efektif: tanggal
 		});
 
-		if (rpcErr) return fail(400, { error: rpcErr.message });
+		if (rpcErr) return fail(400, { error: humanizeError(rpcErr) });
 		if (!count || count === 0) {
 			return fail(400, { error: 'Tidak ada santri aktif di kelas terpilih.' });
 		}

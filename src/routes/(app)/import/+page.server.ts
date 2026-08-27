@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import * as XLSX from 'xlsx';
 import { IMPORT_COLUMNS, normalizeHeader, mergeSheetRows } from '$lib/excel';
+import { humanizeError } from '$lib/errors';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
 
@@ -283,7 +284,7 @@ export const actions = {
 
 			const { error } = await supabase.from('santri').insert(payload);
 			if (error) {
-				errors.push({ row: line, nama, reason: error.message, kategori: 'database' });
+				errors.push({ row: line, nama, reason: humanizeError(error), kategori: 'database' });
 			} else {
 				berhasil++;
 				if (rowWarnings.length > 0) {

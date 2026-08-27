@@ -4,6 +4,7 @@ import { ROLES } from '$lib/permissions';
 import { ALL_METRIC_KEYS } from '$lib/types';
 import { parseSidebarNav } from '$lib/nav';
 import { getSupabaseAdmin } from '$lib/supabase-admin';
+import { humanizeError, validationMessages } from '$lib/errors';
 
 function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
@@ -96,7 +97,7 @@ export const actions = {
 			kelas_id: peran === 'wali_kelas' ? parseOptInt(fd.get('kelas_id')) : null
 		};
 		const { error } = await locals.supabase.from('profiles').update(payload).eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	createUser: async ({ locals, request }) => {
@@ -151,7 +152,7 @@ export const actions = {
 			email_confirm: true,
 			user_metadata: { username }
 		});
-		if (authErr) return fail(400, { error: authErr.message });
+		if (authErr) return fail(400, { error: humanizeError(authErr) });
 
 		// Update profile with username, nama, peran, and cakupan
 		const { error: profileErr } = await supabase
@@ -164,7 +165,7 @@ export const actions = {
 				kelas_id: kelasId
 			})
 			.eq('id', authUser.user.id);
-		if (profileErr) return fail(400, { error: profileErr.message });
+		if (profileErr) return fail(400, { error: humanizeError(profileErr) });
 
 		return { success: true };
 	},
@@ -185,7 +186,7 @@ export const actions = {
 		const { error } = await getSupabaseAdmin().auth.admin.updateUserById(userId, {
 			password: newPassword
 		});
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		// Get user email for display
 		const { data: authUser } = await getSupabaseAdmin().auth.admin.getUserById(userId);
@@ -207,7 +208,7 @@ export const actions = {
 		const { error } = await supabase
 			.from('settings')
 			.upsert({ key: 'allow_admin_tu_create_users', value: newValue }, { onConflict: 'key' });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		return { allowAdminTuCreateUsers: newValue === 'true' };
 	},
@@ -219,7 +220,7 @@ export const actions = {
 		if (!ROLES.includes(role)) return fail(400, { error: 'Peran tidak valid.' });
 		const abilities = fd.getAll('ability').map(String);
 		const { error } = await locals.supabase.from('permissions').update({ abilities }).eq('role', role);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	createField: async ({ locals, request }) => {
@@ -229,7 +230,7 @@ export const actions = {
 		if (field.tipe === 'select' && field.opsi.length === 0)
 			return fail(400, { error: 'Field pilihan memerlukan minimal satu opsi.' });
 		const { error } = await locals.supabase.from('custom_fields').insert(field);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	updateField: async ({ locals, request }) => {
@@ -242,7 +243,7 @@ export const actions = {
 		if (field.tipe === 'select' && field.opsi.length === 0)
 			return fail(400, { error: 'Field pilihan memerlukan minimal satu opsi.' });
 		const { error } = await locals.supabase.from('custom_fields').update(field).eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	deleteField: async ({ locals, request }) => {
@@ -251,7 +252,7 @@ export const actions = {
 		const id = Number(fd.get('id') ?? '');
 		if (!Number.isInteger(id)) return fail(400, { error: 'Data field tidak valid.' });
 		const { error } = await locals.supabase.from('custom_fields').delete().eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	updateSetting: async ({ locals, request }) => {
@@ -261,7 +262,7 @@ export const actions = {
 		if (key !== 'tahun_ajaran_aktif') return fail(400, { error: 'Key tidak valid.' });
 		const value = (fd.get('value') as string | null)?.trim() ?? '';
 		const { error } = await locals.supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	createTahunAjaran: async ({ locals, request }) => {
@@ -270,7 +271,7 @@ export const actions = {
 		const nama = (fd.get('nama') as string | null)?.trim() ?? '';
 		if (!nama) return fail(400, { error: 'Nama tahun ajaran wajib diisi.' });
 		const { error } = await locals.supabase.from('tahun_ajaran').insert({ nama, aktif: true });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	toggleTahunAjaran: async ({ locals, request }) => {
@@ -280,7 +281,7 @@ export const actions = {
 		const aktif = fd.get('aktif') === 'true';
 		if (!Number.isInteger(id)) return fail(400, { error: 'Data tidak valid.' });
 		const { error } = await locals.supabase.from('tahun_ajaran').update({ aktif }).eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	deleteTahunAjaran: async ({ locals, request }) => {
@@ -289,7 +290,7 @@ export const actions = {
 		const id = Number(fd.get('id') ?? '');
 		if (!Number.isInteger(id)) return fail(400, { error: 'Data tidak valid.' });
 		const { error } = await locals.supabase.from('tahun_ajaran').delete().eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	updateDashboardMetrics: async ({ locals, request }) => {
@@ -299,7 +300,7 @@ export const actions = {
 		const { error } = await locals.supabase
 			.from('settings')
 			.upsert({ key: 'dashboard_metrics', value: JSON.stringify(metrics) }, { onConflict: 'key' });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	updateGDriveFolder: async ({ locals, request }) => {
@@ -307,7 +308,7 @@ export const actions = {
 		const fd = await request.formData();
 		const folder_id = (fd.get('folder_id') as string | null)?.trim() ?? '';
 		const { error } = await locals.supabase.from('gdrive_creds').update({ folder_id }).eq('id', 1);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
 	updateNisPattern: async ({ locals, request }) => {
@@ -331,12 +332,12 @@ export const actions = {
 		const { error: e1 } = await locals.supabase
 			.from('settings')
 			.upsert({ key: 'nis_pattern', value: pattern }, { onConflict: 'key' });
-		if (e1) return fail(400, { error: e1.message });
+		if (e1) return fail(400, { error: humanizeError(e1) });
 
 		const { error: e2 } = await locals.supabase
 			.from('settings')
 			.upsert({ key: 'nis_jenjang_map', value: JSON.stringify(jenjangMap) }, { onConflict: 'key' });
-		if (e2) return fail(400, { error: e2.message });
+		if (e2) return fail(400, { error: humanizeError(e2) });
 	},
 
 	bulkGenerateNis: async ({ locals, request }) => {
@@ -346,7 +347,7 @@ export const actions = {
 		if (!pattern) return fail(400, { error: 'Pola NIS belum dikonfigurasi.' });
 
 		const { data, error } = await locals.supabase.rpc('bulk_generate_nis', { p_pattern: pattern });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 		return { nisGenerated: data as number };
 	},
 
@@ -374,7 +375,7 @@ export const actions = {
 			{ key: 'school_name', value: schoolName },
 			{ onConflict: 'key' }
 		);
-		if (nameErr) return fail(400, { error: nameErr.message });
+		if (nameErr) return fail(400, { error: humanizeError(nameErr) });
 
 		// Upload logo ke Google Drive jika ada file
 		if (logoFile && logoFile.size > 0) {
@@ -385,9 +386,9 @@ export const actions = {
 					{ key: 'school_logo_url', value: logoUrl },
 					{ onConflict: 'key' }
 				);
-				if (logoErr) return fail(400, { error: logoErr.message });
+				if (logoErr) return fail(400, { error: humanizeError(logoErr) });
 			} catch (e) {
-				return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah logo sekolah ke Google Drive.' });
+				return fail(400, { error: e instanceof Error ? humanizeError(e) : 'Gagal mengunggah logo sekolah ke Google Drive.' });
 			}
 		}
 
@@ -407,7 +408,7 @@ export const actions = {
 		const { error } = await locals.supabase
 			.from('settings')
 			.upsert({ key: 'sidebar_nav', value: JSON.stringify(sidebarNav) }, { onConflict: 'key' });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 		return { sidebarNav };
 	}
 };

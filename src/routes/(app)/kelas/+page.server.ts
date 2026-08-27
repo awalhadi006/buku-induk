@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { humanizeError, validationMessages } from '$lib/errors';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
 
@@ -46,7 +47,7 @@ export const actions = {
 		const tahunAjaranAktif = settings?.value ?? '';
 		const payload = { tingkat, rombel, tahun_ajaran: tahun ?? tahunAjaranAktif, aktif: fd.get('aktif') === 'on' };
 		const { error } = await locals.supabase.from('kelas').insert(payload);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 		throw redirect(303, '/kelas');
 	},
 	update: async ({ locals, request }) => {
@@ -61,7 +62,7 @@ export const actions = {
 
 		const payload = { tingkat, rombel, tahun_ajaran: tahun, aktif: fd.get('aktif') === 'on' };
 		const { error } = await locals.supabase.from('kelas').update(payload).eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 		throw redirect(303, '/kelas');
 	},
 	delete: async ({ locals, request }) => {
@@ -69,7 +70,7 @@ export const actions = {
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		const { error } = await locals.supabase.from('kelas').delete().eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 		throw redirect(303, '/kelas');
 	}
 };

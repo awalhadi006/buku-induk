@@ -1,4 +1,5 @@
 import { redirect, fail } from '@sveltejs/kit';
+import { humanizeError } from '$lib/errors';
 
 export async function load({ locals }) {
 	const { user, supabase } = locals;
@@ -24,7 +25,7 @@ export async function load({ locals }) {
 		.order('created_at', { ascending: false });
 
 	if (error) {
-		return { requests: [], error: error.message };
+		return { requests: [], error: humanizeError(error) };
 	}
 
 	return { requests: requests ?? [] };
@@ -56,7 +57,7 @@ export const actions = {
 			.update({ [reqData.field]: reqData.new_value })
 			.eq('id', reqData.santri_id as string);
 
-		if (updateErr) return fail(400, { error: `Gagal memperbarui santri: ${updateErr.message}` });
+		if (updateErr) return fail(400, { error: humanizeError(updateErr) });
 
 		// Mark request as approved
 		const { error: reqErr } = await supabase
@@ -68,7 +69,7 @@ export const actions = {
 			})
 			.eq('id', id);
 
-		if (reqErr) return fail(400, { error: reqErr.message });
+		if (reqErr) return fail(400, { error: humanizeError(reqErr) });
 
 		return { success: true };
 	},
@@ -90,7 +91,7 @@ export const actions = {
 			})
 			.eq('id', id);
 
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		return { success: true };
 	}

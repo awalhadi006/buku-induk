@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { parseSantriForm } from '$lib/santri';
+import { humanizeError } from '$lib/errors';
 
 export async function load({ params, locals }) {
 	const { user, supabase } = locals;
@@ -74,7 +75,7 @@ export const actions = {
 		}
 
 		const { error: err } = await supabase.from('santri').update(payload).eq('id', params.id);
-		if (err) return fail(400, { error: err.message });
+		if (err) return fail(400, { error: humanizeError(err) });
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
@@ -83,7 +84,7 @@ export const actions = {
 		if (!user) throw redirect(303, '/login');
 
 		const { error: err } = await supabase.from('santri').delete().eq('id', params.id);
-		if (err) return fail(400, { error: err.message });
+		if (err) return fail(400, { error: humanizeError(err) });
 
 		throw redirect(303, '/santri');
 	},
@@ -102,7 +103,7 @@ export const actions = {
 			.update({ jenis, nama_file })
 			.eq('id', docId)
 			.eq('santri_id', params.id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
@@ -127,7 +128,7 @@ export const actions = {
 		const { error } = await supabase
 			.from('santri_documents')
 			.insert({ santri_id: params.id, jenis, nama_file: file.name, file_url: fileId });
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
@@ -178,7 +179,7 @@ export const actions = {
 			requested_by: user.id,
 			status: 'pending'
 		});
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
@@ -200,7 +201,7 @@ export const actions = {
 		}
 
 		const { error } = 		await supabase.from('santri').update({ foto_url }).eq('id', params.id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
@@ -214,7 +215,7 @@ export const actions = {
 			await deleteDriveFile(supabase, s.foto_url);
 		}
 		const { error } = await supabase.from('santri').update({ foto_url: null }).eq('id', params.id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);
 	}

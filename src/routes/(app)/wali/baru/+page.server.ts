@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { parseWaliForm } from '$lib/wali';
+import { humanizeError } from '$lib/errors';
 
 export async function load({ locals }) {
 	const { user, supabase } = locals;
@@ -30,7 +31,7 @@ export const actions = {
 			.insert(payload)
 			.select('id')
 			.single();
-		if (err) return fail(400, { error: err.message });
+		if (err) return fail(400, { error: humanizeError(err) });
 
 		throw redirect(303, `/wali/${data.id}`);
 	}

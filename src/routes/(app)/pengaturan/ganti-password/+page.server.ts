@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { humanizeError } from '$lib/errors';
 
 export async function load({ locals }) {
 	const { user } = locals;
@@ -28,7 +29,7 @@ export const actions = {
 		const { error } = await supabase.auth.updateUser({ password });
 
 		if (error) {
-			return fail(500, { error: error.message });
+			return fail(500, { error: humanizeError(error) });
 		}
 		// Log out user after password change for security reasons
 		await supabase.auth.signOut();
