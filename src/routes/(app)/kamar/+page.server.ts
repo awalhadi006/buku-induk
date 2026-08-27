@@ -2,6 +2,17 @@ import { fail, redirect } from '@sveltejs/kit';
 
 const ADMIN_ROLES = ['superadmin', 'admin_tu'];
 
+function humanizeKamarError(err: Error): string {
+	const msg = err.message?.toLowerCase() ?? '';
+	if (msg.includes('duplicate key') || msg.includes('unique constraint') || msg.includes('kamar_nomor_asrama_unique')) {
+		return 'Nomor kamar dan asrama ini sudah ada. Gunakan kombinasi nomor + asrama yang berbeda.';
+	}
+	if (msg.includes('foreign key') || msg.includes('referenced')) {
+		return 'Data terkait tidak ditemukan. Pastikan kamar yang dipilih masih ada.';
+	}
+	return 'Gagal menyimpan kamar. Silakan coba lagi atau hubungi administrator.';
+}
+
 async function isAdmin(locals: App.Locals): Promise<boolean> {
 	const { user, supabase } = locals;
 	if (!user) throw redirect(303, '/login');
@@ -37,7 +48,7 @@ export const actions = {
 			aktif: fd.get('aktif') === 'on'
 		};
 		const { error } = await locals.supabase.from('kamar').insert(payload);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeKamarError(error) });
 		throw redirect(303, '/kamar');
 	},
 	update: async ({ locals, request }) => {
@@ -54,7 +65,7 @@ export const actions = {
 			aktif: fd.get('aktif') === 'on'
 		};
 		const { error } = await locals.supabase.from('kamar').update(payload).eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeKamarError(error) });
 		throw redirect(303, '/kamar');
 	},
 	delete: async ({ locals, request }) => {
@@ -62,7 +73,7 @@ export const actions = {
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		const { error } = await locals.supabase.from('kamar').delete().eq('id', id);
-		if (error) return fail(400, { error: error.message });
+		if (error) return fail(400, { error: humanizeKamarError(error) });
 		throw redirect(303, '/kamar');
 	}
 };
