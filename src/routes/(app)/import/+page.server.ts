@@ -213,8 +213,13 @@ export const actions = {
 				s.tanggal_lahir = iso;
 			}
 
-// OPTIONAL: warning jika belum lengkap, tetap disimpan
-		if (!s.nisn) rowWarnings.push('NISN belum diisi');
+// KOLOM WAJIB: warning jika belum lengkap, tetap disimpan
+			if (!s.nis) rowWarnings.push('NIS belum diisi');
+			if (!s.nisn) rowWarnings.push('NISN belum diisi');
+			if (!s.jenis_kelamin) rowWarnings.push('Jenis kelamin belum diisi');
+			if (!s.alamat) rowWarnings.push('Alamat belum diisi');
+			if (!w.nama_ayah) rowWarnings.push('Nama ayah belum diisi');
+			if (!w.nama_ibu) rowWarnings.push('Nama ibu belum diisi');
 
 			// Convert & validate tanggal_masuk
 			if (s.tanggal_masuk) {
