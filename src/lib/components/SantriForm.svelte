@@ -22,6 +22,60 @@
 		opsi: { value: string; label: string }[];
 	};
 
+	const STATIC_GROUPS: Group[] = [
+		{
+			label: 'Identitas',
+			fields: [
+				{ key: 'nama_lengkap', label: 'Nama lengkap', required: true },
+				{ key: 'nama_panggilan', label: 'Nama panggilan' },
+				{ key: 'nisn', label: 'NISN' },
+				{ key: 'nik', label: 'NIK' },
+				{ key: 'nis', label: 'NIS' },
+				{ key: 'tempat_lahir', label: 'Tempat lahir' },
+				{ key: 'tanggal_lahir', label: 'Tanggal lahir', type: 'date' },
+				{ key: 'jenis_kelamin', label: 'Jenis kelamin', type: 'select', options: GENDER_OPTIONS },
+				{ key: 'agama', label: 'Agama' }
+			]
+		},
+		{
+			label: 'Alamat & kontak',
+			fields: [
+				{ key: 'alamat', label: 'Alamat', type: 'textarea' },
+				{ key: 'rt', label: 'RT' },
+				{ key: 'rw', label: 'RW' },
+				{ key: 'desa', label: 'Desa/kelurahan' },
+				{ key: 'kecamatan', label: 'Kecamatan' },
+				{ key: 'kabupaten', label: 'Kabupaten' },
+				{ key: 'no_hp', label: 'No. HP' },
+				{ key: 'tempat_tinggal', label: 'Tempat tinggal' },
+				{ key: 'transportasi', label: 'Transportasi ke sekolah' },
+				{ key: 'anak_ke', label: 'Anak ke', type: 'number' }
+			]
+		},
+		{
+			label: 'Status & keaktifan',
+			fields: [
+				{
+					key: 'status_santri',
+					label: 'Status santri',
+					type: 'select',
+					options: STATUS_SANTRI_OPTIONS,
+					required: true
+				},
+				{
+					key: 'status_keluarga',
+					label: 'Status keluarga',
+					type: 'select',
+					options: STATUS_KELUARGA_OPTIONS
+				},
+				{ key: 'tanggal_masuk', label: 'Tanggal masuk', type: 'date' },
+				{ key: 'asal_sekolah', label: 'Asal sekolah' },
+				{ key: 'jalur_masuk', label: 'Jalur masuk' },
+				{ key: 'bantuan_kip', label: 'Penerima bantuan (KIP/PIP/KPS/PKH)' }
+			]
+		}
+	];
+
 	let {
 		values,
 		kamar,
@@ -79,6 +133,36 @@
 		}
 	}
 
+	const penempatanGroup: Group = $derived({
+		label: 'Penempatan',
+		fields: [
+			{
+				key: 'kamar_id',
+				label: 'Kamar',
+				type: 'select',
+				options: kamar.map((k) => ({ value: String(k.id), label: `Kamar ${k.nomor}` }))
+			},
+			{
+				key: 'kelas_id',
+				label: 'Kelas',
+				type: 'select',
+				options: kelas.map((k) => ({
+					value: String(k.id),
+					label: `${k.tingkat} ${k.rombel}` + (k.tahun_ajaran ? ` (${k.tahun_ajaran})` : '')
+				}))
+			},
+			{
+				key: 'wali_santri_id',
+				label: 'Wali santri',
+				type: 'select',
+				options: wali.map((w) => ({ value: w.id, label: w.label }))
+			},
+			...(gdrive
+				? ([{ key: 'foto_file', label: 'Foto profil', type: 'file' }] as Field[])
+				: ([{ key: 'foto_url', label: 'Foto (URL)' }] as Field[]))
+		]
+	});
+
 	const customGroup: Group | null = $derived(
 		customFields && customFields.length > 0
 			? {
@@ -99,89 +183,7 @@
 			: null
 	);
 
-	const groups: Group[] = $derived([
-		{
-			label: 'Identitas',
-			fields: [
-				{ key: 'nama_lengkap', label: 'Nama lengkap', required: true },
-				{ key: 'nama_panggilan', label: 'Nama panggilan' },
-				{ key: 'nisn', label: 'NISN' },
-				{ key: 'nik', label: 'NIK' },
-				{ key: 'nis', label: 'NIS' },
-				{ key: 'tempat_lahir', label: 'Tempat lahir' },
-				{ key: 'tanggal_lahir', label: 'Tanggal lahir', type: 'date' },
-				{ key: 'jenis_kelamin', label: 'Jenis kelamin', type: 'select', options: GENDER_OPTIONS },
-				{ key: 'agama', label: 'Agama' }
-			]
-		},
-		{
-			label: 'Alamat & kontak',
-			fields: [
-				{ key: 'alamat', label: 'Alamat', type: 'textarea' },
-				{ key: 'rt', label: 'RT' },
-				{ key: 'rw', label: 'RW' },
-				{ key: 'desa', label: 'Desa/kelurahan' },
-				{ key: 'kecamatan', label: 'Kecamatan' },
-				{ key: 'kabupaten', label: 'Kabupaten' },
-				{ key: 'no_hp', label: 'No. HP' },
-				{ key: 'tempat_tinggal', label: 'Tempat tinggal' },
-				{ key: 'transportasi', label: 'Transportasi ke sekolah' },
-				{ key: 'anak_ke', label: 'Anak ke', type: 'number' }
-			]
-		},
-		{
-			label: 'Status & keaktifan',
-			fields: [
-				{
-					key: 'status_santri',
-					label: 'Status santri',
-					type: 'select',
-					options: STATUS_SANTRI_OPTIONS,
-					required: true
-				},
-				{
-					key: 'status_keluarga',
-					label: 'Status keluarga',
-					type: 'select',
-					options: STATUS_KELUARGA_OPTIONS
-				},
-				{ key: 'tanggal_masuk', label: 'Tanggal masuk', type: 'date' },
-				{ key: 'asal_sekolah', label: 'Asal sekolah' },
-				{ key: 'jalur_masuk', label: 'Jalur masuk' },
-				{ key: 'bantuan_kip', label: 'Penerima bantuan (KIP/PIP/KPS/PKH)' }
-			]
-		},
-		{
-			label: 'Penempatan',
-			fields: [
-				{
-					key: 'kamar_id',
-					label: 'Kamar',
-					type: 'select',
-					options: kamar.map((k) => ({ value: String(k.id), label: `Kamar ${k.nomor}` }))
-				},
-				{
-					key: 'kelas_id',
-					label: 'Kelas',
-					type: 'select',
-					options: kelas.map((k) => ({
-						value: String(k.id),
-						label: `${k.tingkat} ${k.rombel}` + (k.tahun_ajaran ? ` (${k.tahun_ajaran})` : '')
-					}))
-				},
-				{
-					key: 'wali_santri_id',
-					label: 'Wali santri',
-					type: 'select',
-					options: wali.map((w) => ({ value: w.id, label: w.label }))
-				},
-				...(gdrive
-					? ([{ key: 'foto_file', label: 'Foto profil', type: 'file' }] as Field[])
-					: ([{ key: 'foto_url', label: 'Foto (URL)' }] as Field[]))
-			]
-		},
-		...(customGroup ? [customGroup] : [])
-	]);
+	const groups: Group[] = $derived([...STATIC_GROUPS, penempatanGroup, ...(customGroup ? [customGroup] : [])]);
 </script>
 
 {#if form}
