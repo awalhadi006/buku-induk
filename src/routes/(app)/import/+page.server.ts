@@ -213,9 +213,8 @@ export const actions = {
 				s.tanggal_lahir = iso;
 			}
 
-			// OPTIONAL: warning jika belum lengkap, tetap disimpan
-			if (!s.nisn) rowWarnings.push('NISN belum diisi');
-			if (!s.nik) rowWarnings.push('NIK belum diisi');
+// OPTIONAL: warning jika belum lengkap, tetap disimpan
+		if (!s.nisn) rowWarnings.push('NISN belum diisi');
 
 			// Convert & validate tanggal_masuk
 			if (s.tanggal_masuk) {
