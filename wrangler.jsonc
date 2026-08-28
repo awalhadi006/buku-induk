@@ -5,5 +5,8 @@
 	"compatibility_flags": [
 		"nodejs_als"
 	],
-	"pages_build_output_dir": ".svelte-kit/cloudflare"
+	"pages_build_output_dir": ".svelte-kit/cloudflare",
+	"kv_namespaces": [
+		{ "binding": "GDRIVE_TOKENS", "id": "<your-kv-namespace-id>" }
+	]
 }

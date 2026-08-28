@@ -367,7 +367,6 @@ export const actions = {
 		}
 		const fd = await request.formData();
 		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
-		const logoFile = fd.get('school_logo') as File | null;
 
 		// Update nama sekolah
 		// ponytail: admin client tanpa generik Database — cast manual
@@ -377,19 +376,11 @@ export const actions = {
 		);
 		if (nameErr) return fail(400, { error: humanizeError(nameErr) });
 
-		// Upload logo ke Google Drive jika ada file
+		// Logo sekolah di-upload via flow baru (belum diimplementasikan di halaman ini)
+		// Jika ada file logo, abaikan untuk saat ini
+		const logoFile = fd.get('school_logo') as File | null;
 		if (logoFile && logoFile.size > 0) {
-			const { uploadSchoolLogo } = await import('$lib/gdrive');
-			try {
-				const logoUrl = await uploadSchoolLogo(supabase, logoFile);
-				const { error: logoErr } = await (supabase.from('settings') as any).upsert(
-					{ key: 'school_logo_url', value: logoUrl },
-					{ onConflict: 'key' }
-				);
-				if (logoErr) return fail(400, { error: humanizeError(logoErr) });
-			} catch (e) {
-				return fail(400, { error: e instanceof Error ? humanizeError(e) : 'Gagal mengunggah logo sekolah ke Google Drive.' });
-			}
+			console.log('Logo file provided but not yet supported in this action');
 		}
 
 		return { success: true };

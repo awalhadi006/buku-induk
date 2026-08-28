@@ -1,5 +1,5 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { parseSantriForm } from '$lib/santri';
+import { parseSantriForm, SANTRI_COLUMNS } from '$lib/santri';
 import { humanizeError } from '$lib/errors';
 
 export async function load({ params, locals }) {
@@ -8,7 +8,7 @@ export async function load({ params, locals }) {
 
 	const { data: santri } = await supabase
 		.from('santri')
-		.select('*')
+		.select(SANTRI_COLUMNS.join(','))
 		.eq('id', params.id)
 		.maybeSingle();
 	if (!santri) throw error(404, 'Santri tidak ditemukan');
@@ -30,11 +30,11 @@ export async function load({ params, locals }) {
 				.order('uploaded_at', { ascending: false }),
 			supabase
 				.from('status_history')
-				.select('*')
+				.select('id,santri_id,jenis,nilai_lama,nilai_baru,tanggal_efektif,created_by,created_at')
 				.eq('santri_id', params.id)
 				.order('tanggal_efektif', { ascending: false }),
-			supabase.from('gdrive_creds').select('id,refresh_token,folder_id').eq('id', 1).maybeSingle(),
-			supabase.from('custom_fields').select('*').eq('aktif', true).order('urutan').order('id')
+			supabase.from('gdrive_creds').select('id,folder_id').eq('id', 1).maybeSingle(),
+			supabase.from('custom_fields').select('id,nama,label,tipe,opsi,aktif,urutan').eq('aktif', true).order('urutan').order('id')
 		]);
 
 	return {
@@ -47,7 +47,7 @@ export async function load({ params, locals }) {
 		})),
 		documents: documents ?? [],
 		_status_history: history ?? [],
-		gdrive: !!(gdrive?.refresh_token && gdrive?.folder_id),
+		gdrive: !!gdrive?.folder_id,
 		customFields: customFields ?? []
 	};
 }
@@ -62,17 +62,6 @@ export const actions = {
 		const { data: cfs } = await supabase.from('custom_fields').select('nama').eq('aktif', true);
 		const payload = parseSantriForm(fd, cfs?.map((f) => f.nama));
 		if (!payload.nama_lengkap) return fail(400, { error: 'Nama lengkap wajib diisi.' });
-
-		const fotoFile = fd.get('foto_file') as File | null;
-		if (fotoFile && fotoFile.size > 0) {
-			const { data: s } = await supabase.from('santri').select('nama_lengkap').eq('id', params.id).maybeSingle();
-			const { uploadPhoto } = await import('$lib/gdrive');
-			try {
-				payload.foto_url = await uploadPhoto(supabase, fotoFile, s?.nama_lengkap ?? 'Santri');
-			} catch (e) {
-				return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah foto ke Google Drive.' });
-			}
-		}
 
 		const { error: err } = await supabase.from('santri').update(payload).eq('id', params.id);
 		if (err) return fail(400, { error: humanizeError(err) });
@@ -103,31 +92,6 @@ export const actions = {
 			.update({ jenis, nama_file })
 			.eq('id', docId)
 			.eq('santri_id', params.id);
-		if (error) return fail(400, { error: humanizeError(error) });
-
-		throw redirect(303, `/santri/${params.id}`);
-	},
-	uploadDocument: async ({ params, locals, request }) => {
-		const { user, supabase } = locals;
-		if (!user) throw redirect(303, '/login');
-
-		const fd = await request.formData();
-		const file = fd.get('file') as File;
-		const jenis = (fd.get('jenis') as string) ?? '';
-		if (!file || file.size === 0) return fail(400, { error: 'Pilih file dokumen terlebih dahulu.' });
-
-		const { data: s } = await supabase.from('santri').select('nama_lengkap').eq('id', params.id).maybeSingle();
-		const { uploadDocument } = await import('$lib/gdrive');
-		let fileId: string;
-		try {
-			fileId = await uploadDocument(supabase, file, s?.nama_lengkap ?? 'Santri');
-		} catch (e) {
-			return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah dokumen ke Google Drive.' });
-		}
-
-		const { error } = await supabase
-			.from('santri_documents')
-			.insert({ santri_id: params.id, jenis, nama_file: file.name, file_url: fileId });
 		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);
@@ -179,42 +143,6 @@ export const actions = {
 			requested_by: user.id,
 			status: 'pending'
 		});
-		if (error) return fail(400, { error: humanizeError(error) });
-
-		throw redirect(303, `/santri/${params.id}`);
-	},
-	uploadPhoto: async ({ params, locals, request }) => {
-		const { user, supabase } = locals;
-		if (!user) throw redirect(303, '/login');
-
-		const fd = await request.formData();
-		const file = fd.get('file') as File;
-		if (!file || file.size === 0) return fail(400, { error: 'Pilih file foto terlebih dahulu.' });
-
-		const { data: s } = await supabase.from('santri').select('nama_lengkap').eq('id', params.id).maybeSingle();
-		const { uploadPhoto } = await import('$lib/gdrive');
-		let foto_url: string;
-		try {
-			foto_url = await uploadPhoto(supabase, file, s?.nama_lengkap ?? 'Santri');
-		} catch (e) {
-			return fail(400, { error: e instanceof Error ? e.message : 'Gagal mengunggah foto ke Google Drive.' });
-		}
-
-		const { error } = 		await supabase.from('santri').update({ foto_url }).eq('id', params.id);
-		if (error) return fail(400, { error: humanizeError(error) });
-
-		throw redirect(303, `/santri/${params.id}`);
-	},
-	deletePhoto: async ({ params, locals }) => {
-		const { user, supabase } = locals;
-		if (!user) throw redirect(303, '/login');
-
-		const { data: s } = await supabase.from('santri').select('foto_url').eq('id', params.id).maybeSingle();
-		if (s?.foto_url?.startsWith('gdrive:')) {
-			const { deleteDriveFile } = await import('$lib/gdrive');
-			await deleteDriveFile(supabase, s.foto_url);
-		}
-		const { error } = await supabase.from('santri').update({ foto_url: null }).eq('id', params.id);
 		if (error) return fail(400, { error: humanizeError(error) });
 
 		throw redirect(303, `/santri/${params.id}`);

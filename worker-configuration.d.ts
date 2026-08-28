@@ -4,6 +4,7 @@
 interface __BaseEnv_Env {
 	PUBLIC_SUPABASE_URL: string;
 	PUBLIC_SUPABASE_ANON_KEY: string;
+	GDRIVE_TOKENS: KVNamespace;
 }
 declare namespace Cloudflare {
 	interface Env extends __BaseEnv_Env {}

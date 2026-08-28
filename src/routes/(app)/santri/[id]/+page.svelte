@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { IconTrash, IconPrinter, IconIdBadge, IconEye, IconEdit, IconPhoto } from '@tabler/icons-svelte';
 	import SantriForm from '$lib/components/SantriForm.svelte';
 	import { photoUrl, docUrl } from '$lib/gdrive-url';
 	import { formatTanggal } from '$lib/format';
+	import { uploadToGDrive } from '$lib/gdrive/client-upload';
 	import {
 		GENDER_LABEL,
 		JENIS_DOKUMEN_LABEL,
@@ -20,11 +22,73 @@
 	// svelte-ignore state_referenced_locally (nilai awal dokumen dari loader)
 	let docs = $state<Doc[]>(data.documents as Doc[]);
 	let editingDoc = $state<Doc | null>(null);
-	let upFile = $state<File>();
-	let upJenis = $state('kk');
 	let upBusy = $state(false);
 	let upError = $state('');
-	let photoInput = $state<HTMLInputElement>();
+
+	onMount(() => {
+		// Foto upload
+		const btn = document.getElementById('uploadFotoBtn') as HTMLButtonElement | null;
+		const input = document.getElementById('fotoInput') as HTMLInputElement | null;
+		const preview = document.getElementById('previewFoto') as HTMLImageElement | null;
+		if (btn && input) {
+			btn.addEventListener('click', () => input.click());
+
+			input.addEventListener('change', () => {
+				const file = input.files?.[0];
+				if (!file) return;
+				upError = '';
+				if (preview) preview.src = URL.createObjectURL(file);
+				btn.disabled = true;
+				btn.textContent = 'Mengunggah...';
+				uploadToGDrive(file, s.id, 'foto')
+					.then((res) => {
+						if (res.ok) {
+							window.location.reload();
+						} else {
+							upError = res.error;
+							btn.disabled = false;
+							btn.textContent = 'Unggah Foto';
+						}
+					})
+					.catch(() => {
+						upError = 'Terjadi kesalahan';
+						btn.disabled = false;
+						btn.textContent = 'Unggah Foto';
+					});
+			});
+		}
+
+		// Dokumen upload
+		const docBtn = document.getElementById('uploadDocBtn') as HTMLButtonElement | null;
+		const docInput = document.getElementById('docInput') as HTMLInputElement | null;
+		const docJenis = document.getElementById('docJenis') as HTMLSelectElement | null;
+		if (docBtn && docInput && docJenis) {
+			docBtn.addEventListener('click', () => docInput.click());
+
+			docInput.addEventListener('change', () => {
+				const file = docInput.files?.[0];
+				if (!file) return;
+				upError = '';
+				docBtn.disabled = true;
+				docBtn.textContent = 'Mengunggah...';
+				uploadToGDrive(file, s.id, 'dokumen')
+					.then((res) => {
+						if (res.ok) {
+							window.location.reload();
+						} else {
+							upError = res.error;
+							docBtn.disabled = false;
+							docBtn.textContent = 'Unggah';
+						}
+					})
+					.catch(() => {
+						upError = 'Terjadi kesalahan';
+						docBtn.disabled = false;
+						docBtn.textContent = 'Unggah';
+					});
+			});
+		}
+	});
 
 	const s = $derived(data.santri as Record<string, any>);
 	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
@@ -234,36 +298,51 @@
 				</form>
 			{/if}
 		</div>
-		<form method="POST" action="?/uploadPhoto" enctype="multipart/form-data" class="flex flex-1 items-end gap-3" onsubmit={(e) => {
-			if (!confirm('Unggah foto ini ke Google Drive?')) e.preventDefault();
-		}}>
-			<label class="flex-1">
-				<span class="mb-1.5 block text-sm font-medium">Pilih file foto</span>
-				<input
-					type="file"
-					name="file"
-					accept="image/*"
-					required
-					class="file-input file-input-bordered w-full"
-					bind:this={photoInput} />
-			</label>
-			<button type="submit" class="btn btn-primary btn-sm">Unggah Foto</button>
-		</form>
+		<div class="mt-2 flex items-end gap-3 rounded-lg border border-base-300 bg-base-100 p-3">
+			<img
+				src={s.foto_url ? photoUrl(s.foto_url) : '/placeholder-santri.jpg'}
+				alt="Foto"
+				class="size-16 rounded-xl object-cover"
+				id="previewFoto" />
+			<div class="flex gap-2">
+				<label class="flex-1">
+					<span class="mb-1.5 block text-sm font-medium">Pilih file foto</span>
+					<input
+						type="file"
+						name="file"
+						accept="image/*"
+						required
+						class="file-input file-input-bordered w-full hidden"
+						id="fotoInput" />
+				</label>
+				<button
+					type="button"
+					class="btn btn-primary btn-sm"
+					id="uploadFotoBtn"
+					disabled={upBusy}
+				>
+					Unggah Foto
+				</button>
+				{#if upError}
+					<p class="mt-1 text-xs text-error">{upError}</p>
+				{/if}
+			</div>
+		</div>
 	</div>
 {/if}
 
 {#if editing}
 	<div class="mt-6">
-				<SantriForm
-			values={toEdit()}
-			kamar={kamarAktif}
-			kelas={kelasAktif}
-			wali={wali}
-			gdrive={data.gdrive}
-			customFields={data.customFields}
-			action="?/update"
-			submitLabel="Simpan perubahan"
-			cancelHref="/santri/{s.id}" />
+			<SantriForm
+		values={toEdit()}
+		kamar={kamarAktif}
+		kelas={kelasAktif}
+		wali={wali}
+		gdrive={data.gdrive}
+		customFields={data.customFields}
+		action="?/update"
+		submitLabel="Simpan perubahan"
+		cancelHref="/santri/{s.id}" />
 	</div>
 {:else}
 	<div class="mt-6 space-y-4">
@@ -379,30 +458,26 @@
 					</div>
 				</form>
 			{:else}
-				<form
-					method="POST"
-					action="?/uploadDocument"
-					class="mt-4 flex flex-col gap-3 border-t border-base-200 pt-4 sm:flex-row sm:items-end"
-					enctype="multipart/form-data">
+				<div class="mt-4 flex flex-col gap-3 border-t border-base-200 pt-4 sm:flex-row sm:items-end">
 					<label class="flex-1">
 						<span class="mb-1.5 block text-sm font-medium">Tambah dokumen (PDF)</span>
 						<input
 							class="file-input file-input-bordered w-full"
 							type="file"
 							accept=".pdf,application/pdf"
-							name="file"
+							id="docInput"
 							required />
 					</label>
 					<label class="sm:w-52">
 						<span class="mb-1.5 block text-sm font-medium">Jenis</span>
-						<select class="select select-bordered w-full" name="jenis">
+						<select class="select select-bordered w-full" id="docJenis">
 							{#each JENIS_DOKUMEN_OPTIONS as o (o.value)}
 								<option value={o.value}>{o.label}</option>
 							{/each}
 						</select>
 					</label>
-					<button type="submit" class="btn btn-outline btn-sm">Unggah</button>
-				</form>
+					<button type="button" class="btn btn-outline btn-sm" id="uploadDocBtn">Unggah</button>
+				</div>
 			{/if}
 		</section>
 		{#if canRequest}
