@@ -13,6 +13,7 @@ node_modules
 .DS_Store
 Thumbs.db
 .agents
+.scratch
 opencode.json
 
 # Env
