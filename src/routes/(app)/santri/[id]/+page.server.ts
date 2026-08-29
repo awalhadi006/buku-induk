@@ -96,7 +96,7 @@ export const actions = {
 
 		throw redirect(303, `/santri/${params.id}`);
 	},
-	deleteDocument: async ({ params, locals, request }) => {
+	deleteDocument: async ({ params, locals, request, platform }) => {
 		const { user, supabase } = locals;
 		if (!user) throw redirect(303, '/login');
 
@@ -111,7 +111,7 @@ export const actions = {
 		if (doc) {
 			if (doc.file_url?.startsWith('gdrive:')) {
 				const { deleteDriveFile } = await import('$lib/gdrive');
-				await deleteDriveFile(supabase, doc.file_url);
+				await deleteDriveFile(supabase, doc.file_url, platform?.env?.GDRIVE_TOKENS);
 			} else if (doc.file_url) {
 				await supabase.storage.from('santri').remove([doc.file_url]);
 			}

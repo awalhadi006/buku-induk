@@ -25,9 +25,11 @@ export const GET = async ({ locals, url, platform }) => {
 	}
 
 	// folder_id tetap di Supabase (hanya metadata, bukan secret)
+	// refresh_token juga disimpan di Supabase agar getValidToken dan deleteDriveFile tetap jalan
 	await locals.supabase.from('gdrive_creds').upsert({
 		id: 1,
 		access_token,
+		refresh_token,
 		expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
 		connected_at: new Date().toISOString()
 	});
