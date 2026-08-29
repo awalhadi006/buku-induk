@@ -3,27 +3,19 @@
 # Content Security Policy (CSP), HSTS, X-Content-Type-Options, X-Frame-Options
 # Middleware-less: di-set langsung via _headers file Cloudflare Pages
 # ==========================================================
-
 # Header diterapkan ke SEMUA route (*) termasuk API dan halaman server-rendered.
 # Headers tidak termasuk Cache-Control; Cache-Control dihandle otomatis SvelteKit
 # untuk /_app/immutable/* (lihat _headers auto-generated).
+#
+# Catatan implementasi:
+# - 'unsafe-inline' wajib SvelteKit 5 runes mode (hydration script inline).
+#   Upgrade ke nonce/hash di masa depan (lihat ADR 0001).
+# - frame-ancestors 'none' (CSP Level 3) + X-Frame-Options: DENY = cover semua browser.
+# - Font Google (Geist + Source Serif 4) di-host sendiri via @fontsource npm,
+#   font-src 'self' sudah mencakupnya; https://fonts.gstatic.com diizinkan sebagai fallback.
 
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests;
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload;
   X-Content-Type-Options: nosniff;
   X-Frame-Options: DENY;
-*/
-/*
-  # Catatan:
-  - CSP directives dibatasi panjang untuk menghindari truncation Cloudflare.
-  - 'unsafe-inline' WAjib SvelteKit 5 runes mode (hydration script inline).
-    Upgrade ke nonce/hash bisa dilakukan di masa depan (lihat ADR 0001).
-  - frame-ancestors 'none' (CSP Level 3) + X-Frame-Options: DENY (legacy) = cover semua browser.
-  - upgrade-insecure-requests: upgrade HTTP -> HTTPS untuk mixed content.
-  - Jika butuh CSP report-only mode di development: set PUBLIC_CSP_REPORT_ONLY=true
-    dan gunakan Cloudflare Workers middleware (bukan _headers statis).
-  - Font Google (Geist + Source Serif 4) di-host sendiri via @fontsource npm
-    => font-src 'self' sudah mencakupnya. Tidak perlu https://fonts.gstatic.com jika
-    fonts di-host self, tapi kita izinkan juga untuk kasus fallback.
-*/
