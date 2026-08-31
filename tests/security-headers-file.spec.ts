@@ -16,7 +16,7 @@ describe('security-headers _headers file', () => {
     expect(headersContent).toContain("script-src 'self' 'unsafe-inline'");
     expect(headersContent).toContain("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com");
     expect(headersContent).toContain("font-src 'self' https://fonts.gstatic.com data:");
-    expect(headersContent).toContain("img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com blob:");
+    expect(headersContent).toContain("img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com https://drive.google.com blob:");
     expect(headersContent).toContain("connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com");
     expect(headersContent).toContain("frame-src https://accounts.google.com");
     expect(headersContent).toContain("frame-ancestors 'none'");
