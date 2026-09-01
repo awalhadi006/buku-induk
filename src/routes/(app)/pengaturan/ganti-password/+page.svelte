@@ -6,6 +6,7 @@
 
 	let password = $state('');
 	let passwordConfirm = $state('');
+	let submitting = $state(false);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 	const actionSuccess = $derived(form && !(form as { error?: string }).error);
@@ -77,7 +78,10 @@
 
 		<div class="flex justify-end gap-2">
 			<button type="button" class="btn btn-ghost" onclick={resetForm}>Reset</button>
-			<button type="submit" class="btn btn-primary" disabled={!password || password !== passwordConfirm}>Ganti Kata Sandi</button>
+			<button type="submit" class="btn btn-primary" disabled={submitting || !password || password !== passwordConfirm}>
+				{#if submitting}<span class="loading loading-spinner loading-sm"></span>{/if}
+				Ganti Kata Sandi
+			</button>
 		</div>
 	</div>
 </form>
