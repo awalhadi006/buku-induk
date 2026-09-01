@@ -3,6 +3,7 @@ import { IconPrinter } from '@tabler/icons-svelte';
 import type { Rekap } from '$lib/types';
 import PageHeader from '$lib/components/PageHeader.svelte';
 import EmptyState from '$lib/components/EmptyState.svelte';
+import Skeleton from '$lib/components/Skeleton.svelte';
 
 	let { data } = $props();
 
@@ -41,8 +42,15 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 </PageHeader>
 
 {#if !rekap}
-	<div class="mt-6">
-		<EmptyState title="Data belum dapat dimuat" desc="Coba muat ulang halaman ini." />
+	<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+		<div class="grid grid-cols-2 gap-4 mb-6">
+			<Skeleton variant="stat" ariaLabel="Memuat rekap kamar..." />
+			<Skeleton variant="stat" ariaLabel="Memuat rekap kelas..." />
+		</div>
+		<div class="grid gap-4 lg:grid-cols-2">
+			<Skeleton variant="table" rows={4} cols={2} ariaLabel="Memuat rekap per kamar..." />
+			<Skeleton variant="table" rows={4} cols={2} ariaLabel="Memuat rekap per kelas..." />
+		</div>
 	</div>
 {:else}
 	<div class="mt-6 grid gap-4 lg:grid-cols-2">
