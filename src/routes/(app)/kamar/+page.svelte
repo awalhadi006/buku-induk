@@ -3,6 +3,8 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import SkeletonCard from '$lib/components/Skeleton.svelte';
 
+	let submittingAdd = $state(false);
+
 	type Kamar = {
 		id: number;
 		nomor: number;
@@ -67,8 +69,9 @@
 				<span class="text-sm font-medium">Aktif</span>
 			</label>
 		</div>
-		<button type="submit" class="btn btn-primary btn-sm mt-4">
+		<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingAdd}>
 			<IconPlus class="size-4" stroke-width={2} />
+			{#if submittingAdd}<span class="loading loading-spinner loading-sm"></span>{/if}
 			Tambah
 		</button>
 	</form>
