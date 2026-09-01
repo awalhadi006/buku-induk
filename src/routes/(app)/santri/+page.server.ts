@@ -8,15 +8,25 @@ export async function load({ locals, url }) {
 		Number(url.searchParams.get('limit')) || DEFAULT_PAGE_SIZE,
 		MAX_PAGE_SIZE
 	);
+	const search = url.searchParams.get('q')?.trim() || '';
 	const from = (page - 1) * pageSize;
 	const to = from + pageSize - 1;
 
+	let santriQuery = locals.supabase
+		.from('santri')
+		.select('id,nama_lengkap,nisn,nik,nis,jenis_kelamin,status_santri,status_keluarga,kamar_id,kelas_id,kabupaten,tempat_lahir,tanggal_lahir,wali_santri_id,kamar(nomor),kelas(tingkat,rombel)', { count: 'exact' })
+		.order('nama_lengkap')
+		.range(from, to);
+
+	if (search) {
+		const pattern = `%${search.toLowerCase()}%`;
+		santriQuery = santriQuery.or(
+			`nama_lengkap.ilike.${pattern},nisn.ilike.${pattern},nik.ilike.${pattern},nis.ilike.${pattern}`
+		);
+	}
+
 	const [{ data: santriData, count }, { data: kamarData }, { data: kelasData }, { data: kabupatenData }] = await Promise.all([
-		locals.supabase
-			.from('santri')
-			.select('id,nama_lengkap,nisn,nik,nis,jenis_kelamin,status_santri,status_keluarga,kamar_id,kelas_id,kabupaten,tempat_lahir,tanggal_lahir,wali_santri_id,kamar(nomor),kelas(tingkat,rombel)', { count: 'exact' })
-			.order('nama_lengkap')
-			.range(from, to),
+		santriQuery,
 		locals.supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
 		locals.supabase.from('kelas').select('id,tingkat,rombel').eq('aktif', true).order('tingkat').order('rombel'),
 		locals.supabase.rpc('fn_unique_kabupaten')
@@ -55,6 +65,7 @@ export async function load({ locals, url }) {
 			total,
 			totalPages,
 			pageSizeOptions: PAGE_SIZE_OPTIONS
-		}
+		},
+		search
 	};
 }

@@ -17,21 +17,22 @@ const pagination = $derived(data.pagination ?? { page: 1, pageSize: 25, total: 0
 const { page, pageSize, total, totalPages, pageSizeOptions } = pagination;
 
 const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
-	const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
+const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
-	let query = $state('');
-	let filterKamar = $state('');
-	let filterKelas = $state('');
-	let filterStatus = $state('');
-	let filterKeluarga = $state('');
-	let filterGender = $state('');
-	let filterKabupaten = $state('');
-	let showFilters = $state(false);
+const searchParam = $derived(page.url.searchParams.get('q')?.trim() ?? '');
+let query = $state(searchParam);
+let filterKamar = $state('');
+let filterKelas = $state('');
+let filterStatus = $state('');
+let filterKeluarga = $state('');
+let filterGender = $state('');
+let filterKabupaten = $state('');
+let showFilters = $state(false);
 
-	const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 'true');
+const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 'true');
 
 	const activeFilterCount = $derived(
-		[filterKamar, filterKelas, filterStatus, filterKeluarga, filterGender, filterKabupaten].filter(Boolean).length + (filterIncomplete ? 1 : 0)
+		[filterKamar, filterKelas, filterStatus, filterKeluarga, filterGender, filterKabupaten, searchParam].filter(Boolean).length + (filterIncomplete ? 1 : 0)
 	);
 
 	function resetFilters() {
@@ -41,6 +42,10 @@ const profile = $derived((page.data.profile as { peran: string } | null) ?? null
 		filterKeluarga = '';
 		filterGender = '';
 		filterKabupaten = '';
+	}
+
+	function clearSearch() {
+		updateSearch('');
 	}
 
 	function goToPage(newPage: number) {
@@ -56,16 +61,20 @@ const profile = $derived((page.data.profile as { peran: string } | null) ?? null
 		goto(`?${params.toString()}`);
 	}
 
+	function updateSearch(newQuery: string) {
+		query = newQuery;
+		const params = new URLSearchParams(page.url.searchParams);
+		if (newQuery.trim()) {
+			params.set('q', newQuery.trim());
+		} else {
+			params.delete('q');
+		}
+		params.set('page', '1');
+		goto(`?${params.toString()}`);
+	}
+
 	const filtered = $derived(
 		santri.filter((s) => {
-			const q = query.toLowerCase().trim();
-			if (q) {
-				const matchNama = s.nama_lengkap.toLowerCase().includes(q);
-				const matchNisn = (s.nisn ?? '').toLowerCase().includes(q);
-				const matchNik = (s.nik ?? '').toLowerCase().includes(q);
-				const matchNis = (s.nis ?? '').toLowerCase().includes(q);
-				if (!matchNama && !matchNisn && !matchNik && !matchNis) return false;
-			}
 			if (filterKamar && String(s.kamar_id) !== filterKamar) return false;
 			if (filterKelas && String(s.kelas_id) !== filterKelas) return false;
 			if (filterStatus && s.status_santri !== filterStatus) return false;
@@ -112,14 +121,15 @@ const profile = $derived((page.data.profile as { peran: string } | null) ?? null
 	<title>Santri | Buku Induk</title>
 </svelte:head>
 
-<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {santri.length} dari {total} santri total (halaman {page} dari {totalPages}).">
+<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {santri.length} dari {total} santri total (halaman {page} dari {totalPages}){searchParam ? ` · Hasil untuk: "${searchParam}"` : ''}.">
 	{#snippet actions()}
 		<label class="relative flex-1 sm:w-72 sm:flex-none">
 			<span class="sr-only">Cari santri</span>
 			<IconSearch class="pointer-events-none absolute inset-y-0 left-3 my-auto size-4 text-base-content/50" />
 			<input
 				type="search"
-				bind:value={query}
+				value={query}
+				oninput={(e) => updateSearch(e.currentTarget.value)}
 				class="input input-bordered w-full pl-9"
 				placeholder="Cari nama atau NISN" />
 		</label>
@@ -155,11 +165,18 @@ const profile = $derived((page.data.profile as { peran: string } | null) ?? null
 				<IconFilter class="size-4 text-primary" />
 				Filter Lanjutan
 			</h2>
-			{#if activeFilterCount > 0}
-				<button class="btn btn-ghost btn-xs text-error" onclick={resetFilters}>
-					Reset filter
-				</button>
-			{/if}
+			<div class="flex items-center gap-2">
+				{#if searchParam}
+					<button class="btn btn-ghost btn-xs text-warning" onclick={clearSearch}>
+						Hapus pencarian: "{searchParam}"
+					</button>
+				{/if}
+				{#if activeFilterCount > 0}
+					<button class="btn btn-ghost btn-xs text-error" onclick={resetFilters}>
+						Reset filter
+					</button>
+				{/if}
+			</div>
 		</div>
 
 		<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
