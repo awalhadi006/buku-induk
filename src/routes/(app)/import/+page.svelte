@@ -66,7 +66,7 @@
 </header>
 
 {#if actionError}
-	<div class="alert alert-error mt-6" role="alert">
+	<div class="alert alert-error mt-6 animate-in" role="alert">
 		<span>{actionError}</span>
 	</div>
 {/if}

@@ -187,7 +187,7 @@
 </script>
 
 {#if form}
-	<div class="alert alert-error mb-6" role="alert">
+	<div class="alert alert-error mb-6 animate-in" role="alert">
 		<span>{form}</span>
 	</div>
 {/if}
