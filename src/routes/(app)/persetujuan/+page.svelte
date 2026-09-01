@@ -5,6 +5,8 @@
 
 	let { data, form } = $props();
 
+	let processingId = $state<number | null>(null);
+
 	type RequestItem = {
 		id: number;
 		field: string;
@@ -102,15 +104,17 @@
 								<div class="flex items-center justify-end gap-2">
 									<form method="POST" action="?/approve">
 										<input type="hidden" name="id" value={req.id} />
-										<button type="submit" class="btn btn-success btn-xs gap-1">
+										<button type="submit" class="btn btn-success btn-xs gap-1" disabled={processingId === req.id} onclick={() => processingId = req.id}>
 											<IconCheck class="size-3.5" />
+											{#if processingId === req.id}<span class="loading loading-spinner loading-sm"></span>{/if}
 											Setujui
 										</button>
 									</form>
 									<form method="POST" action="?/reject">
 										<input type="hidden" name="id" value={req.id} />
-										<button type="submit" class="btn btn-error btn-outline btn-xs gap-1">
+										<button type="submit" class="btn btn-error btn-outline btn-xs gap-1" disabled={processingId === req.id} onclick={() => processingId = req.id}>
 											<IconX class="size-3.5" />
+											{#if processingId === req.id}<span class="loading loading-spinner loading-sm"></span>{/if}
 											Tolak
 										</button>
 									</form>
