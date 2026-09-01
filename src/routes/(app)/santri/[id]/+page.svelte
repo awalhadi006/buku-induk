@@ -321,6 +321,7 @@
 					id="uploadFotoBtn"
 					disabled={upBusy}
 				>
+					{#if upBusy}<span class="loading loading-spinner loading-sm"></span>{/if}
 					Unggah Foto
 				</button>
 				{#if upError}
@@ -476,7 +477,10 @@
 							{/each}
 						</select>
 					</label>
-					<button type="button" class="btn btn-outline btn-sm" id="uploadDocBtn">Unggah</button>
+					<button type="button" class="btn btn-outline btn-sm" id="uploadDocBtn" disabled={upBusy}>
+					{#if upBusy}<span class="loading loading-spinner loading-sm"></span>{/if}
+					Unggah
+				</button>
 				</div>
 			{/if}
 		</section>
