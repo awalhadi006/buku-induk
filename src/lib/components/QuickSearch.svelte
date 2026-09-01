@@ -18,8 +18,11 @@
 	let inputEl = $state<HTMLInputElement>();
 	let selected = $state(0);
 	let timer: ReturnType<typeof setTimeout>;
+	let lastSearchTime = 0;
 
-	const show = $derived(open && query.trim().length > 0);
+	const MIN_QUERY_LENGTH = 3;
+	const SEARCH_RATE_LIMIT_MS = 300;
+	const show = $derived(open && query.trim().length >= MIN_QUERY_LENGTH);
 
 	function openPalette() {
 		open = true;
@@ -36,10 +39,15 @@
 
 	async function search() {
 		const q = query.trim();
-		if (!q) {
+		if (q.length < MIN_QUERY_LENGTH) {
 			results = [];
 			return;
 		}
+		const now = Date.now();
+		if (now - lastSearchTime < SEARCH_RATE_LIMIT_MS) {
+			return;
+		}
+		lastSearchTime = now;
 		busy = true;
 		const pattern = `%${q.toLowerCase()}%`;
 
@@ -94,7 +102,7 @@
 
 	function onInput() {
 		clearTimeout(timer);
-		timer = setTimeout(search, 250);
+		timer = setTimeout(search, 300);
 	}
 
 	function choose(res: Result) {
@@ -200,7 +208,7 @@
 			{/if}
 		{:else}
 			<div class="px-4 py-8 text-center text-sm text-base-content/40">
-				Ketik minimal 1 huruf untuk mulai mencari
+				Ketik minimal 3 huruf untuk mulai mencari
 			</div>
 		{/if}
 
