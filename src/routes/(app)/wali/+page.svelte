@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconUserHeart, IconSearch, IconPlus } from '@tabler/icons-svelte';
 	import { waliLabel } from '$lib/wali';
+	import SkeletonTable from '$lib/components/Skeleton.svelte';
 
 	let { data } = $props();
 
@@ -48,7 +49,11 @@
 	</div>
 </header>
 
-{#if wali.length === 0}
+{#if data.wali === undefined}
+	<div class="mt-8" role="status" aria-busy="true" aria-live="polite">
+		<SkeletonTable rows={5} cols={4} ariaLabel="Memuat daftar wali santri..." />
+	</div>
+{:else if wali.length === 0}
 	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
 		<IconUserHeart class="mx-auto size-10 text-base-content/40" stroke-width={1.5} />
 		<h2 class="mt-4 text-lg font-semibold">Belum ada data wali santri</h2>
