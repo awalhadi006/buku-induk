@@ -46,7 +46,7 @@
 		{#if variant === 'text'}
 			<div class="space-y-2">
 				{#each Array(rows) as _, r (r)}
-					<div class={getSkeletonClass()} />
+					<div class={getSkeletonClass()}></div>
 				{/each}
 			</div>
 		{:else if variant === 'table'}
@@ -54,13 +54,13 @@
 				{#each Array(rows) as _, r (r)}
 					<div class="grid gap-4" style="grid-template-columns: repeat({cols}, 1fr);">
 						{#each Array(cols) as _, c (c)}
-							<div class={getSkeletonClass()} />
+							<div class={getSkeletonClass()}></div>
 						{/each}
 					</div>
 				{/each}
 			</div>
 		{:else}
-			<div class={getSkeletonClass()} />
+			<div class={getSkeletonClass()}></div>
 		{/if}
 	{/each}
 </div>
