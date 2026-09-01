@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { IconSparkles } from '@tabler/icons-svelte';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 
 	type Commit = { short: string; date: string; subject: string; label: string };
 	let { data } = $props();
@@ -24,7 +25,11 @@
 </header>
 
 <div class="mt-4 space-y-6">
-	{#if commits.length === 0}
+	{#if data.commits === undefined}
+		<div class="space-y-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="card" count={3} ariaLabel="Memuat catatan pembaruan..." />
+		</div>
+	{:else if commits.length === 0}
 		<div class="rounded-lg border border-dashed border-base-300 bg-base-200/40 p-10 text-center">
 			<p class="text-sm text-base-content/60">
 				{commitsError
