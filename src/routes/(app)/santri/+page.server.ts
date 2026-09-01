@@ -1,13 +1,29 @@
-export async function load({ locals }) {
-	const [{ data: santriData }, { data: kamarData }, { data: kelasData }, { data: kabupatenData }] = await Promise.all([
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 25;
+const MAX_PAGE_SIZE = 100;
+
+export async function load({ locals, url }) {
+	const page = Number(url.searchParams.get('page')) || 1;
+	const pageSize = Math.min(
+		Number(url.searchParams.get('limit')) || DEFAULT_PAGE_SIZE,
+		MAX_PAGE_SIZE
+	);
+	const from = (page - 1) * pageSize;
+	const to = from + pageSize - 1;
+
+	const [{ data: santriData, count }, { data: kamarData }, { data: kelasData }, { data: kabupatenData }] = await Promise.all([
 		locals.supabase
 			.from('santri')
-			.select('id,nama_lengkap,nisn,nik,nis,jenis_kelamin,status_santri,status_keluarga,kamar_id,kelas_id,kabupaten,tempat_lahir,tanggal_lahir,wali_santri_id,kamar(nomor),kelas(tingkat,rombel)')
-			.order('nama_lengkap'),
+			.select('id,nama_lengkap,nisn,nik,nis,jenis_kelamin,status_santri,status_keluarga,kamar_id,kelas_id,kabupaten,tempat_lahir,tanggal_lahir,wali_santri_id,kamar(nomor),kelas(tingkat,rombel)', { count: 'exact' })
+			.order('nama_lengkap')
+			.range(from, to),
 		locals.supabase.from('kamar').select('id,nomor').eq('aktif', true).order('nomor'),
 		locals.supabase.from('kelas').select('id,tingkat,rombel').eq('aktif', true).order('tingkat').order('rombel'),
 		locals.supabase.rpc('fn_unique_kabupaten')
 	]);
+
+	const total = count ?? 0;
+	const totalPages = Math.ceil(total / pageSize);
 
 	const santri = (santriData ?? []).map((s: any) => ({
 		id: s.id,
@@ -32,6 +48,13 @@ export async function load({ locals }) {
 		santri,
 		kamar: kamarData ?? [],
 		kelas: kelasData ?? [],
-		kabupaten: (kabupatenData ?? []) as string[]
+		kabupaten: (kabupatenData ?? []) as string[],
+		pagination: {
+			page,
+			pageSize,
+			total,
+			totalPages,
+			pageSizeOptions: PAGE_SIZE_OPTIONS
+		}
 	};
 }

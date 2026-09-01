@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { IconSearch, IconPlus, IconDownload, IconFilter } from '@tabler/icons-svelte';
+	import { goto } from '$app/navigation';
+	import { IconSearch, IconPlus, IconDownload, IconFilter, IconChevronLeft, IconChevronRight } from '@tabler/icons-svelte';
 	import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import SkeletonTable from '$lib/components/Skeleton.svelte';
 
-	let { data } = $props();
+let { data } = $props();
 
-	const santri = $derived(data.santri ?? []);
-	const kamarList = $derived(data.kamar ?? []);
-	const kelasList = $derived(data.kelas ?? []);
-	const kabupatenList = $derived((data.kabupaten ?? []) as string[]);
+const santri = $derived(data.santri ?? []);
+const kamarList = $derived(data.kamar ?? []);
+const kelasList = $derived(data.kelas ?? []);
+const kabupatenList = $derived((data.kabupaten ?? []) as string[]);
+const pagination = $derived(data.pagination ?? { page: 1, pageSize: 25, total: 0, totalPages: 0, pageSizeOptions: [10, 25, 50, 100] });
+const { page, pageSize, total, totalPages, pageSizeOptions } = pagination;
 
-	const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
+const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
 	const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
 	let query = $state('');
@@ -38,6 +41,19 @@
 		filterKeluarga = '';
 		filterGender = '';
 		filterKabupaten = '';
+	}
+
+	function goToPage(newPage: number) {
+		const params = new URLSearchParams(page.url.searchParams);
+		params.set('page', String(newPage));
+		goto(`?${params.toString()}`);
+	}
+
+	function changePageSize(newSize: number) {
+		const params = new URLSearchParams(page.url.searchParams);
+		params.set('limit', String(newSize));
+		params.set('page', '1');
+		goto(`?${params.toString()}`);
 	}
 
 	const filtered = $derived(
@@ -96,7 +112,7 @@
 	<title>Santri | Buku Induk</title>
 </svelte:head>
 
-<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {filtered.length} dari {santri.length} santri total.">
+<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {santri.length} dari {total} santri total (halaman {page} dari {totalPages}).">
 	{#snippet actions()}
 		<label class="relative flex-1 sm:w-72 sm:flex-none">
 			<span class="sr-only">Cari santri</span>
@@ -262,4 +278,56 @@
 			</tbody>
 		</table>
 	</div>
+
+	{#if totalPages > 1}
+		<div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+			<div class="flex items-center gap-2 text-sm text-base-content/70">
+				<span>Tampilkan</span>
+				<select
+					class="select select-bordered select-sm"
+					value={pageSize}
+					onchange={(e) => changePageSize(Number(e.currentTarget.value))}>
+					{#each pageSizeOptions as opt (opt)}
+						<option value={opt}>{opt} per halaman</option>
+					{/each}
+				</select>
+			</div>
+
+			<div class="flex items-center gap-2">
+				<button
+					class="btn btn-outline btn-sm"
+					onclick={() => goToPage(page - 1)}
+					disabled={page === 1}
+					aria-label="Halaman sebelumnya">
+					<IconChevronLeft class="size-4" />
+				</button>
+
+				{#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
+					{#if p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)}
+						<button
+							class="btn btn-sm {p === page ? 'btn-primary' : 'btn-outline'}"
+							onclick={() => goToPage(p)}
+							aria-label="Halaman {p}"
+							aria-current={p === page ? 'page' : undefined}>
+							{p}
+						</button>
+					{:else if p === page - 2 || p === page + 2}
+						<span class="px-2 text-base-content/40">…</span>
+					{/if}
+				{/each}
+
+				<button
+					class="btn btn-outline btn-sm"
+					onclick={() => goToPage(page + 1)}
+					disabled={page === totalPages}
+					aria-label="Halaman selanjutnya">
+					<IconChevronRight class="size-4" />
+				</button>
+			</div>
+
+			<div class="text-sm text-base-content/60">
+				Halaman {page} dari {totalPages} · Total {total} santri
+			</div>
+		</div>
+	{/if}
 {/if}
