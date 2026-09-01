@@ -6,18 +6,22 @@
 	.bar-grow {
 		transform-origin: left center;
 		transform: scaleX(1);
-		transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1);
+		opacity: 1;
+		transition:
+			transform var(--duration-panel) var(--ease-out),
+			opacity var(--duration-panel) var(--ease-out);
 	}
 
 	@starting-style {
 		.bar-grow {
-			transform: scaleX(0);
+			transform: scaleX(0.95);
+			opacity: 0;
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		.bar-grow {
-			transition: none;
+			transition-duration: 0.01ms !important;
 		}
 	}
 </style>
