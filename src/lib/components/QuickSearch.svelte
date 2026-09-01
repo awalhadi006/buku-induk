@@ -138,13 +138,13 @@
 
 {#if open}
 	<div
-		class="fixed inset-0 z-50 bg-black/40"
+		class="fixed inset-0 z-50 bg-black/40 quicksearch-backdrop"
 		role="presentation"
 		onclick={close}
 		onkeydown={onKeydown}></div>
 
 	<div
-		class="fixed inset-x-0 top-0 z-60 mx-auto mt-20 w-[min(560px,calc(100vw-2rem))] rounded-2xl border border-base-300 bg-base-100 shadow-2xl overflow-hidden"
+		class="fixed inset-x-0 top-0 z-60 mx-auto mt-20 w-[min(560px,calc(100vw-2rem))] rounded-2xl border border-base-300 bg-base-100 shadow-2xl overflow-hidden quicksearch-dialog"
 		role="dialog"
 		aria-modal="true"
 		aria-label="Pencarian cepat">
