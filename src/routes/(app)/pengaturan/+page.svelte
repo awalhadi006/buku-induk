@@ -14,8 +14,9 @@
 		IconCloud,
 		IconHash,
 		IconSchool
-	} from '@tabler/icons-svelte';
-	import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
+} from '@tabler/icons-svelte';
+import Skeleton from '$lib/components/Skeleton.svelte';
+import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	import { ABILITIES } from '$lib/permissions';
 
 	type Profile = {
@@ -172,6 +173,11 @@
 </div>
 
 {#if tab === 'users' && data.isSuperadmin}
+	{#if data.profiles === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="table" rows={5} cols={5} ariaLabel="Memuat daftar pengguna..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconUserCog class="size-4" stroke-width={1.75} />
@@ -376,8 +382,14 @@
 			</table>
 		</div>
 	</section>
+	{/if}
 
 {:else if tab === 'permissions' && data.isSuperadmin}
+	{#if data.permissions === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="card" count={5} ariaLabel="Memuat peran & izin..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconShieldCheck class="size-4" stroke-width={1.75} />
@@ -410,8 +422,14 @@
 			{/each}
 		</div>
 	</section>
+	{/if}
 
 {:else if tab === 'fields'}
+	{#if data.fields === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="card" count={4} ariaLabel="Memuat field kustom..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconListDetails class="size-4" stroke-width={1.75} />
@@ -537,8 +555,14 @@
 			</div>
 		{/if}
 	</section>
+	{/if}
 
 {:else if tab === 'ta'}
+	{#if data.tahunAjaran === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="table" rows={4} cols={3} ariaLabel="Memuat tahun ajaran..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconCalendar class="size-4" stroke-width={1.75} />
@@ -600,6 +624,7 @@
 			</form>
 		</div>
 	</section>
+	{/if}
 
 {:else if tab === 'nis' && data.isSuperadmin}
 	<section class="mt-6 max-w-2xl">
@@ -672,6 +697,11 @@
 	</section>
 
 {:else if tab === 'gdrive'}
+	{#if data.gdrive === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="card" count={1} ariaLabel="Memuat integrasi Google Drive..." />
+		</div>
+	{:else}
 	<section class="mt-6 max-w-2xl">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconCloud class="size-4" stroke-width={1.75} />
@@ -725,8 +755,14 @@
 			{/if}
 		</div>
 	</section>
+	{/if}
 
 {:else if tab === 'school'}
+	{#if data.settings === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="card" count={1} ariaLabel="Memuat identitas sekolah..." />
+		</div>
+	{:else}
 	<section class="mt-6 max-w-2xl">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconSchool class="size-4" stroke-width={1.75} />
@@ -773,8 +809,14 @@
 			</button>
 		</form>
 	</section>
+	{/if}
 
 {:else if tab === 'dashboard'}
+	{#if data.enabledMetrics === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="card" count={4} ariaLabel="Memuat konfigurasi dashboard..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconCalendar class="size-4" stroke-width={1.75} />
@@ -804,8 +846,14 @@
 			<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan</button>
 		</form>
 	</section>
+	{/if}
 
 {:else if tab === 'audit' && data.isSuperadmin}
+	{#if data.auditLogs === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="table" rows={5} cols={4} ariaLabel="Memuat audit log..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconHistory class="size-4" stroke-width={1.75} />
@@ -849,8 +897,14 @@
 			</div>
 		{/if}
 	</section>
+	{/if}
 
 {:else if tab === 'sidebar' && data.isSuperadmin}
+	{#if data.sidebarNav === undefined}
+		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+			<Skeleton variant="table" rows={8} cols={6} ariaLabel="Memuat konfigurasi sidebar..." />
+		</div>
+	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconMenu class="size-4" stroke-width={1.75} />
@@ -892,9 +946,10 @@
 			</table>
 			<div class="flex justify-end p-4">
 				<button type="submit" class="btn btn-primary btn-sm">Simpan Konfigurasi Sidebar</button>
-			</div>
-		</form>
+</div>
+	</form>
 	</section>
+	{/if}
 
 {:else}
 	<div class="mt-6 rounded-lg border border-dashed border-base-300 bg-base-100 p-8 text-center">
