@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconCheck, IconX, IconClock, IconUserCheck } from '@tabler/icons-svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 
 	let { data, form } = $props();
 
@@ -43,6 +44,13 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 		<span>{actionError}</span>
 	</div>
 {/if}
+
+{#if data.requests === undefined}
+	<div class="mt-8" role="status" aria-busy="true" aria-live="polite">
+		<Skeleton variant="table" rows={3} cols={6} ariaLabel="Memuat pengajuan persetujuan..." />
+		<Skeleton variant="table" rows={3} cols={5} ariaLabel="Memuat riwayat persetujuan..." class="mt-6" />
+	</div>
+{:else}
 
 <section class="mt-8">
 	<h2 class="flex items-center gap-2 text-base font-semibold">
@@ -155,4 +163,5 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 			</table>
 		</div>
 	</section>
+{/if}
 {/if}
