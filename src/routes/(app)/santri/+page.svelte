@@ -14,7 +14,11 @@ const kamarList = $derived(data.kamar ?? []);
 const kelasList = $derived(data.kelas ?? []);
 const kabupatenList = $derived((data.kabupaten ?? []) as string[]);
 const pagination = $derived(data.pagination ?? { page: 1, pageSize: 25, total: 0, totalPages: 0, pageSizeOptions: [10, 25, 50, 100] });
-const { page: currentPage, pageSize, total, totalPages, pageSizeOptions } = pagination;
+const currentPage = $derived(pagination.page);
+const pageSize = $derived(pagination.pageSize);
+const total = $derived(pagination.total);
+const totalPages = $derived(pagination.totalPages);
+const pageSizeOptions = $derived(pagination.pageSizeOptions);
 
 const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
 const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
@@ -28,6 +32,11 @@ let filterKeluarga = $state('');
 let filterGender = $state('');
 let filterKabupaten = $state('');
 let showFilters = $state(false);
+
+// Sync query with URL when user navigates via browser back/forward
+$effect(() => {
+	query = searchParam;
+});
 
 const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 'true');
 
