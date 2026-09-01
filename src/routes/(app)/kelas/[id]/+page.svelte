@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconPrinter } from '@tabler/icons-svelte';
 	import { STATUS_SANTRI_LABEL } from '$lib/santri';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 
 	let { data } = $props();
 	const k = $derived(data.kelas as { id: string; tingkat: string; rombel: string; tahun_ajaran: string | null; aktif: boolean });
@@ -32,6 +33,17 @@
 		</p>
 	</div>
 </header>
+
+{#if data.kelas === undefined || data.santri === undefined || data.rekap === undefined}
+	<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+		<div class="grid grid-cols-3 gap-4 mb-6">
+			<Skeleton variant="stat" ariaLabel="Memuat statistik kelas..." />
+			<Skeleton variant="stat" ariaLabel="Memuat statistik kelas..." />
+			<Skeleton variant="stat" ariaLabel="Memuat statistik kelas..." />
+		</div>
+		<Skeleton variant="table" rows={5} cols={4} ariaLabel="Memuat daftar santri kelas..." />
+	</div>
+{:else}
 
 <div class="mt-4 flex gap-2">
 	<a class="btn btn-outline btn-sm" href="/kelas/{k.id}/kartu-massal" target="_blank" rel="noopener">
@@ -83,3 +95,4 @@
 		</tbody>
 	</table>
 </div>
+{/if}
