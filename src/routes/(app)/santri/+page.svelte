@@ -2,8 +2,8 @@
 	import { page } from '$app/state';
 	import { IconSearch, IconPlus, IconDownload, IconFilter } from '@tabler/icons-svelte';
 	import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
-import PageHeader from '$lib/components/PageHeader.svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let { data } = $props();
 
@@ -62,6 +62,33 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 			return true;
 		})
 	);
+
+	// Accordion transition for filter panel
+	function slideDown(node: HTMLElement, { duration = 250 } = {}) {
+		const height = node.scrollHeight;
+		return {
+			duration,
+			easing: (t) => 1 - Math.pow(1 - t, 3), // ease-out cubic
+			css: (t) => `
+				max-height: ${t * height}px;
+				opacity: ${t};
+				overflow: hidden;
+			`
+		};
+	}
+
+	function slideUp(node: HTMLElement, { duration = 250 } = {}) {
+		const height = node.scrollHeight;
+		return {
+			duration,
+			easing: (t) => 1 - Math.pow(1 - t, 3),
+			css: (t) => `
+				max-height: ${(1 - t) * height}px;
+				opacity: ${1 - t};
+				overflow: hidden;
+			`
+		};
+	}
 </script>
 
 <svelte:head>
@@ -105,7 +132,7 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 
 <!-- PANEL FILTER LANJUTAN -->
 {#if showFilters}
-	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm">
+	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm filter-panel" transition:slideDown|slideUp={{duration: 250}}>
 		<div class="flex items-center justify-between pb-3 border-b border-base-200">
 			<h2 class="text-sm font-semibold flex items-center gap-2">
 				<IconFilter class="size-4 text-primary" />
@@ -213,8 +240,8 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 				</tr>
 			</thead>
 			<tbody>
-				{#each filtered as s}
-					<tr class="hover:bg-base-200/50">
+				{#each filtered as s, i (s.id)}
+					<tr class="hover:bg-base-200/50 santri-row" style="--stagger-index: {i};">
 						<td class="font-medium">
 							<a class="link link-hover" href="/santri/{s.id}">{s.nama_lengkap}</a>
 						</td>

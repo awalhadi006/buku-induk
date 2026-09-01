@@ -11,6 +11,7 @@
 	let docs = $state<{ file: File; jenis: string }[]>([]);
 	let error = $state('');
 	let submitting = $state(false);
+	let showToast = $state(false);
 
 	function onFiles(e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
@@ -90,6 +91,9 @@
 				if (docErr) throw new Error(docErr.message);
 			}
 
+			// Show success toast before navigation
+			showToast = true;
+			await new Promise(r => setTimeout(r, 500));
 			goto(`/santri/${row.id}`);
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Gagal menyimpan santri.';
@@ -103,6 +107,15 @@
 </svelte:head>
 
 <PageHeader title="Tambah Santri" desc="Isi identitas santri sesuai buku induk." backHref="/santri" />
+
+{#if showToast}
+	<div class="fixed bottom-4 right-4 z-50 toast animate-in" role="status" aria-live="polite">
+		<div class="rounded-lg border border-success/40 bg-success/10 px-4 py-3 shadow-lg flex items-center gap-2">
+			<svg class="size-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+			<span class="text-sm font-medium text-success">Santri berhasil disimpan</span>
+		</div>
+	</div>
+{/if}
 
 <div class="mt-6">
 	<SantriForm

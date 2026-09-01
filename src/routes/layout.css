@@ -200,3 +200,100 @@
 	background: var(--color-base-300);
 	border-radius: 9999px;
 }
+
+/* Global UI animations — purposeful, not decorative */
+/* Button press feedback — Feedback, Tens/day */
+.btn:active {
+	transform: scale(0.97);
+	transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* Alert entrance — State indication, Occasional */
+.alert.animate-in {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+	transition:
+		opacity var(--duration-base) var(--ease-out),
+		transform var(--duration-base) var(--ease-out);
+}
+
+@starting-style {
+	.alert.animate-in {
+		opacity: 0;
+		transform: translateY(-8px) scale(0.97);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.btn:active,
+	.alert.animate-in {
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* EmptyState — Prevent jarring change, Occasional */
+.empty-state.animate-in {
+	opacity: 1;
+	transform: translateY(0);
+	transition:
+		opacity var(--duration-panel) var(--ease-out),
+		transform var(--duration-panel) var(--ease-out);
+}
+
+@starting-style {
+	.empty-state.animate-in {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.empty-state.animate-in {
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* Santri table row stagger — Group entrance, Occasional */
+.santri-row {
+	opacity: 0;
+	transform: translateY(6px);
+	animation: santri-row-in 150ms var(--ease-out) forwards;
+	animation-delay: calc(var(--stagger-index) * 30ms);
+}
+
+@keyframes santri-row-in {
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.santri-row {
+		animation: none;
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Toast — Feedback, Occasional */
+.toast.animate-in {
+	opacity: 1;
+	transform: translateY(0);
+	transition:
+		opacity var(--duration-toast) var(--ease-out),
+		transform var(--duration-toast) var(--ease-out);
+}
+
+@starting-style {
+	.toast.animate-in {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.toast.animate-in {
+		transition-duration: 0.01ms !important;
+	}
+}
