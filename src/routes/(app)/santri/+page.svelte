@@ -14,7 +14,7 @@ const kamarList = $derived(data.kamar ?? []);
 const kelasList = $derived(data.kelas ?? []);
 const kabupatenList = $derived((data.kabupaten ?? []) as string[]);
 const pagination = $derived(data.pagination ?? { page: 1, pageSize: 25, total: 0, totalPages: 0, pageSizeOptions: [10, 25, 50, 100] });
-const { page, pageSize, total, totalPages, pageSizeOptions } = pagination;
+const { page: currentPage, pageSize, total, totalPages, pageSizeOptions } = pagination;
 
 const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
 const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
@@ -94,8 +94,8 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 		const height = node.scrollHeight;
 		return {
 			duration,
-			easing: (t) => 1 - Math.pow(1 - t, 3), // ease-out cubic
-			css: (t) => `
+			easing: (t: number) => 1 - Math.pow(1 - t, 3), // ease-out cubic
+			css: (t: number) => `
 				max-height: ${t * height}px;
 				opacity: ${t};
 				overflow: hidden;
@@ -107,8 +107,8 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 		const height = node.scrollHeight;
 		return {
 			duration,
-			easing: (t) => 1 - Math.pow(1 - t, 3),
-			css: (t) => `
+			easing: (t: number) => 1 - Math.pow(1 - t, 3),
+			css: (t: number) => `
 				max-height: ${(1 - t) * height}px;
 				opacity: ${1 - t};
 				overflow: hidden;
@@ -121,7 +121,7 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 	<title>Santri | Buku Induk</title>
 </svelte:head>
 
-<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {santri.length} dari {total} santri total (halaman {page} dari {totalPages}){searchParam ? ` · Hasil untuk: "${searchParam}"` : ''}.">
+<PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {santri.length} dari {total} santri total (halaman {currentPage} dari {totalPages}){searchParam ? ` · Hasil untuk: "${searchParam}"` : ''}.">
 	{#snippet actions()}
 		<label class="relative flex-1 sm:w-72 sm:flex-none">
 			<span class="sr-only">Cari santri</span>
@@ -313,37 +313,37 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 			<div class="flex items-center gap-2">
 				<button
 					class="btn btn-outline btn-sm"
-					onclick={() => goToPage(page - 1)}
-					disabled={page === 1}
+					onclick={() => goToPage(currentPage - 1)}
+					disabled={currentPage === 1}
 					aria-label="Halaman sebelumnya">
 					<IconChevronLeft class="size-4" />
 				</button>
 
 				{#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
-					{#if p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)}
+					{#if p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)}
 						<button
-							class="btn btn-sm {p === page ? 'btn-primary' : 'btn-outline'}"
+							class="btn btn-sm {p === currentPage ? 'btn-primary' : 'btn-outline'}"
 							onclick={() => goToPage(p)}
 							aria-label="Halaman {p}"
-							aria-current={p === page ? 'page' : undefined}>
+							aria-current={p === currentPage ? 'page' : undefined}>
 							{p}
 						</button>
-					{:else if p === page - 2 || p === page + 2}
+					{:else if p === currentPage - 2 || p === currentPage + 2}
 						<span class="px-2 text-base-content/40">…</span>
 					{/if}
 				{/each}
 
 				<button
 					class="btn btn-outline btn-sm"
-					onclick={() => goToPage(page + 1)}
-					disabled={page === totalPages}
+					onclick={() => goToPage(currentPage + 1)}
+					disabled={currentPage === totalPages}
 					aria-label="Halaman selanjutnya">
 					<IconChevronRight class="size-4" />
 				</button>
 			</div>
 
 			<div class="text-sm text-base-content/60">
-				Halaman {page} dari {totalPages} · Total {total} santri
+				Halaman {currentPage} dari {totalPages} · Total {total} santri
 			</div>
 		</div>
 	{/if}
