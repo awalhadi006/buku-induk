@@ -6,6 +6,8 @@
 
 	let { form } = $props();
 
+	let submitting = $state(false);
+
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 	const result = $derived(
 		form && typeof (form as { berhasil?: number }).berhasil === 'number'
@@ -191,8 +193,9 @@
 				accept=".xlsx,.xls"
 				required />
 		</label>
-		<button type="submit" class="btn btn-primary btn-sm mt-4">
+		<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting}>
 			<IconFileImport class="size-4" stroke-width={2} />
+			{#if submitting}<span class="loading loading-spinner loading-sm"></span>{/if}
 			Import
 		</button>
 	</form>
