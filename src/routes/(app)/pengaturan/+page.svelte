@@ -68,6 +68,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
+	let submitting = $state(false);
 	let selectedTab = $state<string | null>(null);
 	const tab = $derived(
 		selectedTab ?? (data.isSuperadmin ? 'users' : 'fields')
@@ -197,7 +198,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</p>
 				</div>
 				<form method="POST" action="?/toggleAdminTuCreateUsers">
-					<button type="submit" class="btn btn-sm {settings['allow_admin_tu_create_users'] === 'true' ? 'btn-success' : 'btn-outline'}">
+					<button type="submit" class="btn btn-sm {settings['allow_admin_tu_create_users'] === 'true' ? 'btn-success' : 'btn-outline'}" disabled={submitting} onclick={() => submitting = true}>
 						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif' : 'Nonaktif'}
 					</button>
 				</form>
@@ -263,7 +264,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 						</select>
 					</label>
 				</div>
-				<button type="submit" class="btn btn-primary btn-sm mt-4">
+				<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
 					<IconPlus class="size-4" stroke-width={2} />
 					Buat Akun
 				</button>
@@ -355,14 +356,14 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 										<input type="hidden" name="peran" value={editForm.peran} />
 										<input type="hidden" name="kamar_id" value={editForm.kamar_id} />
 										<input type="hidden" name="kelas_id" value={editForm.kelas_id} />
-										<button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+										<button type="submit" class="btn btn-primary btn-sm" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
 										<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingId = null)}>
 											Batal
 										</button>
 									</form>
 									<form method="POST" action="?/resetPassword" class="flex justify-end gap-2 mt-2">
 										<input type="hidden" name="user_id" value={p.id} />
-										<button type="submit" class="btn btn-warning btn-sm" onclick={() => confirm('Kirim link reset password ke email pengguna ini?')}>
+										<button type="submit" class="btn btn-warning btn-sm" disabled={submitting} onclick={() => { if (confirm('Kirim link reset password ke email pengguna ini?')) submitting = true; else return false; }}>
 											Reset Password
 										</button>
 									</form>
@@ -417,7 +418,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 							</label>
 						{/each}
 					</div>
-					<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan izin</button>
+					<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>Simpan izin</button>
 				</form>
 			{/each}
 		</div>
@@ -471,7 +472,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary toggle-sm" />
 				<span class="text-sm font-medium">Aktif</span>
 			</label>
-			<button type="submit" class="btn btn-primary btn-sm mt-4">
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
 				<IconPlus class="size-4" stroke-width={2} />
 				Tambah field
 			</button>
@@ -514,7 +515,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<span class="text-sm font-medium">Aktif</span>
 							</label>
 							<div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
-								<button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+								<button type="submit" class="btn btn-primary btn-sm" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
 								<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingField = null)}>Batal</button>
 							</div>
 						</form>
@@ -537,9 +538,9 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								onclick={() => startEditField(f)}>
 								<IconEdit class="size-4" stroke-width={1.75} />
 							</button>
-							<form method="POST" action="?/deleteField" onsubmit={() => confirm(`Hapus field "${f.label}"?`)}>
+							<form method="POST" action="?/deleteField" onsubmit={() => { if (confirm(`Hapus field "${f.label}"?`)) submitting = true; else return false; }}>
 								<input type="hidden" name="id" value={f.id} />
-								<button class="btn btn-ghost btn-square btn-sm text-error" aria-label="Hapus field" title="Hapus" type="submit">
+								<button class="btn btn-ghost btn-square btn-sm text-error" aria-label="Hapus field" title="Hapus" type="submit" disabled={submitting}>
 									<IconTrash class="size-4" stroke-width={1.75} />
 								</button>
 							</form>
@@ -583,7 +584,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					{/each}
 				</select>
 			</label>
-			<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan</button>
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
 		</form>
 
 		<div class="mt-6 max-w-md">
@@ -599,13 +600,13 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<form method="POST" action="?/toggleTahunAjaran">
 									<input type="hidden" name="id" value={ta.id} />
 									<input type="hidden" name="aktif" value={ta.aktif ? 'false' : 'true'} />
-									<button type="submit" class="btn btn-ghost btn-xs {ta.aktif ? 'text-success' : 'text-base-content/50'}">
+									<button type="submit" class="btn btn-ghost btn-xs {ta.aktif ? 'text-success' : 'text-base-content/50'}" disabled={submitting} onclick={() => submitting = true}>
 										{ta.aktif ? 'Aktif' : 'Nonaktif'}
 									</button>
 								</form>
-								<form method="POST" action="?/deleteTahunAjaran" onsubmit={() => confirm('Hapus tahun ajaran ini?')}>
+								<form method="POST" action="?/deleteTahunAjaran" onsubmit={() => { if (confirm('Hapus tahun ajaran ini?')) submitting = true; else return false; }}>
 									<input type="hidden" name="id" value={ta.id} />
-									<button type="submit" class="btn btn-ghost btn-xs text-error" aria-label="Hapus">
+									<button type="submit" class="btn btn-ghost btn-xs text-error" aria-label="Hapus" disabled={submitting}>
 										<IconTrash class="size-4" stroke-width={1.75} />
 									</button>
 								</form>
@@ -617,7 +618,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 
 			<form method="POST" action="?/createTahunAjaran" class="mt-3 flex gap-2">
 				<input name="nama" type="text" class="input input-bordered input-sm flex-1" placeholder="Tambah tahun ajaran (mis. 2027/2028)" />
-				<button type="submit" class="btn btn-outline btn-sm">
+				<button type="submit" class="btn btn-outline btn-sm" disabled={submitting} onclick={() => submitting = true}>
 					<IconPlus class="size-4" stroke-width={1.75} />
 					Tambah
 				</button>
@@ -677,7 +678,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</div>
 			</div>
 
-			<button type="submit" class="btn btn-primary btn-sm mt-4">
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
 				<IconEdit class="size-4" stroke-width={2} />
 				Simpan Pola
 			</button>
@@ -689,7 +690,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			<p class="mt-1 text-sm text-base-content/60">
 				Buatkan NIS otomatis untuk semua santri yang belum memiliki NIS.
 			</p>
-			<button type="submit" class="btn btn-outline btn-sm mt-3" onclick={(e) => !confirm('Generate NIS untuk semua santri yang belum punya NIS?') && e.preventDefault()}>
+			<button type="submit" class="btn btn-outline btn-sm mt-3" disabled={submitting} onclick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submitting = true; else return false; }}>
 				<IconHash class="size-4" stroke-width={2} />
 				Generate Sekarang
 			</button>
@@ -746,7 +747,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					<p class="mt-1 text-xs text-base-content/50">
 						Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
 					</p>
-					<button type="submit" class="btn btn-primary btn-sm mt-3">Simpan Folder</button>
+					<button type="submit" class="btn btn-primary btn-sm mt-3" disabled={submitting} onclick={() => submitting = true}>Simpan Folder</button>
 				</form>
 			{:else}
 				<p class="mt-4 text-sm text-base-content/60">
@@ -803,7 +804,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					accept="image/*" />
 			</label>
 
-			<button type="submit" class="btn btn-primary btn-sm mt-4">
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
 				<IconEdit class="size-4" stroke-width={2} />
 				Simpan Identitas
 			</button>
@@ -843,7 +844,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</label>
 				{/each}
 			</div>
-			<button type="submit" class="btn btn-primary btn-sm mt-4">Simpan</button>
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
 		</form>
 	</section>
 	{/if}
@@ -945,7 +946,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</tbody>
 			</table>
 			<div class="flex justify-end p-4">
-				<button type="submit" class="btn btn-primary btn-sm">Simpan Konfigurasi Sidebar</button>
+				<button type="submit" class="btn btn-primary btn-sm" disabled={submitting} onclick={() => submitting = true}>Simpan Konfigurasi Sidebar</button>
 </div>
 	</form>
 	</section>
