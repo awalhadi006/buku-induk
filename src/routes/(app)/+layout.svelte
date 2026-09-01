@@ -156,7 +156,7 @@
 	{/if}
 
 	<aside
-		class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-base-300 bg-base-100 transition-all duration-200 lg:translate-x-0 motion-reduce:transition-none {rail
+		class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-base-300 bg-base-100 sidebar-drawer lg:translate-x-0 motion-reduce:transition-none {rail
 			? 'lg:w-[76px]'
 			: ''} {open ? 'translate-x-0' : ''}">
 		<div
