@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { IconArrowRight, IconAward, IconChevronLeft, IconRepeat, IconSchool } from '@tabler/icons-svelte';
 
+	let submittingNaik = $state(false);
+	let submittingLulus = $state(false);
+
 	type Kelas = {
 		id: number;
 		tingkat: string;
@@ -128,8 +131,9 @@
 			<button
 				type="submit"
 				class="btn btn-primary w-full"
-				disabled={!sourceNaik || !targetNaik || sourceNaik === targetNaik}>
+				disabled={submittingNaik || !sourceNaik || !targetNaik || sourceNaik === targetNaik}>
 				<IconRepeat class="size-4" stroke-width={2} />
+				{#if submittingNaik}<span class="loading loading-spinner loading-sm"></span>{/if}
 				Proses Kenaikan Kelas
 			</button>
 		</form>
@@ -184,8 +188,9 @@
 			<button
 				type="submit"
 				class="btn btn-warning w-full"
-				disabled={!sourceLulus || (selectedSourceLulus?.jumlahSantri ?? 0) === 0}>
+				disabled={submittingLulus || !sourceLulus || (selectedSourceLulus?.jumlahSantri ?? 0) === 0}>
 				<IconAward class="size-4" stroke-width={2} />
+				{#if submittingLulus}<span class="loading loading-spinner loading-sm"></span>{/if}
 				Proses Kelulusan
 			</button>
 		</form>
