@@ -1,8 +1,9 @@
 <script lang="ts">
-import { IconAward, IconSearch, IconFilter } from '@tabler/icons-svelte';
-import { STATUS_KELUARGA_LABEL, GENDER_LABEL } from '$lib/santri';
-import PageHeader from '$lib/components/PageHeader.svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
+	import { IconAward, IconSearch, IconFilter } from '@tabler/icons-svelte';
+	import { STATUS_KELUARGA_LABEL, GENDER_LABEL } from '$lib/santri';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import Skeleton from '$lib/components/Skeleton.svelte';
 
 	type Alumni = {
 		id: string;
@@ -155,7 +156,11 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 	</div>
 {/if}
 
-{#if alumni.length === 0}
+{#if data.alumni === undefined}
+	<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+		<Skeleton variant="table" rows={5} cols={6} ariaLabel="Memuat data alumni..." />
+	</div>
+{:else if alumni.length === 0}
 	<div class="mt-6">
 		<EmptyState
 			title="Belum ada alumni"
