@@ -24,7 +24,8 @@ const profile = $derived((page.data.profile as { peran: string } | null) ?? null
 const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
 const searchParam = $derived(page.url.searchParams.get('q')?.trim() ?? '');
-let query = $state(searchParam);
+let query = $state('');
+
 let filterKamar = $state('');
 let filterKelas = $state('');
 let filterStatus = $state('');
@@ -33,7 +34,7 @@ let filterGender = $state('');
 let filterKabupaten = $state('');
 let showFilters = $state(false);
 
-// Sync query with URL when user navigates via browser back/forward
+// Sync query with URL when user navigates via browser back/forward or initial load
 $effect(() => {
 	query = searchParam;
 });
