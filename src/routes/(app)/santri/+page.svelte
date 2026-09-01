@@ -4,6 +4,7 @@
 	import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import SkeletonTable from '$lib/components/Skeleton.svelte';
 
 	let { data } = $props();
 
@@ -209,7 +210,7 @@
 	</div>
 {/if}
 
-{#if santri.length === 0}
+{#if santri.length === 0 && data.santri !== undefined}
 	<div class="mt-6">
 		<EmptyState
 			title="Belum ada data santri"
@@ -219,6 +220,10 @@
 				<a class="btn btn-outline btn-sm" href="/santri/baru">Tambah manual</a>
 			{/if}
 		</EmptyState>
+	</div>
+{:else if data.santri === undefined}
+	<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+		<SkeletonTable rows={5} cols={6} ariaLabel="Memuat daftar santri..." />
 	</div>
 {:else if filtered.length === 0}
 	<div class="mt-6">
