@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
+	import SkeletonCard from '$lib/components/Skeleton.svelte';
 
 	type Kamar = {
 		id: number;
@@ -144,7 +145,11 @@ import EmptyState from '$lib/components/EmptyState.svelte';
 	{/each}
 </ul>
 
-{#if kamar.length === 0}
+{#if data.kamar === undefined}
+	<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
+		<SkeletonCard count={4} ariaLabel="Memuat daftar kamar..." />
+	</div>
+{:else if kamar.length === 0}
 	<div class="mt-6">
 		<EmptyState title="Belum ada kamar" desc="Tambahkan kamar pertama lewat formulir di atas." />
 	</div>
