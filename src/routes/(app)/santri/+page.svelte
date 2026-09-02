@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { IconSearch, IconPlus, IconDownload, IconFilter, IconChevronLeft, IconChevronRight } from '@tabler/icons-svelte';
-	import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
-	import PageHeader from '$lib/components/PageHeader.svelte';
-	import EmptyState from '$lib/components/EmptyState.svelte';
-	import SkeletonTable from '$lib/components/Skeleton.svelte';
+import { IconSearch, IconPlus, IconDownload, IconFilter, IconChevronLeft, IconChevronRight } from '@tabler/icons-svelte';
+import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
+import PageHeader from '$lib/components/PageHeader.svelte';
+import EmptyState from '$lib/components/EmptyState.svelte';
+import SkeletonTable from '$lib/components/Skeleton.svelte';
+import Collapse from '$lib/components/Collapse.svelte';
 
 let { data } = $props();
 
@@ -98,33 +99,6 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 			return true;
 		})
 	);
-
-	// Accordion transition for filter panel
-	function slideDown(node: HTMLElement, { duration = 250 } = {}) {
-		const height = node.scrollHeight;
-		return {
-			duration,
-			easing: (t: number) => 1 - Math.pow(1 - t, 3), // ease-out cubic
-			css: (t: number) => `
-				max-height: ${t * height}px;
-				opacity: ${t};
-				overflow: hidden;
-			`
-		};
-	}
-
-	function slideUp(node: HTMLElement, { duration = 250 } = {}) {
-		const height = node.scrollHeight;
-		return {
-			duration,
-			easing: (t: number) => 1 - Math.pow(1 - t, 3),
-			css: (t: number) => `
-				max-height: ${(1 - t) * height}px;
-				opacity: ${1 - t};
-				overflow: hidden;
-			`
-		};
-	}
 </script>
 
 <svelte:head>
@@ -168,8 +142,8 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 </PageHeader>
 
 <!-- PANEL FILTER LANJUTAN -->
-{#if showFilters}
-	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm" transition:slideDown|slideUp={{duration: 250}}>
+<Collapse open={showFilters} duration={250}>
+	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm">
 		<div class="flex items-center justify-between pb-3 border-b border-base-200">
 			<h2 class="text-sm font-semibold flex items-center gap-2">
 				<IconFilter class="size-4 text-primary" />
@@ -251,7 +225,7 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 			</label>
 		</div>
 	</div>
-{/if}
+</Collapse>
 
 {#if santri.length === 0 && data.santri !== undefined}
 	<div class="mt-6">
