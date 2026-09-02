@@ -169,7 +169,7 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 
 <!-- PANEL FILTER LANJUTAN -->
 {#if showFilters}
-	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm filter-panel" transition:slideDown|slideUp={{duration: 250}}>
+	<div class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5 shadow-sm" transition:slideDown|slideUp={{duration: 250}}>
 		<div class="flex items-center justify-between pb-3 border-b border-base-200">
 			<h2 class="text-sm font-semibold flex items-center gap-2">
 				<IconFilter class="size-4 text-primary" />

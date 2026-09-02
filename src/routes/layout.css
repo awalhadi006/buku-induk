@@ -106,6 +106,15 @@
 		--duration-base: 200ms;
 		--duration-panel: 250ms;
 		--duration-toast: 300ms;
+		--motion-duration: var(--duration-base);
+		--motion-easing: var(--ease-out);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:root {
+			--motion-duration: 0.01ms;
+			--motion-easing: linear;
+		}
 	}
 
 	h1,
@@ -144,17 +153,6 @@
 			scroll-behavior: smooth;
 		}
 	}
-
-@media (prefers-reduced-motion: reduce) {
-	*,
-	*::before,
-	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
-		scroll-behavior: auto !important;
-	}
-}
 
 }
 
@@ -208,6 +206,13 @@
 	transition: transform var(--duration-fast) var(--ease-out);
 }
 
+@media (prefers-reduced-motion: reduce) {
+	.btn:active {
+		transition-duration: var(--motion-duration);
+		transition-timing-function: var(--motion-easing);
+	}
+}
+
 /* Alert entrance — State indication, Occasional */
 .alert.animate-in {
 	opacity: 1;
@@ -225,9 +230,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.btn:active,
 	.alert.animate-in {
-		transition-duration: 0.01ms !important;
+		transition-duration: var(--motion-duration);
+		transition-timing-function: var(--motion-easing);
 	}
 }
 
@@ -249,7 +254,8 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.empty-state.animate-in {
-		transition-duration: 0.01ms !important;
+		transition-duration: var(--motion-duration);
+		transition-timing-function: var(--motion-easing);
 	}
 }
 
@@ -294,6 +300,7 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.toast.animate-in {
-		transition-duration: 0.01ms !important;
+		transition-duration: var(--motion-duration);
+		transition-timing-function: var(--motion-easing);
 	}
 }

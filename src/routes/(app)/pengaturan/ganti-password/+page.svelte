@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { IconPassword } from '@tabler/icons-svelte';
 
 	let { form } = $props();
@@ -45,7 +44,7 @@
 	</div>
 {/if}
 
-<form method="POST" action="?/changePassword" use:enhance class="mt-6 max-w-lg rounded-lg border border-base-300 bg-base-100 p-5">
+<form method="POST" action="?/changePassword" class="mt-6 max-w-lg rounded-lg border border-base-300 bg-base-100 p-5">
 	<h2 class="flex items-center gap-2 text-sm font-semibold">
 		<IconPassword class="size-4" stroke-width={1.75} />
 		Form Ganti Kata Sandi
@@ -78,7 +77,7 @@
 
 		<div class="flex justify-end gap-2">
 			<button type="button" class="btn btn-ghost" onclick={resetForm}>Reset</button>
-			<button type="submit" class="btn btn-primary" disabled={submitting || !password || password !== passwordConfirm}>
+			<button type="submit" class="btn btn-primary" disabled={submitting || !password || password !== passwordConfirm} onclick={() => submitting = true}>
 				{#if submitting}<span class="loading loading-spinner loading-sm"></span>{/if}
 				Ganti Kata Sandi
 			</button>

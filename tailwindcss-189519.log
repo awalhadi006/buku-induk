@@ -1,0 +1,16 @@
+2026-09-02T12:52:08.684644Z  INFO tailwindcss_oxide::scanner: Provided sources:
+2026-09-02T12:52:08.684697Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "/home/ruut/project/buku-induk", pattern: "**/*", negated: false }
+2026-09-02T12:52:08.685034Z  INFO tailwindcss_oxide::scanner: Optimized sources:
+2026-09-02T12:52:08.685048Z  INFO tailwindcss_oxide::scanner: Source: Auto { base: "/home/ruut/project/buku-induk" }
+2026-09-02T12:52:08.695095Z  INFO tailwindcss_oxide::scanner: Provided sources:
+2026-09-02T12:52:08.695230Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "/home/ruut/project/buku-induk", pattern: "**/*", negated: false }
+2026-09-02T12:52:08.695514Z  INFO tailwindcss_oxide::scanner: Optimized sources:
+2026-09-02T12:52:08.695567Z  INFO tailwindcss_oxide::scanner: Source: Auto { base: "/home/ruut/project/buku-induk" }
+2026-09-02T12:52:08.698038Z  INFO tailwindcss_oxide::scanner: Provided sources:
+2026-09-02T12:52:08.698135Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "/home/ruut/project/buku-induk", pattern: "**/*", negated: false }
+2026-09-02T12:52:08.698409Z  INFO tailwindcss_oxide::scanner: Optimized sources:
+2026-09-02T12:52:08.698461Z  INFO tailwindcss_oxide::scanner: Source: Auto { base: "/home/ruut/project/buku-induk" }
+2026-09-02T12:52:08.937812Z  INFO tailwindcss_oxide::scanner: Provided sources:
+2026-09-02T12:52:08.937911Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "/home/ruut/project/buku-induk", pattern: "**/*", negated: false }
+2026-09-02T12:52:08.938200Z  INFO tailwindcss_oxide::scanner: Optimized sources:
+2026-09-02T12:52:08.938219Z  INFO tailwindcss_oxide::scanner: Source: Auto { base: "/home/ruut/project/buku-induk" }

@@ -68,7 +68,27 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
-	let submitting = $state(false);
+
+	// Per-form loading states
+	let submittingToggleAdmin = $state(false);
+	let submittingCreateUser = $state(false);
+	let submittingUpdateProfile = $state(false);
+	let submittingResetPassword = $state(false);
+	let submittingUpdatePermissions = $state(false);
+	let submittingCreateField = $state(false);
+	let submittingUpdateField = $state(false);
+	let submittingDeleteField = $state(false);
+	let submittingUpdateSetting = $state(false);
+	let submittingCreateTahunAjaran = $state(false);
+	let submittingToggleTahunAjaran = $state(false);
+	let submittingDeleteTahunAjaran = $state(false);
+	let submittingUpdateNisPattern = $state(false);
+	let submittingBulkGenerateNis = $state(false);
+	let submittingUpdateGDriveFolder = $state(false);
+	let submittingUpdateSchoolIdentity = $state(false);
+	let submittingUpdateDashboardMetrics = $state(false);
+	let submittingUpdateSidebarNav = $state(false);
+
 	let selectedTab = $state<string | null>(null);
 	const tab = $derived(
 		selectedTab ?? (data.isSuperadmin ? 'users' : 'fields')
@@ -174,11 +194,6 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 </div>
 
 {#if tab === 'users' && data.isSuperadmin}
-	{#if data.profiles === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="table" rows={5} cols={5} ariaLabel="Memuat daftar pengguna..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconUserCog class="size-4" stroke-width={1.75} />
@@ -198,7 +213,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</p>
 				</div>
 				<form method="POST" action="?/toggleAdminTuCreateUsers">
-					<button type="submit" class="btn btn-sm {settings['allow_admin_tu_create_users'] === 'true' ? 'btn-success' : 'btn-outline'}" disabled={submitting} onclick={() => submitting = true}>
+					<button type="submit" class="btn btn-sm {settings['allow_admin_tu_create_users'] === 'true' ? 'btn-success' : 'btn-outline'}" disabled={submittingToggleAdmin} onclick={() => submittingToggleAdmin = true}>
 						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif' : 'Nonaktif'}
 					</button>
 				</form>
@@ -264,7 +279,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 						</select>
 					</label>
 				</div>
-				<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
+				<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingCreateUser} onclick={() => submittingCreateUser = true}>
 					<IconPlus class="size-4" stroke-width={2} />
 					Buat Akun
 				</button>
@@ -356,14 +371,14 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 										<input type="hidden" name="peran" value={editForm.peran} />
 										<input type="hidden" name="kamar_id" value={editForm.kamar_id} />
 										<input type="hidden" name="kelas_id" value={editForm.kelas_id} />
-										<button type="submit" class="btn btn-primary btn-sm" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
+										<button type="submit" class="btn btn-primary btn-sm" disabled={submittingUpdateProfile} onclick={() => submittingUpdateProfile = true}>Simpan</button>
 										<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingId = null)}>
 											Batal
 										</button>
 									</form>
 									<form method="POST" action="?/resetPassword" class="flex justify-end gap-2 mt-2">
 										<input type="hidden" name="user_id" value={p.id} />
-										<button type="submit" class="btn btn-warning btn-sm" disabled={submitting} onclick={() => { if (confirm('Kirim link reset password ke email pengguna ini?')) submitting = true; else return false; }}>
+										<button type="submit" class="btn btn-warning btn-sm" disabled={submittingResetPassword} onclick={() => { if (confirm('Kirim link reset password ke email pengguna ini?')) submittingResetPassword = true; else return false; }}>
 											Reset Password
 										</button>
 									</form>
@@ -383,14 +398,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			</table>
 		</div>
 	</section>
-	{/if}
 
 {:else if tab === 'permissions' && data.isSuperadmin}
-	{#if data.permissions === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="card" count={5} ariaLabel="Memuat peran & izin..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconShieldCheck class="size-4" stroke-width={1.75} />
@@ -418,19 +427,13 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 							</label>
 						{/each}
 					</div>
-					<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>Simpan izin</button>
+					<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingUpdatePermissions} onclick={() => submittingUpdatePermissions = true}>Simpan izin</button>
 				</form>
 			{/each}
 		</div>
 	</section>
-	{/if}
 
 {:else if tab === 'fields'}
-	{#if data.fields === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="card" count={4} ariaLabel="Memuat field kustom..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconListDetails class="size-4" stroke-width={1.75} />
@@ -472,7 +475,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary toggle-sm" />
 				<span class="text-sm font-medium">Aktif</span>
 			</label>
-			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingCreateField} onclick={() => submittingCreateField = true}>
 				<IconPlus class="size-4" stroke-width={2} />
 				Tambah field
 			</button>
@@ -515,7 +518,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<span class="text-sm font-medium">Aktif</span>
 							</label>
 							<div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
-								<button type="submit" class="btn btn-primary btn-sm" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
+								<button type="submit" class="btn btn-primary btn-sm" disabled={submittingUpdateField} onclick={() => submittingUpdateField = true}>Simpan</button>
 								<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingField = null)}>Batal</button>
 							</div>
 						</form>
@@ -538,9 +541,9 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								onclick={() => startEditField(f)}>
 								<IconEdit class="size-4" stroke-width={1.75} />
 							</button>
-							<form method="POST" action="?/deleteField" onsubmit={() => { if (confirm(`Hapus field "${f.label}"?`)) submitting = true; else return false; }}>
+							<form method="POST" action="?/deleteField" onsubmit={() => { if (confirm(`Hapus field "${f.label}"?`)) submittingDeleteField = true; else return false; }}>
 								<input type="hidden" name="id" value={f.id} />
-								<button class="btn btn-ghost btn-square btn-sm text-error" aria-label="Hapus field" title="Hapus" type="submit" disabled={submitting}>
+								<button class="btn btn-ghost btn-square btn-sm text-error" aria-label="Hapus field" title="Hapus" type="submit" disabled={submittingDeleteField}>
 									<IconTrash class="size-4" stroke-width={1.75} />
 								</button>
 							</form>
@@ -556,14 +559,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			</div>
 		{/if}
 	</section>
-	{/if}
 
 {:else if tab === 'ta'}
-	{#if data.tahunAjaran === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="table" rows={4} cols={3} ariaLabel="Memuat tahun ajaran..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconCalendar class="size-4" stroke-width={1.75} />
@@ -584,7 +581,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					{/each}
 				</select>
 			</label>
-			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingUpdateSetting} onclick={() => submittingUpdateSetting = true}>Simpan</button>
 		</form>
 
 		<div class="mt-6 max-w-md">
@@ -600,13 +597,13 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<form method="POST" action="?/toggleTahunAjaran">
 									<input type="hidden" name="id" value={ta.id} />
 									<input type="hidden" name="aktif" value={ta.aktif ? 'false' : 'true'} />
-									<button type="submit" class="btn btn-ghost btn-xs {ta.aktif ? 'text-success' : 'text-base-content/50'}" disabled={submitting} onclick={() => submitting = true}>
+									<button type="submit" class="btn btn-ghost btn-xs {ta.aktif ? 'text-success' : 'text-base-content/50'}" disabled={submittingToggleTahunAjaran} onclick={() => submittingToggleTahunAjaran = true}>
 										{ta.aktif ? 'Aktif' : 'Nonaktif'}
 									</button>
 								</form>
-								<form method="POST" action="?/deleteTahunAjaran" onsubmit={() => { if (confirm('Hapus tahun ajaran ini?')) submitting = true; else return false; }}>
+								<form method="POST" action="?/deleteTahunAjaran" onsubmit={() => { if (confirm('Hapus tahun ajaran ini?')) submittingDeleteTahunAjaran = true; else return false; }}>
 									<input type="hidden" name="id" value={ta.id} />
-									<button type="submit" class="btn btn-ghost btn-xs text-error" aria-label="Hapus" disabled={submitting}>
+									<button type="submit" class="btn btn-ghost btn-xs text-error" aria-label="Hapus" disabled={submittingDeleteTahunAjaran}>
 										<IconTrash class="size-4" stroke-width={1.75} />
 									</button>
 								</form>
@@ -618,14 +615,13 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 
 			<form method="POST" action="?/createTahunAjaran" class="mt-3 flex gap-2">
 				<input name="nama" type="text" class="input input-bordered input-sm flex-1" placeholder="Tambah tahun ajaran (mis. 2027/2028)" />
-				<button type="submit" class="btn btn-outline btn-sm" disabled={submitting} onclick={() => submitting = true}>
+				<button type="submit" class="btn btn-outline btn-sm" disabled={submittingCreateTahunAjaran} onclick={() => submittingCreateTahunAjaran = true}>
 					<IconPlus class="size-4" stroke-width={1.75} />
 					Tambah
 				</button>
 			</form>
 		</div>
 	</section>
-	{/if}
 
 {:else if tab === 'nis' && data.isSuperadmin}
 	<section class="mt-6 max-w-2xl">
@@ -678,7 +674,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</div>
 			</div>
 
-			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingUpdateNisPattern} onclick={() => submittingUpdateNisPattern = true}>
 				<IconEdit class="size-4" stroke-width={2} />
 				Simpan Pola
 			</button>
@@ -690,7 +686,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			<p class="mt-1 text-sm text-base-content/60">
 				Buatkan NIS otomatis untuk semua santri yang belum memiliki NIS.
 			</p>
-			<button type="submit" class="btn btn-outline btn-sm mt-3" disabled={submitting} onclick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submitting = true; else return false; }}>
+			<button type="submit" class="btn btn-outline btn-sm mt-3" disabled={submittingBulkGenerateNis} onclick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submittingBulkGenerateNis = true; else return false; }}>
 				<IconHash class="size-4" stroke-width={2} />
 				Generate Sekarang
 			</button>
@@ -698,11 +694,6 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 	</section>
 
 {:else if tab === 'gdrive'}
-	{#if data.gdrive === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="card" count={1} ariaLabel="Memuat integrasi Google Drive..." />
-		</div>
-	{:else}
 	<section class="mt-6 max-w-2xl">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconCloud class="size-4" stroke-width={1.75} />
@@ -747,7 +738,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					<p class="mt-1 text-xs text-base-content/50">
 						Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
 					</p>
-					<button type="submit" class="btn btn-primary btn-sm mt-3" disabled={submitting} onclick={() => submitting = true}>Simpan Folder</button>
+					<button type="submit" class="btn btn-primary btn-sm mt-3" disabled={submittingUpdateGDriveFolder} onclick={() => submittingUpdateGDriveFolder = true}>Simpan Folder</button>
 				</form>
 			{:else}
 				<p class="mt-4 text-sm text-base-content/60">
@@ -756,14 +747,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			{/if}
 		</div>
 	</section>
-	{/if}
 
 {:else if tab === 'school'}
-	{#if data.settings === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="card" count={1} ariaLabel="Memuat identitas sekolah..." />
-		</div>
-	{:else}
 	<section class="mt-6 max-w-2xl">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconSchool class="size-4" stroke-width={1.75} />
@@ -777,7 +762,6 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			method="POST"
 			action="?/updateSchoolIdentity"
 			enctype="multipart/form-data"
-			use:enhance
 			class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Nama Sekolah</span>
@@ -804,20 +788,18 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					accept="image/*" />
 			</label>
 
-			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>
-				<IconEdit class="size-4" stroke-width={2} />
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingUpdateSchoolIdentity} onclick={() => submittingUpdateSchoolIdentity = true}>
+				{#if submittingUpdateSchoolIdentity}
+					<svg class="loading loading-spinner loading-sm" aria-hidden="true"><circle /><circle /></svg>
+				{:else}
+					<IconEdit class="size-4" stroke-width={2} />
+				{/if}
 				Simpan Identitas
 			</button>
 		</form>
 	</section>
-	{/if}
 
 {:else if tab === 'dashboard'}
-	{#if data.enabledMetrics === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="card" count={4} ariaLabel="Memuat konfigurasi dashboard..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconCalendar class="size-4" stroke-width={1.75} />
@@ -844,17 +826,11 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</label>
 				{/each}
 			</div>
-			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting} onclick={() => submitting = true}>Simpan</button>
+			<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submittingUpdateDashboardMetrics} onclick={() => submittingUpdateDashboardMetrics = true}>Simpan</button>
 		</form>
 	</section>
-	{/if}
 
 {:else if tab === 'audit' && data.isSuperadmin}
-	{#if data.auditLogs === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="table" rows={5} cols={4} ariaLabel="Memuat audit log..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconHistory class="size-4" stroke-width={1.75} />
@@ -898,14 +874,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			</div>
 		{/if}
 	</section>
-	{/if}
 
 {:else if tab === 'sidebar' && data.isSuperadmin}
-	{#if data.sidebarNav === undefined}
-		<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
-			<Skeleton variant="table" rows={8} cols={6} ariaLabel="Memuat konfigurasi sidebar..." />
-		</div>
-	{:else}
 	<section class="mt-6">
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconMenu class="size-4" stroke-width={1.75} />
@@ -946,11 +916,10 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</tbody>
 			</table>
 			<div class="flex justify-end p-4">
-				<button type="submit" class="btn btn-primary btn-sm" disabled={submitting} onclick={() => submitting = true}>Simpan Konfigurasi Sidebar</button>
+				<button type="submit" class="btn btn-primary btn-sm" disabled={submittingUpdateSidebarNav} onclick={() => submittingUpdateSidebarNav = true}>Simpan Konfigurasi Sidebar</button>
 </div>
 	</form>
 	</section>
-	{/if}
 
 {:else}
 	<div class="mt-6 rounded-lg border border-dashed border-base-300 bg-base-100 p-8 text-center">

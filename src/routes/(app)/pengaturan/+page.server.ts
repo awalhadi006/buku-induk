@@ -353,34 +353,80 @@ export const actions = {
 
 	updateSchoolIdentity: async ({ locals, request }) => {
 		const peran = await requireAdmin(locals);
-		// RLS settings hanya mengizinkan superadmin menulis. Superadmin cukup pakai klien user;
-		// admin_tu butuh service role — kalau env server belum diisi, beri pesan jelas (bukan 500).
-		let supabase = locals.supabase;
-		if (peran !== 'superadmin') {
-			if (!env.PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-				return fail(500, {
-					error:
-						'Server belum dikonfigurasi (SUPABASE_SERVICE_ROLE_KEY kosong). Hubungi superadmin untuk melengkapi environment Cloudflare Pages.'
-				});
-			}
-			supabase = getSupabaseAdmin();
-		}
 		const fd = await request.formData();
 		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
+		const logoFile = fd.get('school_logo') as File | null;
+
+		// Use user's client first (RLS may allow admin_tu for school settings)
+		let supabase = locals.supabase;
 
 		// Update nama sekolah
-		// ponytail: admin client tanpa generik Database — cast manual
 		const { error: nameErr } = await (supabase.from('settings') as any).upsert(
 			{ key: 'school_name', value: schoolName },
 			{ onConflict: 'key' }
 		);
-		if (nameErr) return fail(400, { error: humanizeError(nameErr) });
+		if (nameErr) {
+			// If RLS blocks admin_tu, try with admin client
+			if (peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
+				supabase = getSupabaseAdmin();
+				const { error: adminErr } = await (supabase.from('settings') as any).upsert(
+					{ key: 'school_name', value: schoolName },
+					{ onConflict: 'key' }
+				);
+				if (adminErr) return fail(400, { error: humanizeError(adminErr) });
+			} else {
+				return fail(400, { error: humanizeError(nameErr) });
+			}
+		}
 
-		// Logo sekolah di-upload via flow baru (belum diimplementasikan di halaman ini)
-		// Jika ada file logo, abaikan untuk saat ini
-		const logoFile = fd.get('school_logo') as File | null;
+		// Upload logo sekolah to Supabase Storage
 		if (logoFile && logoFile.size > 0) {
-			console.log('Logo file provided but not yet supported in this action');
+			const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+			if (!allowedTypes.includes(logoFile.type)) {
+				return fail(400, { error: 'Format logo tidak didukung. Gunakan PNG, JPEG, WebP, atau SVG.' });
+			}
+			if (logoFile.size > 2 * 1024 * 1024) {
+				return fail(400, { error: 'Ukuran logo maksimal 2 MB.' });
+			}
+
+			const ext = logoFile.name.split('.').pop()?.toLowerCase() ?? 'png';
+			const path = `school-logo.${ext}`;
+
+			let storageClient = supabase;
+			if (peran !== 'superadmin') {
+				if (env.SUPABASE_SERVICE_ROLE_KEY) {
+					storageClient = getSupabaseAdmin();
+				} else {
+					return fail(400, { error: 'Upload logo memerlukan akses admin. Hubungi superadmin.' });
+				}
+			}
+
+			const { error: uploadErr } = await storageClient.storage.from('santri').upload(path, logoFile, {
+				contentType: logoFile.type,
+				upsert: true
+			});
+			if (uploadErr) return fail(400, { error: humanizeError(uploadErr) });
+
+			const { data: urlData } = storageClient.storage.from('santri').getPublicUrl(path);
+			const logoUrl = urlData.publicUrl;
+
+			const { error: logoUrlErr } = await (supabase.from('settings') as any).upsert(
+				{ key: 'school_logo_url', value: logoUrl },
+				{ onConflict: 'key' }
+			);
+			if (logoUrlErr) {
+				// If RLS blocks, try admin client
+				if (peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
+					const adminClient = getSupabaseAdmin();
+					const { error: adminLogoErr } = await (adminClient.from('settings') as any).upsert(
+						{ key: 'school_logo_url', value: logoUrl },
+						{ onConflict: 'key' }
+					);
+					if (adminLogoErr) return fail(400, { error: humanizeError(adminLogoErr) });
+				} else {
+					return fail(400, { error: humanizeError(logoUrlErr) });
+				}
+			}
 		}
 
 		return { success: true };

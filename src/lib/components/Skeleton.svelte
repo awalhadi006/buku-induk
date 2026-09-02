@@ -1,5 +1,5 @@
 <script lang="ts">
-	type Variant = 'text' | 'card' | 'table' | 'stat' | 'avatar' | 'list';
+	type Variant = 'text' | 'card' | 'table' | 'stat';
 
 	let {
 		variant = 'text',
@@ -23,9 +23,7 @@
 			text: 'h-4 w-full',
 			card: 'h-32 w-full rounded-lg',
 			table: 'h-10 w-full',
-			stat: 'h-16 w-full rounded-lg',
-			avatar: 'h-12 w-12 rounded-full',
-			list: 'h-16 w-full rounded-lg'
+			stat: 'h-16 w-full rounded-lg'
 		};
 		return `${base} ${variantClasses[variant]} ${className}`;
 	}
@@ -39,7 +37,6 @@
 <div
 	role="status"
 	aria-busy="true"
-	aria-live="polite"
 	aria-label={ariaLabel}
 	class={getContainerClass()}>
 	{#each Array(count) as _, i (i)}
