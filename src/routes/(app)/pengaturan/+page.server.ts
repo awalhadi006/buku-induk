@@ -5,6 +5,7 @@ import { ALL_METRIC_KEYS } from '$lib/types';
 import { parseSidebarNav } from '$lib/nav';
 import { getSupabaseAdmin } from '$lib/supabase-admin';
 import { humanizeError, validationMessages } from '$lib/errors';
+import { getValidToken, ensureFolder, createUploadSession, uploadToSession } from '$lib/gdrive';
 
 function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
@@ -351,7 +352,7 @@ export const actions = {
 		return { nisGenerated: data as number };
 	},
 
-	updateSchoolIdentity: async ({ locals, request }) => {
+	updateSchoolIdentity: async ({ locals, request, platform }) => {
 		const peran = await requireAdmin(locals);
 		const fd = await request.formData();
 		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
@@ -379,7 +380,7 @@ export const actions = {
 			}
 		}
 
-		// Upload logo sekolah to Supabase Storage
+		// Upload logo sekolah ke Google Drive
 		if (logoFile && logoFile.size > 0) {
 			const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 			if (!allowedTypes.includes(logoFile.type)) {
@@ -389,37 +390,42 @@ export const actions = {
 				return fail(400, { error: 'Ukuran logo maksimal 2 MB.' });
 			}
 
-			const ext = logoFile.name.split('.').pop()?.toLowerCase() ?? 'png';
-			const path = `school-logo.${ext}`;
+			const kv = platform?.env?.GDRIVE_TOKENS;
+			if (!kv) return fail(500, { error: 'Google Drive belum dikonfigurasi (KV namespace tidak ada)' });
 
-			let storageClient = supabase;
-			if (peran !== 'superadmin') {
-				if (env.SUPABASE_SERVICE_ROLE_KEY) {
-					storageClient = getSupabaseAdmin();
-				} else {
-					return fail(400, { error: 'Upload logo memerlukan akses admin. Hubungi superadmin.' });
-				}
+			const { data: gdrive } = await supabase
+				.from('gdrive_creds')
+				.select('folder_id')
+				.eq('id', 1)
+				.maybeSingle();
+
+			if (!gdrive?.folder_id) {
+				return fail(400, { error: 'Google Drive belum dikonfigurasi (folder_id kosong)' });
 			}
 
-			const { error: uploadErr } = await storageClient.storage.from('santri').upload(path, logoFile, {
-				contentType: logoFile.type,
-				upsert: true
-			});
-			if (uploadErr) return fail(400, { error: humanizeError(uploadErr) });
+			const accessToken = await getValidToken(supabase, kv);
+			if (!accessToken) return fail(401, { error: 'Gagal mendapatkan akses Google Drive' });
 
-			const { data: urlData } = storageClient.storage.from('santri').getPublicUrl(path);
-			const logoUrl = urlData.publicUrl;
+			const logoFolder = await ensureFolder(accessToken, 'Logo Sekolah', gdrive.folder_id);
+			const { sessionUrl, fileId } = await createUploadSession(
+				accessToken,
+				logoFile.name,
+				logoFile.type,
+				logoFile.size,
+				logoFolder
+			);
+			await uploadToSession(sessionUrl, logoFile);
 
+			const gdriveUrl = `gdrive:${fileId}`;
 			const { error: logoUrlErr } = await (supabase.from('settings') as any).upsert(
-				{ key: 'school_logo_url', value: logoUrl },
+				{ key: 'school_logo_url', value: gdriveUrl },
 				{ onConflict: 'key' }
 			);
 			if (logoUrlErr) {
-				// If RLS blocks, try admin client
 				if (peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
 					const adminClient = getSupabaseAdmin();
 					const { error: adminLogoErr } = await (adminClient.from('settings') as any).upsert(
-						{ key: 'school_logo_url', value: logoUrl },
+						{ key: 'school_logo_url', value: gdriveUrl },
 						{ onConflict: 'key' }
 					);
 					if (adminLogoErr) return fail(400, { error: humanizeError(adminLogoErr) });
