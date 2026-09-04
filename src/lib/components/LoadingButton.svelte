@@ -32,9 +32,8 @@
 		click: MouseEvent;
 	}>();
 
-	const handler = onclick ?? onClick;
-
 	function handleClick(event: MouseEvent) {
+		const handler = onclick ?? onClick;
 		if (!disabled && !loading) {
 			handler?.(event);
 			dispatch('click', event);

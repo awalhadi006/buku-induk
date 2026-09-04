@@ -1,8 +1,26 @@
 <script lang="ts">
 	import { IconCheck, IconEye, IconEyeOff } from '@tabler/icons-svelte';
+	import LoadingButton from '$lib/components/LoadingButton.svelte';
 
 	let { form } = $props();
 	let show = $state(false);
+	let submitting = $state(false);
+
+	async function handleSubmit(event: Event) {
+		event.preventDefault();
+		submitting = true;
+		const formData = new FormData(event.currentTarget as HTMLFormElement);
+		const res = await fetch('?/default', {
+			method: 'POST',
+			body: formData
+		});
+		const data = await res.json();
+		if (res.ok && data.type === 'redirect') {
+			window.location.href = data.location;
+		} else {
+			submitting = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -61,7 +79,7 @@
 				Masuk dengan akun pondok yang dibuat bagian tata usaha.
 			</p>
 
-			<form method="POST" class="mt-8 space-y-5">
+			<form method="POST" class="mt-8 space-y-5" onsubmit={handleSubmit}>
 				<div>
 				<label for="username" class="mb-1.5 block text-sm font-medium">Username atau Email</label>
 				<input
@@ -103,7 +121,7 @@
 					<p class="text-sm text-error" role="alert">{form.error}</p>
 				{/if}
 
-				<button type="submit" class="btn btn-primary btn-block">Masuk</button>
+				<LoadingButton loading={submitting} class="w-full">Masuk</LoadingButton>
 			</form>
 
 			<p class="mt-8 text-sm text-base-content/60">

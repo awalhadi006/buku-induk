@@ -113,7 +113,7 @@
 		{@render extra()}
 	{/if}
 
-	<div class="flex items-center gap-3">
+	<div class="flex items-center gap-3 mt-6">
 		<button type="submit" class="btn btn-primary" disabled={busy}>
 			{#if busy}
 				<span class="loading loading-spinner loading-sm"></span>

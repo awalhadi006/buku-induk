@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import type { Snippet } from 'svelte';
 	import { GENDER_OPTIONS, STATUS_KELUARGA_OPTIONS, STATUS_SANTRI_OPTIONS } from '$lib/santri';
+	import Select from './Select.svelte';
 
 	type Field = {
 		key: string;
@@ -208,12 +209,7 @@
 							{f.label}{f.required ? ' *' : ''}
 						</span>
 						{#if f.type === 'select'}
-							<select class="select select-bordered w-full" name={f.key} bind:value={v[f.key]}>
-								<option value="">— Pilih —</option>
-								{#each f.options ?? [] as o (o.value)}
-									<option value={o.value}>{o.label}</option>
-								{/each}
-							</select>
+							<Select name={f.key} bind:value={v[f.key]} options={f.options ?? []} placeholder="— Pilih —" required={f.required} />
 						{:else if f.type === 'textarea'}
 							<textarea
 								class="textarea textarea-bordered w-full"
@@ -256,7 +252,7 @@
 		{@render extra()}
 	{/if}
 
-	<div class="flex items-center gap-3">
+	<div class="flex items-center gap-3 mt-6">
 		<button type="submit" class="btn btn-primary" disabled={busy}>
 			{#if busy}
 				<span class="loading loading-spinner loading-sm"></span>
