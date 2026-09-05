@@ -32,20 +32,39 @@ export const actions = {
 
 			// Lookup email via security-definer function (bypasses RLS)
 			console.log('Login: Looking up email for identifier:', identifier);
-			const { emailResult, error: lookupError } = await locals.supabase
+
+			// Cek apakah input itu email atau username (cek format email)
+			const isEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+			console.log('Login: Is email format?', isEmailFormat);
+
+			if (isEmailFormat) {
+				console.log('Login: Trying query directly for email:', identifier);
+				const { profile, error: queryError } = await locals.supabase
+					.from('profiles')
+					.select('email')
+					.eq('email', identifier)
+					.maybeSingle();
+
+				console.log('Login: Email query result:', profile, 'error:', queryError);
+				if (queryError) {
+					console.error('Login: Email query error:', queryError);
+					return fail(500, { error: queryError.message || 'Query database gagal' });
+				}
+				if (!profile) {
+					return fail(400, { error: 'Akun tidak ditemukan.' });
+				}
+			}
+
+			// Atau cari lewat RPC untuk username
+			const { emailResult, error: rpcError } = await locals.supabase
 				.rpc('login_lookup', { p_identifier: identifier });
 
-			if (lookupError) {
-				const errorDetail = {
-					type: 'RPC_ERROR',
-					identifier: identifier,
-					message: lookupError.message || lookupError.toString(),
-					code: lookupError.code,
-					stack: lookupError.stack?.substring(0, 500),
-					cliError: lookupError.toString()
-				};
-				console.error('Login: Lookup error:', errorDetail);
-				return fail(500, { error: errorDetail });
+			console.log('Login: RPC result - emailResult:', emailResult, 'rpcError:', rpcError);
+
+			if (rpcError && !isEmailFormat) {
+				console.error('Login: RPC error (and not email format):', rpcError);
+				return fail(500, { error: rpcError.message || 'Gagal login' });
 			}
 
 			if (!emailResult) {
