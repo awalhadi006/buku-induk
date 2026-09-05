@@ -27,8 +27,16 @@ export const actions = {
 				.rpc('login_lookup', { p_identifier: identifier });
 
 			if (lookupError) {
-				console.error('Login: Lookup error:', loginError);
-				throw lookupError;
+				const errorDetail = {
+					type: 'RPC_ERROR',
+					identifier: identifier,
+					message: lookupError.message || lookupError.toString(),
+					code: lookupError.code,
+					stack: lookupError.stack?.substring(0, 500),
+					cliError: lookupError.toString()
+				};
+				console.error('Login: Lookup error:', errorDetail);
+				return fail(500, { error: errorDetail });
 			}
 
 			if (!emailResult) {
@@ -52,8 +60,19 @@ export const actions = {
 			console.log('Login: Success, redirecting to /');
 			throw redirect(303, '/');
 		} catch (err) {
-			console.error('Login: Error:', err);
-			throw err;
+			const errorDetail = {
+				type: 'SYSTEM_ERROR',
+				message: err.message || err.toString(),
+				name: err.name,
+				stack: err.stack?.substring(0, 500),
+				cliError: err.toString(),
+				request: {
+					identifier: identifier ?? 'N/A',
+					passwordProvided: !!password
+				}
+			};
+			console.error('Login: Error:', JSON.stringify(errorDetail, null, 2));
+			return fail(500, { error: errorDetail });
 		}
 	}
 };
