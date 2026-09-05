@@ -97,6 +97,10 @@ export const actions = {
 			console.log('Login: Success, redirecting to /');
 			throw redirect(303, '/');
 		} catch (err) {
+			// Redirect bukan error, re-throw biar SvelteKit handle
+			if (err && typeof err === 'object' && 'status' in err && (err.status === 303 || err.status === 302)) {
+				throw err;
+			}
 			const errorDetail = {
 				type: 'SYSTEM_ERROR',
 				message: err.message || err.toString(),
