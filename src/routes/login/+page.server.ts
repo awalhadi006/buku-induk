@@ -5,7 +5,7 @@ export async function load({ locals }) {
 }
 
 export const actions = {
-	default: async ({ request, locals }) => {
+	submit: async ({ request, locals }) => {
 		// Debug logging sebelum semua logic
 		console.log('Login: Starting (Server ID:', request.headers.get('x-cloudflare-request-id') || 'unknown', ')');
 		console.log('Login: locals.user exists?', !!locals.user);

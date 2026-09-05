@@ -79,18 +79,18 @@
 				Masuk dengan akun pondok yang dibuat bagian tata usaha.
 			</p>
 
-			<form method="POST" class="mt-8 space-y-5" onsubmit={handleSubmit}>
-				<div>
-				<label for="username" class="mb-1.5 block text-sm font-medium">Username atau Email</label>
-				<input
-					id="username"
-					name="username"
-					type="text"
-					required
-					autocomplete="username"
-					class="input input-bordered w-full"
-					placeholder="username atau email" />
-				</div>
+<form method="POST" class="mt-8 space-y-5" action="?/submit" onsubmit={handleSubmit}>
+		<div>
+			<label for="username" class="mb-1.5 block text-sm font-medium">Username atau Email</label>
+			<input
+				id="username"
+				name="username"
+				type="text"
+				required
+				autocomplete="username"
+				class="input input-bordered w-full"
+				placeholder="username atau email" />
+		</div>
 
 				<div>
 					<label for="password" class="mb-1.5 block text-sm font-medium">Kata sandi</label>
