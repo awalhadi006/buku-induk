@@ -66,8 +66,8 @@ export const actions = {
 		console.log('Login: RPC data:', result.data);
 		console.log('Login: RPC error:', result.error);
 
-		const { emailResult } = result;
-		const { error: rpcError } = result;
+		const emailResult = result.data as string | null;
+		const rpcError = result.error;
 
 		console.log('Login: Parsed result - emailResult:', emailResult, 'rpcError:', rpcError);
 
