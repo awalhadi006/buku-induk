@@ -6,6 +6,15 @@ export async function load({ locals }) {
 
 export const actions = {
 	default: async ({ request, locals }) => {
+		// Debug logging sebelum semua logic
+		console.log('Login: Starting (Server ID:', request.headers.get('x-cloudflare-request-id') || 'unknown', ')');
+		console.log('Login: locals.user exists?', !!locals.user);
+		console.log('Login: locals.supabase exists?', !!locals.supabase);
+
+		if (!locals.supabase) {
+			throw new Error('locals.supabase is not defined');
+		}
+
 		try {
 			if (locals.user) {
 				console.log('Login: User already logged in, redirecting');
