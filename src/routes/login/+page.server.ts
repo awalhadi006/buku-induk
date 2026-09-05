@@ -56,11 +56,20 @@ export const actions = {
 				}
 			}
 
-			// Atau cari lewat RPC untuk username
-			const { emailResult, error: rpcError } = await locals.supabase
-				.rpc('login_lookup', { p_identifier: identifier });
+// Atau cari lewat RPC untuk username
+		console.log('Login: Calling RPC "login_lookup" with identifier:', identifier);
 
-			console.log('Login: RPC result - emailResult:', emailResult, 'rpcError:', rpcError);
+		const result = await locals.supabase
+			.rpc('login_lookup', { p_identifier: identifier });
+
+		console.log('Login: RPC raw result:', result);
+		console.log('Login: RPC data:', result.data);
+		console.log('Login: RPC error:', result.error);
+
+		const { emailResult } = result;
+		const { error: rpcError } = result;
+
+		console.log('Login: Parsed result - emailResult:', emailResult, 'rpcError:', rpcError);
 
 			if (rpcError && !isEmailFormat) {
 				console.error('Login: RPC error (and not email format):', rpcError);
