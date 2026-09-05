@@ -10,7 +10,7 @@
 		event.preventDefault();
 		submitting = true;
 		const formData = new FormData(event.currentTarget as HTMLFormElement);
-		const res = await fetch('?/default', {
+		const res = await fetch('?/submit', {
 			method: 'POST',
 			body: formData
 		});
