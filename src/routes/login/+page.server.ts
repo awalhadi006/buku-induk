@@ -15,15 +15,15 @@ export const actions = {
 			throw new Error('locals.supabase is not defined');
 		}
 
+		const fd = await request.formData();
+		const identifier = (fd.get('username') as string)?.trim().toLowerCase() ?? '';
+		const password = (fd.get('password') as string) ?? '';
+
 		try {
 			if (locals.user) {
 				console.log('Login: User already logged in, redirecting');
 				throw redirect(303, '/');
 			}
-
-			const fd = await request.formData();
-			const identifier = (fd.get('username') as string)?.trim().toLowerCase() ?? '';
-			const password = (fd.get('password') as string) ?? '';
 
 			if (!identifier || !password) {
 				console.log('Login: Missing identifier or password');
