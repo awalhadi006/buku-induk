@@ -16,7 +16,7 @@
 
 	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
 		{#if icon}
-			<icon class="mx-auto size-10 text-base-content/40" stroke-width={1.5}></icon>
+			<svelte:component this={icon} class="mx-auto size-10 text-base-content/40" />
 		{/if}
 		<h2 class="mt-4 text-lg font-semibold">Fungsi sedang dibangun</h2>
 		<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">

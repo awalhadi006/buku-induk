@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-
 	type Variant = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'outline' | 'ghost';
 	type Size = 'xs' | 'sm' | 'md' | 'lg';
 
@@ -13,8 +11,7 @@
 		type = 'submit',
 		ariaLabel,
 		class: className = '',
-		onclick,
-		onClick
+		onclick
 	}: {
 		children: import('svelte').Snippet;
 		loading?: boolean;
@@ -25,20 +22,7 @@
 		ariaLabel?: string;
 		class?: string;
 		onclick?: (event: MouseEvent) => void;
-		onClick?: (event: MouseEvent) => void;
 	} = $props();
-
-	const dispatch = createEventDispatcher<{
-		click: MouseEvent;
-	}>();
-
-	function handleClick(event: MouseEvent) {
-		const handler = onclick ?? onClick;
-		if (!disabled && !loading) {
-			handler?.(event);
-			dispatch('click', event);
-		}
-	}
 </script>
 
 <button
@@ -47,7 +31,7 @@
 	disabled={disabled || loading}
 	aria-label={ariaLabel}
 	aria-busy={loading}
-	onclick={handleClick}>
+	onclick={onclick}>
 	{#if loading}
 		<svg class="loading loading-spinner loading-sm" aria-hidden="true"><circle /><circle /></svg>
 	{:else}

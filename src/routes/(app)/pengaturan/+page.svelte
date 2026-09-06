@@ -214,7 +214,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</p>
 				</div>
 				<form method="POST" action="?/toggleAdminTuCreateUsers">
-					<LoadingButton loading={submittingToggleAdmin} variant={settings['allow_admin_tu_create_users'] === 'true' ? 'success' : 'outline'} size="sm" onClick={() => submittingToggleAdmin = true}>
+					<LoadingButton loading={submittingToggleAdmin} variant={settings['allow_admin_tu_create_users'] === 'true' ? 'success' : 'outline'} size="sm" onclick={() => submittingToggleAdmin = true}>
 						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif' : 'Nonaktif'}
 					</LoadingButton>
 				</form>
@@ -280,7 +280,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 						</select>
 					</label>
 				</div>
-				<LoadingButton loading={submittingCreateUser} variant="primary" size="sm" onClick={() => submittingCreateUser = true}>
+				<LoadingButton loading={submittingCreateUser} variant="primary" size="sm" onclick={() => submittingCreateUser = true}>
 					<IconPlus class="size-4" stroke-width={2} />
 					Buat Akun
 				</LoadingButton>
@@ -372,14 +372,14 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 										<input type="hidden" name="peran" value={editForm.peran} />
 										<input type="hidden" name="kamar_id" value={editForm.kamar_id} />
 										<input type="hidden" name="kelas_id" value={editForm.kelas_id} />
-										<LoadingButton loading={submittingUpdateProfile} variant="primary" size="sm" onClick={() => submittingUpdateProfile = true}>Simpan</LoadingButton>
+										<LoadingButton loading={submittingUpdateProfile} variant="primary" size="sm" onclick={() => submittingUpdateProfile = true}>Simpan</LoadingButton>
 										<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingId = null)}>
 											Batal
 										</button>
 									</form>
 									<form method="POST" action="?/resetPassword" class="flex justify-end gap-2 mt-2">
 										<input type="hidden" name="user_id" value={p.id} />
-										<LoadingButton loading={submittingResetPassword} variant="warning" size="sm" ariaLabel="Reset Password" onClick={() => { if (confirm('Kirim link reset password ke email pengguna ini?')) submittingResetPassword = true; else return false; }}>Reset Password</LoadingButton>
+										<LoadingButton loading={submittingResetPassword} variant="warning" size="sm" ariaLabel="Reset Password" onclick={() => { if (confirm('Kirim link reset password ke email pengguna ini?')) submittingResetPassword = true; else return false; }}>Reset Password</LoadingButton>
 									</form>
 								{:else}
 									<button
@@ -426,7 +426,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 							</label>
 						{/each}
 					</div>
-					<LoadingButton loading={submittingUpdatePermissions} variant="primary" size="sm" onClick={() => submittingUpdatePermissions = true}>Simpan izin</LoadingButton>
+					<LoadingButton loading={submittingUpdatePermissions} variant="primary" size="sm" onclick={() => submittingUpdatePermissions = true}>Simpan izin</LoadingButton>
 				</form>
 			{/each}
 		</div>
@@ -474,7 +474,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary toggle-sm" />
 				<span class="text-sm font-medium">Aktif</span>
 			</label>
-			<LoadingButton loading={submittingCreateField} variant="primary" size="sm" onClick={() => submittingCreateField = true}>
+			<LoadingButton loading={submittingCreateField} variant="primary" size="sm" onclick={() => submittingCreateField = true}>
 				<IconPlus class="size-4" stroke-width={2} />
 				Tambah field
 			</LoadingButton>
@@ -517,7 +517,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<span class="text-sm font-medium">Aktif</span>
 							</label>
 							<div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
-								<LoadingButton loading={submittingUpdateField} variant="primary" size="sm" onClick={() => submittingUpdateField = true}>Simpan</LoadingButton>
+								<LoadingButton loading={submittingUpdateField} variant="primary" size="sm" onclick={() => submittingUpdateField = true}>Simpan</LoadingButton>
 								<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingField = null)}>Batal</button>
 							</div>
 						</form>
@@ -580,7 +580,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					{/each}
 				</select>
 			</label>
-			<LoadingButton loading={submittingUpdateSetting} variant="primary" size="sm" onClick={() => submittingUpdateSetting = true}>Simpan</LoadingButton>
+			<LoadingButton loading={submittingUpdateSetting} variant="primary" size="sm" onclick={() => submittingUpdateSetting = true}>Simpan</LoadingButton>
 		</form>
 
 		<div class="mt-6 max-w-md">
@@ -596,7 +596,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<form method="POST" action="?/toggleTahunAjaran">
 									<input type="hidden" name="id" value={ta.id} />
 									<input type="hidden" name="aktif" value={ta.aktif ? 'false' : 'true'} />
-									<LoadingButton loading={submittingToggleTahunAjaran} variant="ghost" size="xs" class={ta.aktif ? 'text-success' : 'text-base-content/50'} onClick={() => submittingToggleTahunAjaran = true}>
+									<LoadingButton loading={submittingToggleTahunAjaran} variant="ghost" size="xs" class={ta.aktif ? 'text-success' : 'text-base-content/50'} onclick={() => submittingToggleTahunAjaran = true}>
 										{ta.aktif ? 'Aktif' : 'Nonaktif'}
 									</LoadingButton>
 								</form>
@@ -614,7 +614,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 
 			<form method="POST" action="?/createTahunAjaran" class="mt-3 flex gap-2">
 				<input name="nama" type="text" class="input input-bordered input-sm flex-1" placeholder="Tambah tahun ajaran (mis. 2027/2028)" />
-				<LoadingButton loading={submittingCreateTahunAjaran} variant="outline" size="sm" onClick={() => submittingCreateTahunAjaran = true}>
+				<LoadingButton loading={submittingCreateTahunAjaran} variant="outline" size="sm" onclick={() => submittingCreateTahunAjaran = true}>
 					<IconPlus class="size-4" stroke-width={1.75} />
 					Tambah
 				</LoadingButton>
@@ -673,7 +673,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</div>
 			</div>
 
-			<LoadingButton loading={submittingUpdateNisPattern} variant="primary" size="sm" onClick={() => submittingUpdateNisPattern = true}>
+			<LoadingButton loading={submittingUpdateNisPattern} variant="primary" size="sm" onclick={() => submittingUpdateNisPattern = true}>
 				<IconEdit class="size-4" stroke-width={2} />
 				Simpan Pola
 			</LoadingButton>
@@ -685,7 +685,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			<p class="mt-1 text-sm text-base-content/60">
 				Buatkan NIS otomatis untuk semua santri yang belum memiliki NIS.
 			</p>
-			<LoadingButton loading={submittingBulkGenerateNis} variant="outline" size="sm" onClick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submittingBulkGenerateNis = true; else return false; }}>
+			<LoadingButton loading={submittingBulkGenerateNis} variant="outline" size="sm" onclick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submittingBulkGenerateNis = true; else return false; }}>
 				<IconHash class="size-4" stroke-width={2} />
 				Generate Sekarang
 			</LoadingButton>
@@ -737,7 +737,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					<p class="mt-1 text-xs text-base-content/50">
 						Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
 					</p>
-					<LoadingButton loading={submittingUpdateGDriveFolder} variant="primary" size="sm" onClick={() => submittingUpdateGDriveFolder = true}>Simpan Folder</LoadingButton>
+					<LoadingButton loading={submittingUpdateGDriveFolder} variant="primary" size="sm" onclick={() => submittingUpdateGDriveFolder = true}>Simpan Folder</LoadingButton>
 				</form>
 			{:else}
 				<p class="mt-4 text-sm text-base-content/60">
@@ -787,7 +787,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					accept="image/*" />
 			</label>
 
-			<LoadingButton loading={submittingUpdateSchoolIdentity} variant="primary" size="sm" onClick={() => submittingUpdateSchoolIdentity = true}>
+			<LoadingButton loading={submittingUpdateSchoolIdentity} variant="primary" size="sm" onclick={() => submittingUpdateSchoolIdentity = true}>
 				{#if submittingUpdateSchoolIdentity}
 					<svg class="loading loading-spinner loading-sm" aria-hidden="true"><circle /><circle /></svg>
 				{:else}
@@ -825,7 +825,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</label>
 				{/each}
 			</div>
-			<LoadingButton loading={submittingUpdateDashboardMetrics} variant="primary" size="sm" onClick={() => submittingUpdateDashboardMetrics = true}>Simpan</LoadingButton>
+			<LoadingButton loading={submittingUpdateDashboardMetrics} variant="primary" size="sm" onclick={() => submittingUpdateDashboardMetrics = true}>Simpan</LoadingButton>
 		</form>
 	</section>
 
@@ -915,7 +915,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</tbody>
 			</table>
 			<div class="flex justify-end p-4">
-				<LoadingButton loading={submittingUpdateSidebarNav} variant="primary" size="sm" onClick={() => submittingUpdateSidebarNav = true}>Simpan Konfigurasi Sidebar</LoadingButton>
+				<LoadingButton loading={submittingUpdateSidebarNav} variant="primary" size="sm" onclick={() => submittingUpdateSidebarNav = true}>Simpan Konfigurasi Sidebar</LoadingButton>
 </div>
 	</form>
 	</section>

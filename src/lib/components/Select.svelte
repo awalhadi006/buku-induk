@@ -43,7 +43,7 @@
 
 	function selectOption(option: Option) {
 		value = option.value;
-		selectedOption = option.label;
+	
 		isOpen = false;
 		onChange?.(option.value);
 	}

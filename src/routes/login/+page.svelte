@@ -14,9 +14,9 @@
 			method: 'POST',
 			body: formData
 		});
-		const data = await res.json();
+		const data = await res.json() as { type?: string; location?: string };
 		if (res.ok && data.type === 'redirect') {
-			window.location.href = data.location;
+			window.location.href = data.location ?? '/';
 		} else {
 			submitting = false;
 		}

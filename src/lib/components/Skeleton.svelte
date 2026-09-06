@@ -17,20 +17,19 @@
 		ariaLabel?: string;
 	} = $props();
 
-	function getSkeletonClass() {
-		const base = 'skeleton skeleton-wave';
-		const variantClasses: Record<Variant, string> = {
-			text: 'h-4 w-full',
-			card: 'h-32 w-full rounded-lg',
-			table: 'h-10 w-full',
-			stat: 'h-16 w-full rounded-lg'
-		};
-		return `${base} ${variantClasses[variant]} ${className}`;
+	const variantClasses: Record<Variant, string> = {
+		text: 'h-4 w-full',
+		card: 'h-32 w-full rounded-lg',
+		table: 'h-10 w-full',
+		stat: 'h-16 w-full rounded-lg'
+	};
+
+	function getItemClass() {
+		return `skeleton skeleton-wave ${variantClasses[variant]}`;
 	}
 
 	function getContainerClass() {
-		const base = 'space-y-3';
-		return `${base} ${className}`;
+		return `space-y-3 ${className}`;
 	}
 </script>
 
@@ -43,7 +42,7 @@
 		{#if variant === 'text'}
 			<div class="space-y-2">
 				{#each Array(rows) as _, r (r)}
-					<div class={getSkeletonClass()}></div>
+					<div class={getItemClass()}></div>
 				{/each}
 			</div>
 		{:else if variant === 'table'}
@@ -51,13 +50,13 @@
 				{#each Array(rows) as _, r (r)}
 					<div class="grid gap-4" style="grid-template-columns: repeat({cols}, 1fr);">
 						{#each Array(cols) as _, c (c)}
-							<div class={getSkeletonClass()}></div>
+							<div class={getItemClass()}></div>
 						{/each}
 					</div>
 				{/each}
 			</div>
 		{:else}
-			<div class={getSkeletonClass()}></div>
+			<div class={getItemClass()}></div>
 		{/if}
 	{/each}
 </div>

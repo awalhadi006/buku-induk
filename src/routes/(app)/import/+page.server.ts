@@ -2,11 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import * as XLSX from 'xlsx';
 import { IMPORT_COLUMNS, normalizeHeader, mergeSheetRows } from '$lib/excel';
 import { humanizeError } from '$lib/errors';
-
-const ADMIN_ROLES = ['superadmin', 'admin_tu'];
-
-const STATUS_SANTRI_VALUES = new Set(['aktif', 'khusus', 'mutasi_keluar', 'lulus', 'wafat', 'drop_out']);
-const STATUS_KELUARGA_VALUES = new Set(['yatim', 'yatim_piatu', 'dhuafa', 'umum']);
+import { requireAdmin, getProfile, ADMIN_ROLES, hasRole } from '$lib/server/auth';
 
 function toText(v: unknown): string {
 	if (v == null) return '';
@@ -74,21 +70,18 @@ async function findOrCreateWali(supabase: App.Locals['supabase'], w: Record<stri
 	return data.id;
 }
 
-async function isAdmin(locals: App.Locals): Promise<boolean> {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
-	return ADMIN_ROLES.includes(profile?.peran ?? '');
-}
+const STATUS_SANTRI_VALUES = new Set(['aktif', 'khusus', 'mutasi_keluar', 'lulus', 'wafat', 'drop_out']);
+const STATUS_KELUARGA_VALUES = new Set(['yatim', 'yatim_piatu', 'dhuafa', 'umum']);
 
-export async function load({ locals }) {
-	if (!(await isAdmin(locals))) throw redirect(303, '/');
+export async function load(event) {
+	await requireAdmin(event.locals);
 	return {};
 }
 
 export const actions = {
 	upload: async ({ locals, request }) => {
-		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin import.' });
+		const profile = await getProfile(locals);
+		if (!hasRole(profile, ADMIN_ROLES)) return fail(403, { error: 'Tidak punya izin import.' });
 		const supabase = locals.supabase;
 
 		const fd = await request.formData();
@@ -214,7 +207,7 @@ export const actions = {
 				s.tanggal_lahir = iso;
 			}
 
-// KOLOM WAJIB: warning jika belum lengkap, tetap disimpan
+			// KOLOM WAJIB: warning jika belum lengkap, tetap disimpan
 			if (!s.nis) rowWarnings.push('NIS belum diisi');
 			if (!s.nisn) rowWarnings.push('NISN belum diisi');
 			if (!s.jenis_kelamin) rowWarnings.push('Jenis kelamin belum diisi');
@@ -273,7 +266,7 @@ export const actions = {
 			let waliId: string | null = null;
 			try {
 				waliId = await findOrCreateWali(supabase, w);
-			} catch (e) {
+			} catch {
 				rowWarnings.push('Gagal mencatat wali santri, santri tanpa wali');
 			}
 

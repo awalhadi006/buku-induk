@@ -1,31 +1,18 @@
 import { env } from '$env/dynamic/private';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export async function getValidToken(supabase: any, kv: any): Promise<string | null> {
-	const refreshTokenFromKV = await kv?.get('refresh_token');
-	const refreshTokenFromDB = (await supabase
-		.from('gdrive_creds')
-		.select('refresh_token')
-		.eq('id', 1)
-		.maybeSingle())?.data?.refresh_token;
+export const GDRIVE_CREDS_ID = 1;
 
-	const refreshToken = refreshTokenFromKV || refreshTokenFromDB;
-	if (!refreshToken) return null;
+type KVNamespaceLike = {
+	get(key: string): Promise<string | null>;
+};
 
-	const { expires_at } = await supabase
-		.from('gdrive_creds')
-		.select('expires_at')
-		.eq('id', 1)
-		.maybeSingle()
-		.data || {};
-	if (expires_at && new Date(expires_at).getTime() > Date.now()) {
-		const { data } = await supabase
-			.from('gdrive_creds')
-			.select('access_token')
-			.eq('id', 1)
-			.maybeSingle();
-		return data?.access_token || null;
-	}
+interface TokenResponse {
+	access_token: string;
+	expires_in: number;
+}
 
+async function refreshOAuthToken(refreshToken: string): Promise<TokenResponse | null> {
 	const clientId = env.GOOGLE_CLIENT_ID;
 	const clientSecret = env.GOOGLE_CLIENT_SECRET;
 	if (!clientId || !clientSecret) {
@@ -45,84 +32,71 @@ export async function getValidToken(supabase: any, kv: any): Promise<string | nu
 	});
 
 	if (!res.ok) return null;
-	const { access_token, expires_in } = await res.json() as { access_token: string; expires_in: number };
-	await supabase.from('gdrive_creds').update({
-		access_token,
-		expires_at: new Date(Date.now() + expires_in * 1000).toISOString()
-	}).eq('id', 1);
-
-	return access_token;
+	return (await res.json()) as TokenResponse;
 }
 
-export async function deleteDriveFile(supabase: any, gdriveUrl: string, kv: any): Promise<void> {
+export async function getValidToken(
+	supabase: SupabaseClient,
+	kv: KVNamespaceLike | undefined
+): Promise<string | null> {
+	const refreshTokenFromKV = await kv?.get('refresh_token');
+	const refreshTokenFromDB = (await supabase
+		.from('gdrive_creds')
+		.select('refresh_token')
+		.eq('id', GDRIVE_CREDS_ID)
+		.maybeSingle())?.data?.refresh_token;
+
+	const refreshToken = refreshTokenFromKV || refreshTokenFromDB;
+	if (!refreshToken) return null;
+
+	const { data: creds } = await supabase
+		.from('gdrive_creds')
+		.select('expires_at')
+		.eq('id', GDRIVE_CREDS_ID)
+		.maybeSingle();
+	if (creds?.expires_at && new Date(creds.expires_at).getTime() > Date.now()) {
+		const { data } = await supabase
+			.from('gdrive_creds')
+			.select('access_token')
+			.eq('id', GDRIVE_CREDS_ID)
+			.maybeSingle();
+		return data?.access_token || null;
+	}
+
+	const token = await refreshOAuthToken(refreshToken);
+	if (!token) return null;
+
+	await supabase.from('gdrive_creds').update({
+		access_token: token.access_token,
+		expires_at: new Date(Date.now() + token.expires_in * 1000).toISOString()
+	}).eq('id', GDRIVE_CREDS_ID);
+
+	return token.access_token;
+}
+
+export async function deleteDriveFile(
+	supabase: SupabaseClient,
+	gdriveUrl: string,
+	kv: KVNamespaceLike | undefined
+): Promise<void> {
 	const id = gdriveUrl.replace('gdrive:', '');
 	if (!id) return;
-	const clientId = env.GOOGLE_CLIENT_ID;
-	const clientSecret = env.GOOGLE_CLIENT_SECRET;
-	const refreshToken = await kv?.get('refresh_token');
 
-	if (!clientId || !clientSecret) {
-		console.error('Missing Google OAuth credentials');
-		return;
-	}
-
-	let accessToken: string | null = null;
-	if (refreshToken) {
-		const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body: new URLSearchParams({
-				client_id: clientId,
-				client_secret: clientSecret,
-				grant_type: 'refresh_token',
-				refresh_token: refreshToken
-			})
-		});
-		if (tokenRes.ok) {
-			const { access_token } = await tokenRes.json() as { access_token: string; expires_in: number };
-			accessToken = access_token;
-		}
-	}
-
+	let accessToken = await getValidToken(supabase, kv);
 	if (!accessToken) {
-		const dbRes = await supabase
+		const { data: cached } = await supabase
 			.from('gdrive_creds')
 			.select('access_token, expires_at')
-			.eq('id', 1)
+			.eq('id', GDRIVE_CREDS_ID)
 			.maybeSingle();
-		if (!dbRes.data?.access_token || new Date(dbRes.data.expires_at).getTime() <= Date.now()) {
-			return;
-		}
-		accessToken = dbRes.data.access_token;
+		if (!cached?.access_token || new Date(cached.expires_at).getTime() <= Date.now()) return;
+		accessToken = cached.access_token;
 	}
 
 	await fetch(`https://www.googleapis.com/drive/v3/files/${id}`, {
 		method: 'DELETE',
 		headers: { Authorization: `Bearer ${accessToken}` }
 	});
-}
-
-export async function getAccessToken(supabase: any, kv: any): Promise<string | null> {
-	const refreshToken = await kv?.get('refresh_token');
-	if (!refreshToken) return null;
-
-	const clientId = env.GOOGLE_CLIENT_ID;
-	const clientSecret = env.GOOGLE_CLIENT_SECRET;
-	if (!clientId || !clientSecret) return null;
-
-	const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-		body: new URLSearchParams({
-			client_id: clientId,
-			client_secret: clientSecret,
-			grant_type: 'refresh_token',
-			refresh_token: refreshToken
-		})
-	});
-	if (!tokenRes.ok) return null;
-	const { access_token } = await tokenRes.json() as { access_token: string; expires_in: number };
-	return access_token;
 }
 
 export async function ensureFolder(accessToken: string, name: string, parentId: string): Promise<string> {

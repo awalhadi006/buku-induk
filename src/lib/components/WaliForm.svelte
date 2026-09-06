@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import type { Snippet } from 'svelte';
+	import FormShell from './FormShell.svelte';
 
 	type Field = {
 		key: string;
@@ -27,23 +26,11 @@
 		onSubmit?: (el: HTMLFormElement) => void;
 		error?: string | null;
 		submitting?: boolean;
-		extra?: Snippet;
+		extra?: import('svelte').Snippet;
 	} = $props();
 
 	// svelte-ignore state_referenced_locally (nilai awal sengaja: form selalu di-mount ulang)
 	let v = $state({ ...values });
-
-	const form = $derived(
-		error ?? ((page.form as { error?: string } | null)?.error ?? null)
-	);
-	const busy = $derived(submitting ?? false);
-
-	async function handleSubmit(e: SubmitEvent) {
-		if (onSubmit) {
-			e.preventDefault();
-			await onSubmit(e.currentTarget as HTMLFormElement);
-		}
-	}
 
 	const groups = $derived<Group[]>([
 		{
@@ -72,17 +59,7 @@
 	]);
 </script>
 
-{#if form}
-	<div class="alert alert-error mb-6 animate-in" role="alert">
-		<span>{form}</span>
-	</div>
-{/if}
-
-<form
-	method="POST"
-	action={onSubmit ? undefined : action}
-	onsubmit={handleSubmit}
-	class="space-y-6">
+<FormShell {error} {submitting} {submitLabel} {cancelHref} {action} {onSubmit} {extra}>
 	{#each groups as g (g.label)}
 		<fieldset class="rounded-lg border border-base-300 bg-base-100 p-5">
 			<legend class="px-2 text-sm font-semibold">{g.label}</legend>
@@ -108,18 +85,4 @@
 			</div>
 		</fieldset>
 	{/each}
-
-	{#if extra}
-		{@render extra()}
-	{/if}
-
-	<div class="flex items-center gap-3 mt-6">
-		<button type="submit" class="btn btn-primary" disabled={busy}>
-			{#if busy}
-				<span class="loading loading-spinner loading-sm"></span>
-			{/if}
-			{submitLabel}
-		</button>
-		<a class="btn btn-ghost" href={cancelHref}>Batal</a>
-	</div>
-</form>
+</FormShell>

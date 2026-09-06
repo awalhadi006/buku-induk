@@ -1,31 +1,20 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { hasRole, getProfile, ADMIN_ROLES } from '$lib/server/auth';
 import { humanizeError } from '$lib/errors';
 
-const ADMIN_ROLES = ['superadmin', 'admin_tu'];
-
-async function isAdmin(locals: App.Locals): Promise<boolean> {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-	const { data: profile } = await supabase
-		.from('profiles')
-		.select('peran')
-		.eq('id', user.id)
-		.maybeSingle();
-	return ADMIN_ROLES.includes(profile?.peran ?? '');
-}
-
-export async function load({ locals }) {
-	if (!(await isAdmin(locals))) throw redirect(303, '/');
+export async function load(event) {
+	const profile = await getProfile(event.locals);
+	if (!hasRole(profile, ADMIN_ROLES)) throw redirect(303, '/');
 
 	const [{ data: kelas }, { data: santriCounts }] = await Promise.all([
-		locals.supabase
+		event.locals.supabase
 			.from('kelas')
 			.select('id,tingkat,rombel,tahun_ajaran,aktif')
 			.eq('aktif', true)
 			.order('tahun_ajaran', { ascending: false, nullsFirst: false })
 			.order('tingkat')
 			.order('rombel'),
-		locals.supabase
+		event.locals.supabase
 			.from('santri')
 			.select('kelas_id, status_santri')
 			.in('status_santri', ['aktif', 'khusus'])
@@ -48,7 +37,8 @@ export async function load({ locals }) {
 
 export const actions = {
 	naikKelas: async ({ locals, request }) => {
-		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin mutasi kelas.' });
+		const profile = await getProfile(locals);
+		if (!hasRole(profile, ADMIN_ROLES)) return fail(403, { error: 'Tidak punya izin mutasi kelas.' });
 
 		const fd = await request.formData();
 		const sourceId = Number(fd.get('source_kelas_id'));
@@ -77,7 +67,8 @@ export const actions = {
 	},
 
 	lulusMassal: async ({ locals, request }) => {
-		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin kelulusan massal.' });
+		const profile = await getProfile(locals);
+		if (!hasRole(profile, ADMIN_ROLES)) return fail(403, { error: 'Tidak punya izin kelulusan massal.' });
 
 		const fd = await request.formData();
 		const kelasId = Number(fd.get('kelas_id'));

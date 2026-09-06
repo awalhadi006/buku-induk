@@ -1,12 +1,13 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { getProfile, hasRole, UPLOAD_ROLES } from '$lib/server/auth';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const { user, supabase } = locals;
 	if (!user) throw error(401, 'Unauthorized');
 
-	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
-	if (!profile || !['superadmin', 'admin_tu', 'wali_kamar', 'wali_kelas'].includes(profile.peran)) {
+	const profile = await getProfile(locals);
+	if (!profile || !hasRole(profile, UPLOAD_ROLES)) {
 		throw error(403, 'Tidak punya izin');
 	}
 

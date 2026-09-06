@@ -1,6 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { parseSantriForm, SANTRI_COLUMNS } from '$lib/santri';
 import { humanizeError } from '$lib/errors';
+import { GDRIVE_CREDS_ID } from '$lib/gdrive';
 
 export async function load({ params, locals }) {
 	const { user, supabase } = locals;
@@ -33,7 +34,7 @@ export async function load({ params, locals }) {
 				.select('id,santri_id,jenis,nilai_lama,nilai_baru,tanggal_efektif,created_by,created_at')
 				.eq('santri_id', params.id)
 				.order('tanggal_efektif', { ascending: false }),
-			supabase.from('gdrive_creds').select('id,folder_id').eq('id', 1).maybeSingle(),
+			supabase.from('gdrive_creds').select('id,folder_id').eq('id', GDRIVE_CREDS_ID).maybeSingle(),
 			supabase.from('custom_fields').select('id,nama,label,tipe,opsi,aktif,urutan').eq('aktif', true).order('urutan').order('id')
 		]);
 

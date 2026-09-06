@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import type { Snippet } from 'svelte';
 	import { GENDER_OPTIONS, STATUS_KELUARGA_OPTIONS, STATUS_SANTRI_OPTIONS } from '$lib/santri';
 	import Select from './Select.svelte';
+	import FormShell from './FormShell.svelte';
 
 	type Field = {
 		key: string;
@@ -94,7 +93,7 @@
 	}: {
 		values: Record<string, string>;
 		kamar: { id: number; nomor: number }[];
-		kelas: { id: number; tingkat: string; rombel: string; tahun_ajaran?: string | null }[];
+		kelas: { id: number; tingkat: string; rombel: string; tahun_ajarian?: string | null }[];
 		wali: { id: string; label: string }[];
 		action?: string;
 		submitLabel: string;
@@ -102,7 +101,7 @@
 		onSubmit?: (el: HTMLFormElement) => void;
 		error?: string | null;
 		submitting?: boolean;
-		extra?: Snippet;
+		extra?: import('svelte').Snippet;
 		gdrive?: boolean;
 		customFields?: CustomField[];
 	} = $props();
@@ -116,23 +115,13 @@
 				if (parsed[cf.nama] != null) out[`custom_${cf.nama}`] = String(parsed[cf.nama]);
 			}
 			return out;
-		} catch { return {}; }
+		} catch {
+			return {};
+		}
 	}
 
 	// svelte-ignore state_referenced_locally (nilai awal sengaja: form selalu di-mount ulang)
 	let v = $state({ ...values, ...expandCustom(values, customFields) });
-
-	const form = $derived(
-		error ?? ((page.form as { error?: string } | null)?.error ?? null)
-	);
-	const busy = $derived(submitting ?? false);
-
-	async function handleSubmit(e: SubmitEvent) {
-		if (onSubmit) {
-			e.preventDefault();
-			await onSubmit(e.currentTarget as HTMLFormElement);
-		}
-	}
 
 	const penempatanGroup: Group = $derived({
 		label: 'Penempatan',
@@ -149,7 +138,7 @@
 				type: 'select',
 				options: kelas.map((k) => ({
 					value: String(k.id),
-					label: `${k.tingkat} ${k.rombel}` + (k.tahun_ajaran ? ` (${k.tahun_ajaran})` : '')
+					label: `${k.tingkat} ${k.rombel}` + (k.tahun_ajarian ? ` (${k.tahun_ajarian})` : '')
 				}))
 			},
 			{
@@ -171,13 +160,7 @@
 					fields: customFields.map((cf) => ({
 						key: `custom_${cf.nama}`,
 						label: cf.label,
-						type: (cf.tipe === 'select'
-							? 'select'
-							: cf.tipe === 'date'
-								? 'date'
-								: cf.tipe === 'number'
-									? 'number'
-									: 'text') as Field['type'],
+						type: (TYPE_TO_FIELD[cf.tipe] ?? 'text') as Field['type'],
 						options: cf.tipe === 'select' ? cf.opsi : undefined
 					})) as Field[]
 				}
@@ -185,20 +168,16 @@
 	);
 
 	const groups: Group[] = $derived([...STATIC_GROUPS, penempatanGroup, ...(customGroup ? [customGroup] : [])]);
+
+	const TYPE_TO_FIELD: Record<string, Field['type']> = {
+		select: 'select',
+		date: 'date',
+		number: 'number',
+		textarea: 'textarea'
+	};
 </script>
 
-{#if form}
-	<div class="alert alert-error mb-6 animate-in" role="alert">
-		<span>{form}</span>
-	</div>
-{/if}
-
-<form
-	method="POST"
-	action={onSubmit ? undefined : action}
-	onsubmit={handleSubmit}
-	enctype="multipart/form-data"
-	class="space-y-6">
+<FormShell {error} {submitting} {submitLabel} {cancelHref} {action} {onSubmit} {extra}>
 	{#each groups as g (g.label)}
 		<fieldset class="rounded-lg border border-base-300 bg-base-100 p-5">
 			<legend class="px-2 text-sm font-semibold">{g.label}</legend>
@@ -247,18 +226,4 @@
 			</div>
 		</fieldset>
 	{/each}
-
-	{#if extra}
-		{@render extra()}
-	{/if}
-
-	<div class="flex items-center gap-3 mt-6">
-		<button type="submit" class="btn btn-primary" disabled={busy}>
-			{#if busy}
-				<span class="loading loading-spinner loading-sm"></span>
-			{/if}
-			{submitLabel}
-		</button>
-		<a class="btn btn-ghost" href={cancelHref}>Batal</a>
-	</div>
-</form>
+</FormShell>

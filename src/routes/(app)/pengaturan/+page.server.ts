@@ -5,7 +5,8 @@ import { ALL_METRIC_KEYS } from '$lib/types';
 import { parseSidebarNav } from '$lib/nav';
 import { getSupabaseAdmin } from '$lib/supabase-admin';
 import { humanizeError, validationMessages } from '$lib/errors';
-import { getValidToken, ensureFolder, createUploadSession, uploadToSession } from '$lib/gdrive';
+import { getValidToken, ensureFolder, createUploadSession, uploadToSession, GDRIVE_CREDS_ID } from '$lib/gdrive';
+import { requireAdmin, requireSuperadmin } from '$lib/server/auth';
 
 function parseMetricKeys(v: string | null): string[] {
 	if (!v) return ALL_METRIC_KEYS;
@@ -23,24 +24,9 @@ function parseOptInt(v: FormDataEntryValue | null): number | null {
 	return Number.isFinite(n) ? Math.floor(n) : null;
 }
 
-async function requireAdmin(locals: App.Locals) {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
-	if (!profile || !['superadmin', 'admin_tu'].includes(profile.peran)) throw redirect(303, '/');
-	return profile.peran as string;
-}
-
-async function requireSuperadmin(locals: App.Locals) {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-	const { data: profile } = await supabase.from('profiles').select('peran').eq('id', user.id).maybeSingle();
-	if (profile?.peran !== 'superadmin') throw redirect(303, '/');
-}
-
-export async function load({ locals }) {
-	const peran = await requireAdmin(locals);
-	const { supabase } = locals;
+export async function load(event) {
+	const profile = await requireAdmin(event.locals);
+	const { supabase } = event.locals;
 
 	const [
 		{ data: profiles },
@@ -59,16 +45,16 @@ export async function load({ locals }) {
 		supabase.from('permissions').select('role,abilities').order('role'),
 		supabase.from('custom_fields').select('*').order('urutan').order('id'),
 		supabase.from('settings').select('key,value'),
-		peran === 'superadmin' ? supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100) : Promise.resolve({ data: null }),
+		profile.peran === 'superadmin' ? supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100) : Promise.resolve({ data: null }),
 		supabase.from('tahun_ajaran').select('id,nama,aktif').order('nama', { ascending: false }),
-		supabase.from('gdrive_creds').select('*').eq('id', 1).maybeSingle()
+		supabase.from('gdrive_creds').select('*').eq('id', GDRIVE_CREDS_ID).maybeSingle()
 	]);
 
 	const settingsObj = Object.fromEntries((settings ?? []).map((s) => [s.key, s.value ?? '']));
 
 	return {
-		isSuperadmin: peran === 'superadmin',
-		canCreateUsers: peran === 'superadmin' || (peran === 'admin_tu' && settingsObj['allow_admin_tu_create_users'] === 'true'),
+		isSuperadmin: profile.peran === 'superadmin',
+		canCreateUsers: profile.peran === 'superadmin' || (profile.peran === 'admin_tu' && settingsObj['allow_admin_tu_create_users'] === 'true'),
 		profiles: profiles ?? [],
 		kamar: kamar ?? [],
 		kelas: kelas ?? [],
@@ -102,11 +88,11 @@ export const actions = {
 	},
 
 	createUser: async ({ locals, request }) => {
-		const peran = await requireAdmin(locals);
+		const profile = await requireAdmin(locals);
 		const { supabase } = locals;
 
 		// Check if admin_tu is allowed to create users
-		if (peran === 'admin_tu') {
+		if (profile.peran === 'admin_tu') {
 			const { data: setting } = await supabase
 				.from('settings')
 				.select('value')
@@ -308,7 +294,7 @@ export const actions = {
 		await requireAdmin(locals);
 		const fd = await request.formData();
 		const folder_id = (fd.get('folder_id') as string | null)?.trim() ?? '';
-		const { error } = await locals.supabase.from('gdrive_creds').update({ folder_id }).eq('id', 1);
+		const { error } = await locals.supabase.from('gdrive_creds').update({ folder_id }).eq('id', GDRIVE_CREDS_ID);
 		if (error) return fail(400, { error: humanizeError(error) });
 	},
 
@@ -353,7 +339,7 @@ export const actions = {
 	},
 
 	updateSchoolIdentity: async ({ locals, request, platform }) => {
-		const peran = await requireAdmin(locals);
+		const profile = await requireAdmin(locals);
 		const fd = await request.formData();
 		const schoolName = (fd.get('school_name') as string | null)?.trim() ?? '';
 		const logoFile = fd.get('school_logo') as File | null;
@@ -368,7 +354,7 @@ export const actions = {
 		);
 		if (nameErr) {
 			// If RLS blocks admin_tu, try with admin client
-			if (peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
+			if (profile.peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
 				supabase = getSupabaseAdmin();
 				const { error: adminErr } = await (supabase.from('settings') as any).upsert(
 					{ key: 'school_name', value: schoolName },
@@ -396,8 +382,8 @@ export const actions = {
 			const { data: gdrive } = await supabase
 				.from('gdrive_creds')
 				.select('folder_id')
-				.eq('id', 1)
-				.maybeSingle();
+		.eq('id', GDRIVE_CREDS_ID)
+		.maybeSingle();
 
 			if (!gdrive?.folder_id) {
 				return fail(400, { error: 'Google Drive belum dikonfigurasi (folder_id kosong)' });
@@ -422,7 +408,7 @@ export const actions = {
 				{ onConflict: 'key' }
 			);
 			if (logoUrlErr) {
-				if (peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
+				if (profile.peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
 					const adminClient = getSupabaseAdmin();
 					const { error: adminLogoErr } = await (adminClient.from('settings') as any).upsert(
 						{ key: 'school_logo_url', value: gdriveUrl },

@@ -1,30 +1,20 @@
 import type { RequestHandler } from './$types';
-import { redirect } from '@sveltejs/kit';
+import { requireAdmin } from '$lib/server/auth';
 import * as XLSX from 'xlsx';
 
-const ADMIN_ROLES = ['superadmin', 'admin_tu'];
-
 export const GET: RequestHandler = async ({ locals, url }) => {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-
-	const { data: profile } = await supabase
-		.from('profiles')
-		.select('peran')
-		.eq('id', user.id)
-		.maybeSingle();
-	if (!ADMIN_ROLES.includes(profile?.peran ?? '')) throw redirect(303, '/');
+	await requireAdmin(locals);
 
 	const tahunFilter = url.searchParams.get('tahun') ?? '';
 	const kelasFilter = url.searchParams.get('kelas') ?? '';
 
 	const [{ data: santri }, { data: history }] = await Promise.all([
-		supabase
+		locals.supabase
 			.from('santri')
 			.select('id,nama_lengkap,nisn,nik,jenis_kelamin,status_keluarga,kabupaten,kelas(tingkat,rombel,tahun_ajaran)')
 			.eq('status_santri', 'lulus')
 			.order('nama_lengkap'),
-		supabase
+		locals.supabase
 			.from('status_history')
 			.select('santri_id,tanggal_efektif')
 			.eq('jenis', 'status_santri')

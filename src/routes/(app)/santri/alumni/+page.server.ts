@@ -1,25 +1,16 @@
 import { redirect } from '@sveltejs/kit';
+import { requireAdmin } from '$lib/server/auth';
 
-const ADMIN_ROLES = ['superadmin', 'admin_tu'];
-
-export async function load({ locals }) {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-
-	const { data: profile } = await supabase
-		.from('profiles')
-		.select('peran')
-		.eq('id', user.id)
-		.maybeSingle();
-	if (!ADMIN_ROLES.includes(profile?.peran ?? '')) throw redirect(303, '/');
+export async function load(event) {
+	await requireAdmin(event.locals);
 
 	const [{ data: santri }, { data: history }] = await Promise.all([
-		supabase
+		event.locals.supabase
 			.from('santri')
 			.select('id,nama_lengkap,nisn,nik,jenis_kelamin,status_keluarga,kabupaten,kelas(tingkat,rombel,tahun_ajaran)')
 			.eq('status_santri', 'lulus')
 			.order('nama_lengkap'),
-		supabase
+		event.locals.supabase
 			.from('status_history')
 			.select('santri_id,tanggal_efektif')
 			.eq('jenis', 'status_santri')

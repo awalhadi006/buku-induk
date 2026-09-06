@@ -1,44 +1,34 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { hasRole, getProfile, ADMIN_ROLES } from '$lib/server/auth';
 import { humanizeError, validationMessages } from '$lib/errors';
 
-const ADMIN_ROLES = ['superadmin', 'admin_tu'];
+export async function load(event) {
+	const { profile } = await event.parent();
+	const isAdmin = hasRole(profile, ADMIN_ROLES);
 
-async function isAdmin(locals: App.Locals): Promise<boolean> {
-	const { user, supabase } = locals;
-	if (!user) throw redirect(303, '/login');
-	const { data: profile } = await supabase
-		.from('profiles')
-		.select('peran')
-		.eq('id', user.id)
-		.maybeSingle();
-	return ADMIN_ROLES.includes(profile?.peran ?? '');
-}
-
-export async function load({ locals }) {
-	const admin = await isAdmin(locals);
 	const [{ data }, { data: settings }] = await Promise.all([
-		locals.supabase
+		event.locals.supabase
 			.from('kelas')
 			.select('*')
 			.order('tahun_ajaran', { ascending: false, nullsFirst: false })
 			.order('tingkat')
 			.order('rombel'),
-		locals.supabase.from('settings').select('key,value')
+		event.locals.supabase.from('settings').select('key,value')
 	]);
 	const taAktif = (settings ?? []).find((s) => s.key === 'tahun_ajaran_aktif')?.value ?? '';
-	return { kelas: data ?? [], isAdmin: admin, tahunAjaranAktif: taAktif };
+	return { kelas: data ?? [], isAdmin, tahunAjaranAktif: taAktif };
 }
 
 export const actions = {
 	add: async ({ locals, request }) => {
-		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin menambah kelas.' });
+		const profile = await getProfile(locals);
+		if (!hasRole(profile, ADMIN_ROLES)) return fail(403, { error: 'Tidak punya izin menambah kelas.' });
 		const fd = await request.formData();
 		const tingkat = (fd.get('tingkat') as string | null)?.trim() ?? '';
 		const rombel = (fd.get('rombel') as string | null)?.trim() ?? '';
 		const tahun = (fd.get('tahun_ajaran') as string | null)?.trim() || null;
 		if (!tingkat || !rombel) return fail(400, { error: 'Tingkat dan rombel wajib diisi.' });
 
-		// Default ke tahun ajaran aktif jika tidak diisi
 		const { data: settings } = await locals.supabase
 			.from('settings')
 			.select('value')
@@ -51,7 +41,8 @@ export const actions = {
 		throw redirect(303, '/kelas');
 	},
 	update: async ({ locals, request }) => {
-		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin mengubah kelas.' });
+		const profile = await getProfile(locals);
+		if (!hasRole(profile, ADMIN_ROLES)) return fail(403, { error: 'Tidak punya izin mengubah kelas.' });
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		const tingkat = (fd.get('tingkat') as string | null)?.trim() ?? '';
@@ -66,7 +57,8 @@ export const actions = {
 		throw redirect(303, '/kelas');
 	},
 	delete: async ({ locals, request }) => {
-		if (!(await isAdmin(locals))) return fail(403, { error: 'Tidak punya izin menghapus kelas.' });
+		const profile = await getProfile(locals);
+		if (!hasRole(profile, ADMIN_ROLES)) return fail(403, { error: 'Tidak punya izin menghapus kelas.' });
 		const fd = await request.formData();
 		const id = Number(fd.get('id') ?? '');
 		const { error } = await locals.supabase.from('kelas').delete().eq('id', id);
