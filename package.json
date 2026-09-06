@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "engines": {
+    "node": ">=22.16.0"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -27,7 +30,7 @@
     "@testing-library/svelte": "^5.4.2",
     "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.11",
-    "jsdom": "^30.0.1",
+    "jsdom": "^29.0.0",
     "svelte": "^5.56.1",
     "svelte-check": "^4.6.0",
     "tailwindcss": "^4.3.0",
