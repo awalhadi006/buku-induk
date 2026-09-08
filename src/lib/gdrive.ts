@@ -181,7 +181,7 @@ export async function makePublic(accessToken: string, fileId: string): Promise<v
 		{
 			method: 'POST',
 			headers: {
-				Authorization: *** ${accessToken}`,
+				Authorization: `Bearer ${accessToken}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({ role: 'reader', type: 'anyone' })
@@ -192,3 +192,4 @@ export async function makePublic(accessToken: string, fileId: string): Promise<v
 		console.error(`Gagal set permission publik untuk file ${fileId}: ${res.status} ${errText}`);
 	}
 }
+
