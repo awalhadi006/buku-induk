@@ -401,6 +401,7 @@ export const actions = {
 				logoFolder
 			);
 			await uploadToSession(sessionUrl, logoFile, accessToken);
+			console.log('LOGO UPLOAD: fileId=', fileId, 'token=', accessToken ? 'ok' : 'none');
 
 			const gdriveUrl = `gdrive:${fileId}`;
 			const { error: logoUrlErr } = await (supabase.from('settings') as any).upsert(
