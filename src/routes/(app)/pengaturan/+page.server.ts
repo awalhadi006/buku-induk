@@ -407,7 +407,7 @@ export const actions = {
 			}
 		}
 
-		return { success: true };
+		return redirect(303, '/pengaturan');
 	},
 
 	updateSidebarNav: async ({ locals, request }) => {

@@ -761,10 +761,6 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			method="POST"
 			action="?/updateSchoolIdentity"
 			enctype="multipart/form-data"
-			use:enhance={() => {
-				submittingUpdateSchoolIdentity = true;
-				return () => { submittingUpdateSchoolIdentity = false; };
-			}}
 			class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Nama Sekolah</span>
@@ -795,11 +791,6 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				submittingUpdateSchoolIdentity = true;
 				setTimeout(() => { submittingUpdateSchoolIdentity = false; }, 30000);
 			}}>
-				{#if submittingUpdateSchoolIdentity}
-					<svg class="loading loading-spinner loading-sm" aria-hidden="true"><circle /><circle /></svg>
-				{:else}
-					<IconEdit class="size-4" stroke-width={2} />
-				{/if}
 				Simpan Identitas
 			</LoadingButton>
 		</form>

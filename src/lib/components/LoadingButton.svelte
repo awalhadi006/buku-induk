@@ -28,7 +28,7 @@
 <button
 	type={type}
 	class="btn btn-{variant} btn-{size} {className}"
-	disabled={disabled || loading}
+	disabled={disabled}
 	aria-label={ariaLabel}
 	aria-busy={loading}
 	onclick={onclick}>
