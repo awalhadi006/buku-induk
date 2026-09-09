@@ -791,7 +791,10 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					accept="image/*" />
 			</label>
 
-			<LoadingButton loading={submittingUpdateSchoolIdentity} variant="primary" size="sm" onclick={() => submittingUpdateSchoolIdentity = true}>
+			<LoadingButton loading={submittingUpdateSchoolIdentity} variant="primary" size="sm" onclick={() => {
+				submittingUpdateSchoolIdentity = true;
+				setTimeout(() => { submittingUpdateSchoolIdentity = false; }, 30000);
+			}}>
 				{#if submittingUpdateSchoolIdentity}
 					<svg class="loading loading-spinner loading-sm" aria-hidden="true"><circle /><circle /></svg>
 				{:else}
