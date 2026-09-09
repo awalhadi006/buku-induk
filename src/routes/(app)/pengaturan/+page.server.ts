@@ -366,7 +366,7 @@ export const actions = {
 			}
 		}
 
-		// Upload logo sekolah ke Google Drive
+// Upload logo sekolah ke Google Drive
 		if (logoFile && logoFile.size > 0) {
 			const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 			if (!allowedTypes.includes(logoFile.type)) {
@@ -382,8 +382,8 @@ export const actions = {
 			const { data: gdrive } = await supabase
 				.from('gdrive_creds')
 				.select('folder_id')
-		.eq('id', GDRIVE_CREDS_ID)
-		.maybeSingle();
+				.eq('id', GDRIVE_CREDS_ID)
+				.maybeSingle();
 
 			if (!gdrive?.folder_id) {
 				return fail(400, { error: 'Google Drive belum dikonfigurasi (folder_id kosong)' });
@@ -392,33 +392,18 @@ export const actions = {
 			const accessToken = await getValidToken(supabase, kv);
 			if (!accessToken) return fail(401, { error: 'Gagal mendapatkan akses Google Drive' });
 
-			const logoFolder = await ensureFolder(accessToken, 'Logo Sekolah', gdrive.folder_id);
-			const { sessionUrl, fileId } = await createUploadSession(
-				accessToken,
-				logoFile.name,
-				logoFile.type,
-				logoFile.size,
-				logoFolder
-			);
-			await uploadToSession(sessionUrl, logoFile, accessToken);
-			console.log('LOGO UPLOAD: fileId=', fileId, 'token=', accessToken ? 'ok' : 'none');
-
-			const gdriveUrl = `gdrive:${fileId}`;
-			const { error: logoUrlErr } = await (supabase.from('settings') as any).upsert(
-				{ key: 'school_logo_url', value: gdriveUrl },
-				{ onConflict: 'key' }
-			);
-			if (logoUrlErr) {
-				if (profile.peran !== 'superadmin' && env.SUPABASE_SERVICE_ROLE_KEY) {
-					const adminClient = getSupabaseAdmin();
-					const { error: adminLogoErr } = await (adminClient.from('settings') as any).upsert(
-						{ key: 'school_logo_url', value: gdriveUrl },
-						{ onConflict: 'key' }
-					);
-					if (adminLogoErr) return fail(400, { error: humanizeError(adminLogoErr) });
-				} else {
-					return fail(400, { error: humanizeError(logoUrlErr) });
-				}
+			try {
+				const logoFolder = await ensureFolder(accessToken, 'Logo Sekolah', gdrive.folder_id);
+				const { sessionUrl } = await createUploadSession(
+					accessToken,
+					logoFile.name,
+					logoFile.type,
+					logoFile.size,
+					logoFolder
+				);
+				await uploadToSession(sessionUrl, logoFile, accessToken);
+			} catch (err) {
+				return fail(500, { error: humanizeError(err) });
 			}
 		}
 

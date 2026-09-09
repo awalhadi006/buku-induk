@@ -761,7 +761,10 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			method="POST"
 			action="?/updateSchoolIdentity"
 			enctype="multipart/form-data"
-			use:enhance={() => { submittingUpdateSchoolIdentity = false; return async () => {}; }}
+			use:enhance={() => {
+				submittingUpdateSchoolIdentity = true;
+				return () => { submittingUpdateSchoolIdentity = false; };
+			}}
 			class="mt-4 rounded-lg border border-base-300 bg-base-100 p-5">
 			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">Nama Sekolah</span>

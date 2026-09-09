@@ -157,7 +157,8 @@ export async function uploadToSession(sessionUrl: string, file: File, accessToke
 		method: 'PUT',
 		headers: {
 			'Content-Type': file.type,
-			'X-Upload-Content-Length': String(file.size)
+			'X-Upload-Content-Length': String(file.size),
+			Authorization: `Bearer ${accessToken}`
 		},
 		body: file
 	});
