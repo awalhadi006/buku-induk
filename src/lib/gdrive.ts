@@ -190,7 +190,7 @@ export async function makePublic(accessToken: string, fileId: string): Promise<v
 	);
 	if (!res.ok) {
 		const errText = await res.text();
-		console.error(`Gagal set permission publik untuk file ${fileId}: ${res.status} ${errText}`);
+		throw new Error(`Gagal set permission publik untuk file ${fileId}: ${res.status} ${errText}`);
 	}
 }
 
