@@ -3,7 +3,7 @@
 
 export function photoUrl(value: string | null | undefined, size = 'w512'): string | null {
 	if (!value) return null;
-	if (value.startsWith('gdrive:')) return `https://drive.google.com/uc?export=view&id=${value.slice(7)}`;
+	if (value.startsWith('gdrive:')) return `https://drive.google.com/thumbnail?id=${value.slice(7)}`;
 	return value;
 }
 
