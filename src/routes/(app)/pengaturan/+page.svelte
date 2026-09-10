@@ -474,7 +474,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				<input name="aktif" type="checkbox" checked class="toggle toggle-primary toggle-sm" />
 				<span class="text-sm font-medium">Aktif</span>
 			</label>
-			<LoadingButton loading={submittingCreateField} variant="primary" size="sm" onclick={() => submittingCreateField = true}>
+			<LoadingButton loading={submittingCreateField} variant="primary" size="sm" class="mt-3" onclick={() => submittingCreateField = true}>
 				<IconPlus class="size-4" stroke-width={2} />
 				Tambah field
 			</LoadingButton>
@@ -516,7 +516,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								<input name="aktif" type="checkbox" class="toggle toggle-primary toggle-sm" bind:checked={fieldForm.aktif} />
 								<span class="text-sm font-medium">Aktif</span>
 							</label>
-							<div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4">
+							<div class="flex items-end gap-2 sm:col-span-2 lg:col-span-4 mt-3">
 								<LoadingButton loading={submittingUpdateField} variant="primary" size="sm" onclick={() => submittingUpdateField = true}>Simpan</LoadingButton>
 								<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingField = null)}>Batal</button>
 							</div>
@@ -823,7 +823,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					</label>
 				{/each}
 			</div>
-			<LoadingButton loading={submittingUpdateDashboardMetrics} variant="primary" size="sm" onclick={() => submittingUpdateDashboardMetrics = true}>Simpan</LoadingButton>
+			<LoadingButton loading={submittingUpdateDashboardMetrics} variant="primary" size="sm" class="mt-4" onclick={() => submittingUpdateDashboardMetrics = true}>Simpan</LoadingButton>
 		</form>
 	</section>
 
