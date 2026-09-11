@@ -70,6 +70,17 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
 
+	let showingCreateUserSuccess = $state(false);
+	$effect(() => {
+		if (form?.success) {
+			showingCreateUserSuccess = true;
+			const timeout = setTimeout(() => {
+				showingCreateUserSuccess = false;
+			}, 3000);
+			return () => clearTimeout(timeout);
+		}
+	});
+
 	// Per-form loading states
 	let submittingToggleAdmin = $state(false);
 	let submittingCreateUser = $state(false);
@@ -168,9 +179,18 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 </header>
 
 {#if actionError}
-	<div class="alert alert-error mt-6" role="alert">
-		<span>{actionError}</span>
-	</div>
+ 	<div class="alert alert-error mt-6" role="alert">
+ 		<span>{actionError}</span>
+ 	</div>
+{/if}
+
+{#if showingCreateUserSuccess}
+ 	<div class="fixed bottom-4 right-4 z-50 toast animate-in" role="status" aria-live="polite">
+ 		<div class="rounded-lg border border-success/40 bg-success/10 px-4 py-3 shadow-lg flex items-center gap-2">
+ 			<svg class="size-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+ 			<span class="text-sm font-medium text-success">Akun pengguna berhasil dibuat</span>
+ 		</div>
+ 	</div>
 {/if}
 
 <div class="tabs tabs-box mt-6 w-full overflow-x-auto">
