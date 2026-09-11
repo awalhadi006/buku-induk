@@ -185,7 +185,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 {/if}
 
 {#if showingCreateUserSuccess}
- 	<div class="fixed bottom-4 right-4 z-50 toast animate-in" role="status" aria-live="polite">
+ 	<div class="fixed top-4 right-4 z-50 toast animate-in" role="status" aria-live="polite">
  		<div class="rounded-lg border border-success/40 bg-success/10 px-4 py-3 shadow-lg flex items-center gap-2">
  			<svg class="size-5 text-success shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
  			<span class="text-sm font-medium text-success">Akun pengguna berhasil dibuat</span>
