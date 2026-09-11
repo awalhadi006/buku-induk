@@ -118,9 +118,9 @@ export const actions = {
 		if (!ROLES.includes(userPeran)) {
 			return fail(400, { error: 'Peran tidak valid.' });
 		}
-		if (password.length < 6) {
-			return fail(400, { error: 'Password minimal 6 karakter.' });
-		}
+if (password.length < 4) {
+		return fail(400, { error: 'Password minimal 4 karakter.' });
+	}
 
 		// Check username uniqueness
 		const { data: existing } = await supabase

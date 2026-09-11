@@ -250,8 +250,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 						<input name="nama" type="text" class="input input-bordered w-full" placeholder="Nama lengkap" />
 					</label>
 					<label class="block">
-						<span class="mb-1.5 block text-sm font-medium">Password Awal *</span>
-						<input name="password" type="text" required class="input input-bordered w-full" placeholder="Minimal 6 karakter" />
+						<span class="mb-1.5 block text-sm font-medium">Password *</span>
+						<input name="password" type="text" required class="input input-bordered w-full" placeholder="Minimal 4 karakter" />
 					</label>
 					<label class="block">
 						<span class="mb-1.5 block text-sm font-medium">Peran</span>
