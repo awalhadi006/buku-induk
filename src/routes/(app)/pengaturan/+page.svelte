@@ -912,7 +912,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 {/each}
 				</tbody>
 			</table>
-			<div class="flex justify-end gap-3 pt-4">
+			<div class="flex justify-end gap-3 mt-4">
 				<LoadingButton loading={submittingUpdateSidebarNav} variant="primary" size="sm" onclick={() => submittingUpdateSidebarNav = true}>Simpan Konfigurasi Sidebar</LoadingButton>
 			</div>
 		</form>
