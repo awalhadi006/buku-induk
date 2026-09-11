@@ -183,33 +183,27 @@ export const actions = {
 				s.rw = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rw).padStart(3, '0');
 			}
 
-			// REQUIRED (gagal): nama_lengkap, tempat_lahir, tanggal_lahir
 			if (!nama) {
 				errors.push({ row: line, nama, reason: 'Nama lengkap kosong', kategori: 'wajib' });
 				continue;
 			}
-			if (!s.tempat_lahir) {
-				errors.push({ row: line, nama, reason: 'Tempat lahir kosong', kategori: 'wajib' });
-				continue;
-			}
-			if (!s.tanggal_lahir) {
-				errors.push({ row: line, nama, reason: 'Tanggal lahir kosong', kategori: 'wajib' });
-				continue;
-			}
 
-			// Required tanggal_lahir must be valid
-			{
+			// Validate tanggal_lahir format if provided
+			if (s.tanggal_lahir) {
 				const iso = toIsoDate(s.tanggal_lahir);
 				if (iso === 'invalid') {
-					errors.push({ row: line, nama, reason: 'Tanggal lahir tidak valid', kategori: 'format' });
-					continue;
+					rowWarnings.push('Tanggal lahir tidak valid, data tidak disimpan');
+					delete s.tanggal_lahir;
+				} else {
+					s.tanggal_lahir = iso;
 				}
-				s.tanggal_lahir = iso;
 			}
 
 			// KOLOM WAJIB: warning jika belum lengkap, tetap disimpan
 			if (!s.nis) rowWarnings.push('NIS belum diisi');
 			if (!s.nisn) rowWarnings.push('NISN belum diisi');
+			if (!s.tempat_lahir) rowWarnings.push('Tempat lahir belum diisi');
+			if (!s.tanggal_lahir) rowWarnings.push('Tanggal lahir belum diisi');
 			if (!s.jenis_kelamin) rowWarnings.push('Jenis kelamin belum diisi');
 			if (!s.alamat) rowWarnings.push('Alamat belum diisi');
 			if (!w.nama_ayah) rowWarnings.push('Nama ayah belum diisi');
