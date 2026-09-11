@@ -213,8 +213,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif — Staff TU bisa membuat akun wali' : 'Nonaktif — Hanya Superadmin yang bisa membuat akun'}
 					</p>
 				</div>
-				<form method="POST" action="?/toggleAdminTuCreateUsers">
-					<LoadingButton loading={submittingToggleAdmin} variant={settings['allow_admin_tu_create_users'] === 'true' ? 'success' : 'outline'} size="sm" onclick={() => submittingToggleAdmin = true}>
+				<form method="POST" action="?/toggleAdminTuCreateUsers" class="mt-4">
+					<LoadingButton loading={submittingToggleAdmin} variant={settings['allow_admin_tu_create_users'] === 'true' ? 'success' : 'outline'} size="sm" class="mt-2" onclick={() => submittingToggleAdmin = true}>
 						{settings['allow_admin_tu_create_users'] === 'true' ? 'Aktif' : 'Nonaktif'}
 					</LoadingButton>
 				</form>
@@ -280,7 +280,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 						</select>
 					</label>
 				</div>
-				<LoadingButton loading={submittingCreateUser} variant="primary" size="sm" onclick={() => submittingCreateUser = true}>
+				<LoadingButton loading={submittingCreateUser} variant="primary" size="sm" class="mt-4" onclick={() => submittingCreateUser = true}>
 					<IconPlus class="size-4" stroke-width={2} />
 					Buat Akun
 				</LoadingButton>
@@ -372,7 +372,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 										<input type="hidden" name="peran" value={editForm.peran} />
 										<input type="hidden" name="kamar_id" value={editForm.kamar_id} />
 										<input type="hidden" name="kelas_id" value={editForm.kelas_id} />
-										<LoadingButton loading={submittingUpdateProfile} variant="primary" size="sm" onclick={() => submittingUpdateProfile = true}>Simpan</LoadingButton>
+										<LoadingButton loading={submittingUpdateProfile} variant="primary" size="sm" class="mt-2" onclick={() => submittingUpdateProfile = true}>Simpan</LoadingButton>
 										<button type="button" class="btn btn-ghost btn-sm" onclick={() => (editingId = null)}>
 											Batal
 										</button>
@@ -426,7 +426,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 							</label>
 						{/each}
 					</div>
-					<LoadingButton loading={submittingUpdatePermissions} variant="primary" size="sm" onclick={() => submittingUpdatePermissions = true}>Simpan izin</LoadingButton>
+					<LoadingButton loading={submittingUpdatePermissions} variant="primary" size="sm" class="mt-3" onclick={() => submittingUpdatePermissions = true}>Simpan izin</LoadingButton>
 				</form>
 			{/each}
 		</div>
@@ -580,7 +580,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					{/each}
 				</select>
 			</label>
-			<LoadingButton loading={submittingUpdateSetting} variant="primary" size="sm" onclick={() => submittingUpdateSetting = true}>Simpan</LoadingButton>
+			<LoadingButton loading={submittingUpdateSetting} variant="primary" size="sm" class="mt-4" onclick={() => submittingUpdateSetting = true}>Simpan</LoadingButton>
 		</form>
 
 		<div class="mt-6 max-w-md">
@@ -673,7 +673,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				</div>
 			</div>
 
-			<LoadingButton loading={submittingUpdateNisPattern} variant="primary" size="sm" onclick={() => submittingUpdateNisPattern = true}>
+			<LoadingButton loading={submittingUpdateNisPattern} variant="primary" size="sm" class="mt-4" onclick={() => submittingUpdateNisPattern = true}>
 				<IconEdit class="size-4" stroke-width={2} />
 				Simpan Pola
 			</LoadingButton>
@@ -685,7 +685,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 			<p class="mt-1 text-sm text-base-content/60">
 				Buatkan NIS otomatis untuk semua santri yang belum memiliki NIS.
 			</p>
-			<LoadingButton loading={submittingBulkGenerateNis} variant="outline" size="sm" onclick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submittingBulkGenerateNis = true; else return false; }}>
+			<LoadingButton loading={submittingBulkGenerateNis} variant="outline" size="sm" class="mt-3" onclick={() => { if (confirm('Generate NIS untuk semua santri yang belum punya NIS?')) submittingBulkGenerateNis = true; else return false; }}>
 				<IconHash class="size-4" stroke-width={2} />
 				Generate Sekarang
 			</LoadingButton>
@@ -737,7 +737,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					<p class="mt-1 text-xs text-base-content/50">
 						Buka folder di Google Drive, salin bagian ID dari URL: drive.google.com/drive/folders/<b>ID_INI</b>
 					</p>
-					<LoadingButton loading={submittingUpdateGDriveFolder} variant="primary" size="sm" onclick={() => submittingUpdateGDriveFolder = true}>Simpan Folder</LoadingButton>
+					<LoadingButton loading={submittingUpdateGDriveFolder} variant="primary" size="sm" class="mt-3" onclick={() => submittingUpdateGDriveFolder = true}>Simpan Folder</LoadingButton>
 				</form>
 			{:else}
 				<p class="mt-4 text-sm text-base-content/60">
@@ -787,7 +787,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					accept="image/*" />
 			</label>
 
-			<LoadingButton loading={submittingUpdateSchoolIdentity} variant="primary" size="sm" onclick={() => {
+			<LoadingButton loading={submittingUpdateSchoolIdentity} variant="primary" size="sm" class="mt-4" onclick={() => {
 				submittingUpdateSchoolIdentity = true;
 				setTimeout(() => { submittingUpdateSchoolIdentity = false; }, 30000);
 			}}>
@@ -909,13 +909,13 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 								</td>
 							{/each}
 						</tr>
-					{/each}
+{/each}
 				</tbody>
 			</table>
-			<div class="flex justify-end p-4">
+			<div class="flex justify-end gap-3 pt-4">
 				<LoadingButton loading={submittingUpdateSidebarNav} variant="primary" size="sm" onclick={() => submittingUpdateSidebarNav = true}>Simpan Konfigurasi Sidebar</LoadingButton>
-</div>
-	</form>
+			</div>
+		</form>
 	</section>
 
 {:else}
