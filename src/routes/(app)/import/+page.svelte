@@ -1,17 +1,36 @@
 <script lang="ts">
-	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable } from '@tabler/icons-svelte';
+	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX } from '@tabler/icons-svelte';
+	import { onMount } from 'svelte';
 
 	type ImportError = { row: number; nama: string; reason: string; kategori: string };
 	type Warning = { row: number; nama: string; warnings: string[] };
 
+	type JobStatus = {
+		id: string;
+		status: 'pending' | 'running' | 'completed' | 'failed';
+		total: number;
+		processed: number;
+		berhasil: number;
+		gagal: number;
+		percent: number;
+		result: { errors: ImportError[]; peringatan: Warning[] };
+		fileName: string;
+		createdAt: string;
+		updatedAt: string;
+	};
+
 	let { form } = $props();
 
 	let submitting = $state(false);
+	let jobId = $state<string | null>(null);
+	let progress = $state<JobStatus | null>(null);
+	let error = $state<string | null>(null);
 
 	const actionError = $derived((form as { error?: string } | null)?.error ?? null);
+
 	const result = $derived(
 		form && typeof (form as { berhasil?: number }).berhasil === 'number'
-			? (form as { total: number; berhasil: number; gagal: number; errors: ImportError[]; peringatan: Warning[] })
+			? (form as { total: number; berhasil: number; gagal: number; errors: ImportError[]; peringatan: Warning[]; jobId?: string })
 			: null
 	);
 
@@ -40,6 +59,14 @@
 		return result.errors.filter((e) => e.kategori === filterKategori);
 	});
 
+	let progressInterval: ReturnType<typeof setInterval> | null = null;
+
+	onMount(() => {
+		return () => {
+			if (progressInterval) clearInterval(progressInterval);
+		};
+	});
+
 	function downloadCsv() {
 		if (!result) return;
 		const header = 'Baris;Nama;Alasan;Kategori\n';
@@ -53,6 +80,82 @@
 		a.click();
 		URL.revokeObjectURL(url);
 	}
+
+	async function uploadWithProgress(event: SubmitEvent) {
+		event.preventDefault();
+		if (submitting) return;
+
+		submitting = true;
+		error = null;
+		jobId = null;
+		progress = null;
+
+		const formEl = event.currentTarget as HTMLFormElement;
+		const formData = new FormData(formEl);
+
+		try {
+			const response = await fetch('/api/import/async', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.error || 'Gagal mengirim file');
+			}
+
+			const data = await response.json();
+			jobId = data.jobId;
+
+			progressInterval = setInterval(async () => {
+				if (!jobId) return;
+				const res = await fetch(`/api/import/${jobId}`);
+				if (res.ok) {
+					const status = await res.json();
+					progress = status;
+					if (status.status === 'completed' || status.status === 'failed') {
+						clearInterval(progressInterval!);
+						progressInterval = null;
+					}
+				}
+			}, 800);
+
+			let waited = 0;
+			while (waited < 120000 && jobId) {
+				await new Promise(r => setTimeout(r, 500));
+				waited += 500;
+			}
+
+			if (progressInterval) {
+				clearInterval(progressInterval);
+				progressInterval = null;
+			}
+
+			if (progress?.status === 'failed') {
+				error = 'Import gagal. Periksa kembali file Anda.';
+			}
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Terjadi kesalahan';
+		} finally {
+			submitting = false;
+		}
+	}
+
+	function getResultFromProgress() {
+		if (!progress) return null;
+		if (progress.status === 'completed' || progress.status === 'failed') {
+			return {
+				total: progress.total,
+				berhasil: progress.berhasil,
+				gagal: progress.gagal,
+				errors: progress.result?.errors ?? [],
+				peringatan: progress.result?.peringatan ?? []
+			};
+		}
+		return null;
+	}
+
+	const displayResult = result ?? getResultFromProgress();
 </script>
 
 <svelte:head>
@@ -67,14 +170,47 @@
 	</p>
 </header>
 
+{#if error}
+	<div class="alert alert-error mt-6 animate-in" role="alert">
+		<span>{error}</span>
+	</div>
+{/if}
+
 {#if actionError}
 	<div class="alert alert-error mt-6 animate-in" role="alert">
 		<span>{actionError}</span>
 	</div>
 {/if}
 
-{#if result}
+{#if progress || displayResult}
 	<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-5">
+		{#if submitting || (progress && progress.status === 'running')}
+			<div class="mb-4">
+				<div class="flex items-center gap-3">
+					<div class="flex-1">
+						<div class="flex items-center justify-between mb-1">
+							<span class="text-sm font-medium">Diproses...</span>
+							<span class="text-xs text-base-content/60">{progress ? progress.processed : 0}/{displayResult?.total ?? 0} baris</span>
+						</div>
+						<div class="progress w-full h-3">
+							<div class="progress-bar" style="width: {progress ? progress.percent : 50}%"></div>
+						</div>
+					</div>
+					<IconLoader2 class="size-6 animate-spin text-primary" />
+				</div>
+			</div>
+		{:else if progress && progress.status === 'completed'}
+			<div class="mb-4 flex items-center gap-2">
+				<IconCheck class="size-5 text-success" />
+				<span class="text-sm font-medium text-success">Import selesai!</span>
+			</div>
+		{:else if progress && progress.status === 'failed'}
+			<div class="mb-4 flex items-center gap-2">
+				<IconX class="size-5 text-error" />
+				<span class="text-sm font-medium text-error">Import gagal</span>
+			</div>
+		{/if}
+
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
 			<IconTable class="size-4" stroke-width={1.75} />
 			Hasil import
@@ -83,19 +219,19 @@
 		<div class="mt-4 grid grid-cols-3 divide-x divide-base-300 overflow-hidden rounded-lg border border-base-300 bg-base-100">
 			<div class="p-4">
 				<span class="text-xs text-base-content/60">Total baris</span>
-				<span class="mt-1 block font-mono text-2xl">{result.total}</span>
+				<span class="mt-1 block font-mono text-2xl">{displayResult?.total ?? 0}</span>
 			</div>
 			<div class="border-l border-success/40 bg-success/5 p-4">
 				<span class="text-xs text-success">Berhasil</span>
-				<span class="mt-1 block font-mono text-2xl text-success">{result.berhasil}</span>
+				<span class="mt-1 block font-mono text-2xl text-success">{displayResult?.berhasil ?? 0}</span>
 			</div>
 			<div class="border-l border-error/40 bg-error/5 p-4">
 				<span class="text-xs text-error">Gagal</span>
-				<span class="mt-1 block font-mono text-2xl text-error">{result.gagal}</span>
+				<span class="mt-1 block font-mono text-2xl text-error">{displayResult?.gagal ?? 0}</span>
 			</div>
 		</div>
 
-		{#if result.errors.length > 0}
+		{#if displayResult?.errors && displayResult.errors.length > 0}
 			<div class="mt-4 flex flex-wrap items-center gap-2">
 				<IconFilter class="size-4 text-base-content/50" />
 				{#each Object.entries(KATEGORI_LABEL) as [key, label] (key)}
@@ -138,17 +274,17 @@
 			</div>
 		{/if}
 
-		{#if result.peringatan && result.peringatan.length > 0}
+		{#if displayResult?.peringatan && displayResult.peringatan.length > 0}
 			<div class="mt-4 rounded-xl border border-warning/40 bg-warning/5 p-4">
 				<h3 class="flex items-center gap-2 text-sm font-semibold text-warning">
 					<IconAlertTriangle class="size-4" stroke-width={1.75} />
-					Peringatan ({result.peringatan.length} baris)
+					Peringatan ({displayResult.peringatan.length} baris)
 				</h3>
 				<p class="mt-1 text-xs text-base-content/60">
 					Data berhasil disimpan, tetapi ada field yang belum lengkap atau tidak valid.
 				</p>
 				<ul class="mt-3 max-h-[300px] divide-y divide-warning/20 overflow-y-auto">
-					{#each result.peringatan as w}
+					{#each displayResult.peringatan as w}
 						<li class="py-2 text-sm">
 							<span class="font-medium">Baris {w.row} — {w.nama || '—'}</span>
 							<ul class="mt-1 list-inside list-disc text-xs text-base-content/60">
@@ -176,13 +312,12 @@
 	</a>
 
 	<form
-		method="POST"
-		action="?/upload"
+		onsubmit={uploadWithProgress}
 		enctype="multipart/form-data"
 		class="rounded-lg border border-base-300 bg-base-100 p-5">
 		<h2 class="text-sm font-semibold">2. Upload file terisi</h2>
 		<p class="mt-1 text-sm text-base-content/60">
-			File Excel (.xlsx atau .xls) yang sudah diisi. Minimal kolom Nama Lengkap, Tempat Lahir, dan Tanggal Lahir terisi.
+			File Excel (.xlsx atau .xls) yang sudah diisi. Minimal kolom Nama Lengkap wajib diisi.
 		</p>
 		<label class="mt-4 block">
 			<span class="mb-1.5 block text-sm font-medium">File Excel</span>
@@ -195,7 +330,9 @@
 		</label>
 		<button type="submit" class="btn btn-primary btn-sm mt-4" disabled={submitting}>
 			<IconFileImport class="size-4" stroke-width={2} />
-			{#if submitting}<span class="loading loading-spinner loading-sm"></span>{/if}
+			{#if submitting}
+				<span class="loading loading-spinner loading-sm"></span>
+			{/if}
 			Import
 		</button>
 	</form>
