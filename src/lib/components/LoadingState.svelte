@@ -25,6 +25,8 @@
 		{#if result === null || result === undefined || (Array.isArray(result) && result.length === 0)}
 			{#if empty}
 				{@render empty()}
+			{:else}
+				{@html ''}
 			{/if}
 		{:else}
 			{@render children(result)}

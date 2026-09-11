@@ -1,11 +1,10 @@
 <script lang="ts">
-	import type { ComponentType } from 'svelte';
+	import { IconArchive } from '@tabler/icons-svelte';
 
 	let {
 		title,
-		desc,
-		icon
-	}: { title: string; desc: string; icon?: ComponentType } = $props();
+		desc
+	}: { title: string; desc: string } = $props();
 </script>
 
 <div>
@@ -15,9 +14,7 @@
 	</header>
 
 	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		{#if icon}
-			<svelte:component this={icon} class="mx-auto size-10 text-base-content/40" />
-		{/if}
+		<IconArchive class="mx-auto size-10 text-base-content/40" />
 		<h2 class="mt-4 text-lg font-semibold">Fungsi sedang dibangun</h2>
 		<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">
 			Fungsi ini masuk lingkup versi 1 dan akan terpasang bertahap. Rencananya terdokumentasi di
