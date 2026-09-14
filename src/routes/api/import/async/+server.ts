@@ -159,7 +159,8 @@ export const POST = async ({ request, locals }) => {
 		.single();
 
 	if (jobErr || !job) {
-		return json({ error: 'Gagal membuat job import.' }, { status: 500 });
+		console.error('Import job creation error:', jobErr);
+		return json({ error: jobErr?.message || 'Gagal membuat job import.' }, { status: 500 });
 	}
 
 	const jobId = job.id;
