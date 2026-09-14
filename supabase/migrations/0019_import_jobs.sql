@@ -72,9 +72,11 @@ drop policy if exists import_jobs_select on import_jobs;
 create policy import_jobs_select on import_jobs for select
   using (auth.uid() = user_id or public.current_peran() = 'superadmin');
 
-drop policy if exists import_jobs_insert on import_jobs for insert
+drop policy if exists import_jobs_insert on import_jobs;
+create policy import_jobs_insert on import_jobs for insert
   with check (auth.uid() = user_id);
 
-drop policy if exists import_jobs_update on import_jobs for update
+drop policy if exists import_jobs_update on import_jobs;
+create policy import_jobs_update on import_jobs for update
   using (auth.uid() = user_id or public.current_peran() = 'superadmin')
   with check (auth.uid() = user_id or public.current_peran() = 'superadmin');
