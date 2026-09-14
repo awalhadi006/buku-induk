@@ -152,12 +152,13 @@ export async function createUploadSession(
 	return { sessionUrl, fileId };
 }
 
-export async function uploadToSession(sessionUrl: string, file: File): Promise<void> {
+export async function uploadToSession(sessionUrl: string, file: File, accessToken: string): Promise<void> {
 	const uploadRes = await fetch(sessionUrl, {
 		method: 'PUT',
 		headers: {
 			'Content-Type': file.type,
-			'X-Upload-Content-Length': String(file.size)
+			'X-Upload-Content-Length': String(file.size),
+			Authorization: `Bearer ${accessToken}`
 		},
 		body: file
 	});
@@ -165,4 +166,31 @@ export async function uploadToSession(sessionUrl: string, file: File): Promise<v
 	if (!uploadRes.ok) {
 		throw new Error('Upload ke Google Drive gagal');
 	}
+
+	// Buat file bisa diakses publik agar thumbnail Google Drive tampil.
+	const fileIdMatch = sessionUrl.match(/\/files\/([^\/]+)/);
+	const fileId = fileIdMatch ? fileIdMatch[1] : '';
+	if (fileId) {
+		await makePublic(accessToken, fileId);
+	}
 }
+
+/** Set permission file Google Drive jadi "siapa saja dengan tautan dapat melihat". */
+export async function makePublic(accessToken: string, fileId: string): Promise<void> {
+	const res = await fetch(
+		`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`,
+		{
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ role: 'reader', type: 'anyone' })
+		}
+	);
+	if (!res.ok) {
+		const errText = await res.text();
+		throw new Error(`Gagal set permission publik untuk file ${fileId}: ${res.status} ${errText}`);
+	}
+}
+

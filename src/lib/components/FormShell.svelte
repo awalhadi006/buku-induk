@@ -53,7 +53,7 @@
 	{/if}
 
 	<div class="flex items-center gap-3 mt-6">
-		<LoadingButton type="submit" loading={busy} disabled={busy}>
+		<LoadingButton type="submit" loading={busy}>
 			{submitLabel}
 		</LoadingButton>
 		<a class="btn btn-ghost" href={cancelHref}>Batal</a>
