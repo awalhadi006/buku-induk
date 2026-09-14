@@ -1,4 +1,4 @@
--- 0019_import_jobs.sql
+-- 0019_import_jobs.sql (FIXED RLS)
 -- Tabel untuk melacak proses import data santri secara async
 
 create table if not exists import_jobs (
@@ -74,7 +74,7 @@ create policy import_jobs_select on import_jobs for select
 
 drop policy if exists import_jobs_insert on import_jobs;
 create policy import_jobs_insert on import_jobs for insert
-  with check (auth.uid() = user_id);
+  with check (user_id = auth.uid());
 
 drop policy if exists import_jobs_update on import_jobs;
 create policy import_jobs_update on import_jobs for update
