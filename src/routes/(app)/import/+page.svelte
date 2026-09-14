@@ -100,18 +100,18 @@
 			});
 
 			if (!response.ok) {
-				const data = await response.json();
+				const data = await response.json() as { error?: string };
 				throw new Error(data.error || 'Gagal mengirim file');
 			}
 
-			const data = await response.json();
+			const data = await response.json() as { jobId: string };
 			jobId = data.jobId;
 
 			progressInterval = setInterval(async () => {
 				if (!jobId) return;
 				const res = await fetch(`/api/import/${jobId}`);
 				if (res.ok) {
-					const status = await res.json();
+					const status = await res.json() as JobStatus;
 					progress = status;
 					if (status.status === 'completed' || status.status === 'failed') {
 						clearInterval(progressInterval!);
@@ -131,7 +131,7 @@
 				progressInterval = null;
 			}
 
-			if (progress?.status === 'failed') {
+			if ((progress as JobStatus | null)?.status === 'failed') {
 				error = 'Import gagal. Periksa kembali file Anda.';
 			}
 		} catch (e) {
