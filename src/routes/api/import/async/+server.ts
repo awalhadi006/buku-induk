@@ -82,6 +82,7 @@ async function processImportJob(
 	kamarIdByNomor: Map<number, string>,
 	kelasIdByKey: Map<string, string>
 ) {
+	console.log('[ImportJob] Started', { jobId, totalRows: rows.length });
 	const errors: { row: number; nama: string; reason: string; kategori: string }[] = [];
 	const peringatan: { row: number; nama: string; warnings: string[] }[] = [];
 	let berhasil = 0;
@@ -243,6 +244,7 @@ async function updateJobProgress(
 	errors: { row: number; nama: string; reason: string; kategori: string }[],
 	peringatan: { row: number; nama: string; warnings: string[] }[]
 ) {
+	console.log('[ImportJob] updateJobProgress', { jobId, processed, berhasil, gagal });
 	await supabase.from('import_jobs').update({
 		processed_rows: processed,
 		berhasil,
@@ -347,12 +349,15 @@ export const POST = async ({ request, locals, platform }) => {
 
 	// Return jobId immediately, process in background via waitUntil
 	if (platform?.context?.waitUntil) {
+		console.log('[Import] waitUntil available, starting background job', { jobId, totalRows: rows.length });
 		platform.context.waitUntil(
 			(async () => {
 				try {
+					console.log('[Import] Background job starting...', { jobId });
 					await processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey);
+					console.log('[Import] Background job completed', { jobId });
 				} catch (err) {
-					console.error('Background import job failed:', err);
+					console.error('[Import] Background import job failed:', err);
 					await supabaseAdmin.from('import_jobs').update({
 						status: 'failed',
 						result: { error: String(err) }
@@ -361,7 +366,7 @@ export const POST = async ({ request, locals, platform }) => {
 			})()
 		);
 	} else {
-		// Fallback for local dev (no waitUntil)
+		console.warn('[Import] waitUntil NOT available, running fallback');
 		processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey).catch(console.error);
 	}
 
