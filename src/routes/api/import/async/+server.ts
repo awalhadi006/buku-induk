@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import * as XLSX from 'xlsx';
 import { IMPORT_COLUMNS, normalizeHeader } from '$lib/excel';
 import { getProfile, hasRole, ADMIN_ROLES } from '$lib/server/auth';
+import { getSupabaseAdmin } from '$lib/supabase-admin';
 
 const BATCH_SIZE = 20;
 
@@ -341,14 +342,17 @@ export const POST = async ({ request, locals, platform }) => {
 
 	const jobId = job.id;
 
+	// Admin client untuk background job (bypass RLS)
+	const supabaseAdmin = getSupabaseAdmin();
+
 	// Return jobId immediately, process in background via waitUntil
 	if (platform?.context?.waitUntil) {
 		platform.context.waitUntil(
-			processImportJob(supabase, jobId, rows, kamarIdByNomor, kelasIdByKey)
+			processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey)
 		);
 	} else {
 		// Fallback for local dev (no waitUntil)
-		processImportJob(supabase, jobId, rows, kamarIdByNomor, kelasIdByKey).catch(console.error);
+		processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey).catch(console.error);
 	}
 
 	return json({ jobId, total: rows.length });
