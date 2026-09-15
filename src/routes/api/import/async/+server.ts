@@ -254,6 +254,7 @@ async function updateJobProgress(
 }
 
 export const POST = async ({ request, locals, platform }) => {
+	console.log('[Import] POST handler started', { hasWaitUntil: !!platform?.context?.waitUntil });
 	const profile = await getProfile(locals);
 	if (!profile || !hasRole(profile, ADMIN_ROLES)) {
 		return json({ error: 'Tidak punya izin import.' }, { status: 403 });
@@ -343,9 +344,11 @@ export const POST = async ({ request, locals, platform }) => {
 	}
 
 	const jobId = job.id;
+	console.log('[Import] Job created', { jobId, totalRows: rows.length });
 
 	// Admin client untuk background job (bypass RLS)
 	const supabaseAdmin = getSupabaseAdmin();
+	console.log('[Import] Admin client created', { hasWaitUntil: !!platform?.context?.waitUntil });
 
 	// Return jobId immediately, process in background via waitUntil
 	if (platform?.context?.waitUntil) {
