@@ -348,7 +348,17 @@ export const POST = async ({ request, locals, platform }) => {
 	// Return jobId immediately, process in background via waitUntil
 	if (platform?.context?.waitUntil) {
 		platform.context.waitUntil(
-			processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey)
+			(async () => {
+				try {
+					await processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey);
+				} catch (err) {
+					console.error('Background import job failed:', err);
+					await supabaseAdmin.from('import_jobs').update({
+						status: 'failed',
+						result: { error: String(err) }
+					}).eq('id', jobId);
+				}
+			})()
 		);
 	} else {
 		// Fallback for local dev (no waitUntil)
