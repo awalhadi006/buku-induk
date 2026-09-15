@@ -74,7 +74,183 @@ async function findOrCreateWali(supabase: App.Locals['supabase'], w: Record<stri
 const STATUS_SANTRI_VALUES = new Set(['aktif', 'khusus', 'mutasi_keluar', 'lulus', 'wafat', 'drop_out']);
 const STATUS_KELUARGA_VALUES = new Set(['yatim', 'yatim_piatu', 'dhuafa', 'umum']);
 
-export const POST = async ({ request, locals }) => {
+async function processImportJob(
+	supabase: App.Locals['supabase'],
+	jobId: string,
+	rows: Record<string, string>[],
+	kamarIdByNomor: Map<number, string>,
+	kelasIdByKey: Map<string, string>
+) {
+	const errors: { row: number; nama: string; reason: string; kategori: string }[] = [];
+	const peringatan: { row: number; nama: string; warnings: string[] }[] = [];
+	let berhasil = 0;
+	let gagal = 0;
+	let processed = 0;
+
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
+		const line = i + 2;
+
+		const s: Record<string, unknown> = {};
+		const w: Record<string, unknown> = {};
+		let kamarNomor = '';
+		let kelasKey = '';
+
+		const normKeyByNorm = new Map<string, string>();
+		for (const k of Object.keys(row)) normKeyByNorm.set(normalizeHeader(k), k);
+
+		for (const c of IMPORT_COLUMNS) {
+			const key = normKeyByNorm.get(normalizeHeader(c.header));
+			const val = toText(key ? row[key] : undefined);
+			if (!val) continue;
+			if (c.group === 'santri') s[c.field] = val;
+			else if (c.group === 'wali') w[c.field] = val;
+			else if (c.group === 'kamar') kamarNomor = val;
+			else if (c.group === 'kelas') kelasKey = val;
+		}
+
+		const nama = String(s.nama_lengkap ?? '');
+		const rowWarnings: string[] = [];
+
+		if (s.rt) {
+			const n = Number(s.rt);
+			s.rt = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rt).padStart(3, '0');
+		}
+		if (s.rw) {
+			const n = Number(s.rw);
+			s.rw = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rw).padStart(3, '0');
+		}
+
+		if (!nama) {
+			errors.push({ row: line, nama, reason: 'Nama lengkap kosong', kategori: 'wajib' });
+			gagal++;
+			processed++;
+			await updateJobProgress(supabase, jobId, processed, berhasil, gagal, errors, peringatan);
+			continue;
+		}
+
+		if (s.tanggal_lahir) {
+			const iso = toIsoDate(s.tanggal_lahir);
+			if (iso === 'invalid') {
+				rowWarnings.push('Tanggal lahir tidak valid, data tidak disimpan');
+				delete s.tanggal_lahir;
+			} else {
+				s.tanggal_lahir = iso;
+			}
+		}
+
+		if (!s.nis) rowWarnings.push('NIS belum diisi');
+		if (!s.nisn) rowWarnings.push('NISN belum diisi');
+		if (!s.tempat_lahir) rowWarnings.push('Tempat lahir belum diisi');
+		if (!s.tanggal_lahir) rowWarnings.push('Tanggal lahir belum diisi');
+		if (!s.jenis_kelamin) rowWarnings.push('Jenis kelamin belum diisi');
+		if (!s.alamat) rowWarnings.push('Alamat belum diisi');
+		if (!w.nama_ayah) rowWarnings.push('Nama ayah belum diisi');
+		if (!w.nama_ibu) rowWarnings.push('Nama ibu belum diisi');
+
+		if (s.tanggal_masuk) {
+			const iso = toIsoDate(s.tanggal_masuk);
+			if (iso === 'invalid') {
+				rowWarnings.push('Tanggal masuk tidak valid, data tidak disimpan');
+				delete s.tanggal_masuk;
+			} else {
+				s.tanggal_masuk = iso;
+			}
+		}
+
+		if (s.jenis_kelamin && !['L', 'P'].includes(String(s.jenis_kelamin))) {
+			rowWarnings.push('Jenis kelamin harus L atau P, data tidak disimpan');
+			delete s.jenis_kelamin;
+		}
+
+		if (s.status_santri && !STATUS_SANTRI_VALUES.has(String(s.status_santri))) {
+			rowWarnings.push(`Status santri "${s.status_santri}" tidak dikenal, menggunakan default`);
+			delete s.status_santri;
+		}
+
+		if (s.status_keluarga && !STATUS_KELUARGA_VALUES.has(String(s.status_keluarga))) {
+			rowWarnings.push(`Status keluarga "${s.status_keluarga}" tidak dikenal, data tidak disimpan`);
+			delete s.status_keluarga;
+		}
+
+		let kamarId: string | null = null;
+		if (kamarNomor) {
+			kamarId = kamarIdByNomor.get(Number(kamarNomor)) ?? null;
+			if (!kamarId) {
+				rowWarnings.push(`Kamar ${kamarNomor} tidak ditemukan, santri tanpa kamar`);
+			}
+		}
+
+		let kelasId: string | null = null;
+		if (kelasKey) {
+			kelasId = kelasIdByKey.get(kelasKey.replace(/\s+/g, '').toUpperCase()) ?? null;
+			if (!kelasId) {
+				rowWarnings.push(`Kelas ${kelasKey} tidak ditemukan, santri tanpa kelas`);
+			}
+		}
+
+		let waliId: string | null = null;
+		try {
+			waliId = await findOrCreateWali(supabase, w);
+		} catch {
+			rowWarnings.push('Gagal mencatat wali santri, santri tanpa wali');
+		}
+
+		const payload: Record<string, unknown> = { ...s, custom: {} };
+		if (kamarId) payload.kamar_id = kamarId;
+		if (kelasId) payload.kelas_id = kelasId;
+		if (waliId) payload.wali_santri_id = waliId;
+
+		const { error } = await supabase.from('santri').insert(payload);
+		if (error) {
+			errors.push({ row: line, nama, reason: 'Gagal menyimpan ke database', kategori: 'database' });
+			gagal++;
+		} else {
+			berhasil++;
+			if (rowWarnings.length > 0) {
+				peringatan.push({ row: line, nama, warnings: rowWarnings });
+			}
+		}
+
+		processed++;
+		if (processed % BATCH_SIZE === 0 || processed === rows.length) {
+			await updateJobProgress(supabase, jobId, processed, berhasil, gagal, errors, peringatan);
+		}
+	}
+
+	await supabase.from('import_jobs').update({
+		status: 'completed',
+		processed_rows: processed,
+		berhasil,
+		gagal,
+		result: { errors, peringatan }
+	}).eq('id', jobId);
+
+	await supabase.from('audit_logs').insert({
+		action: 'import',
+		entity: 'santri',
+		after: { rows: rows.length, berhasil, gagal: errors.length }
+	});
+}
+
+async function updateJobProgress(
+	supabase: App.Locals['supabase'],
+	jobId: string,
+	processed: number,
+	berhasil: number,
+	gagal: number,
+	errors: { row: number; nama: string; reason: string; kategori: string }[],
+	peringatan: { row: number; nama: string; warnings: string[] }[]
+) {
+	await supabase.from('import_jobs').update({
+		processed_rows: processed,
+		berhasil,
+		gagal,
+		result: { errors, peringatan }
+	}).eq('id', jobId);
+}
+
+export const POST = async ({ request, locals, platform }) => {
 	const profile = await getProfile(locals);
 	if (!profile || !hasRole(profile, ADMIN_ROLES)) {
 		return json({ error: 'Tidak punya izin import.' }, { status: 403 });
@@ -165,167 +341,15 @@ export const POST = async ({ request, locals }) => {
 
 	const jobId = job.id;
 
-	const errors: { row: number; nama: string; reason: string; kategori: string }[] = [];
-	const peringatan: { row: number; nama: string; warnings: string[] }[] = [];
-	let berhasil = 0;
-	let gagal = 0;
-	let processed = 0;
-
-	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i];
-		const line = i + 2;
-
-		const s: Record<string, unknown> = {};
-		const w: Record<string, unknown> = {};
-		let kamarNomor = '';
-		let kelasKey = '';
-
-		const normKeyByNorm = new Map<string, string>();
-		for (const k of Object.keys(row)) normKeyByNorm.set(normalizeHeader(k), k);
-
-		for (const c of IMPORT_COLUMNS) {
-			const key = normKeyByNorm.get(normalizeHeader(c.header));
-			const val = toText(key ? row[key] : undefined);
-			if (!val) continue;
-			if (c.group === 'santri') s[c.field] = val;
-			else if (c.group === 'wali') w[c.field] = val;
-			else if (c.group === 'kamar') kamarNomor = val;
-			else if (c.group === 'kelas') kelasKey = val;
-		}
-
-		const nama = String(s.nama_lengkap ?? '');
-		const rowWarnings: string[] = [];
-
-		if (s.rt) {
-			const n = Number(s.rt);
-			s.rt = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rt).padStart(3, '0');
-		}
-		if (s.rw) {
-			const n = Number(s.rw);
-			s.rw = Number.isFinite(n) ? String(n).padStart(3, '0') : String(s.rw).padStart(3, '0');
-		}
-
-		if (!nama) {
-			errors.push({ row: line, nama, reason: 'Nama lengkap kosong', kategori: 'wajib' });
-			gagal++;
-			processed++;
-			continue;
-		}
-
-		if (s.tanggal_lahir) {
-			const iso = toIsoDate(s.tanggal_lahir);
-			if (iso === 'invalid') {
-				rowWarnings.push('Tanggal lahir tidak valid, data tidak disimpan');
-				delete s.tanggal_lahir;
-			} else {
-				s.tanggal_lahir = iso;
-			}
-		}
-
-		if (!s.nis) rowWarnings.push('NIS belum diisi');
-		if (!s.nisn) rowWarnings.push('NISN belum diisi');
-		if (!s.tempat_lahir) rowWarnings.push('Tempat lahir belum diisi');
-		if (!s.tanggal_lahir) rowWarnings.push('Tanggal lahir belum diisi');
-		if (!s.jenis_kelamin) rowWarnings.push('Jenis kelamin belum diisi');
-		if (!s.alamat) rowWarnings.push('Alamat belum diisi');
-		if (!w.nama_ayah) rowWarnings.push('Nama ayah belum diisi');
-		if (!w.nama_ibu) rowWarnings.push('Nama ibu belum diisi');
-
-		if (s.tanggal_masuk) {
-			const iso = toIsoDate(s.tanggal_masuk);
-			if (iso === 'invalid') {
-				rowWarnings.push('Tanggal masuk tidak valid, data tidak disimpan');
-				delete s.tanggal_masuk;
-			} else {
-				s.tanggal_masuk = iso;
-			}
-		}
-
-		if (s.jenis_kelamin && !['L', 'P'].includes(String(s.jenis_kelamin))) {
-			rowWarnings.push('Jenis kelamin harus L atau P, data tidak disimpan');
-			delete s.jenis_kelamin;
-		}
-
-		if (s.status_santri && !STATUS_SANTRI_VALUES.has(String(s.status_santri))) {
-			rowWarnings.push(`Status santri "${s.status_santri}" tidak dikenal, menggunakan default`);
-			delete s.status_santri;
-		}
-
-		if (s.status_keluarga && !STATUS_KELUARGA_VALUES.has(String(s.status_keluarga))) {
-			rowWarnings.push(`Status keluarga "${s.status_keluarga}" tidak dikenal, data tidak disimpan`);
-			delete s.status_keluarga;
-		}
-
-		let kamarId: string | null = null;
-		if (kamarNomor) {
-			kamarId = kamarIdByNomor.get(Number(kamarNomor)) ?? null;
-			if (!kamarId) {
-				rowWarnings.push(`Kamar ${kamarNomor} tidak ditemukan, santri tanpa kamar`);
-			}
-		}
-
-		let kelasId: string | null = null;
-		if (kelasKey) {
-			kelasId = kelasIdByKey.get(kelasKey.replace(/\s+/g, '').toUpperCase()) ?? null;
-			if (!kelasId) {
-				rowWarnings.push(`Kelas ${kelasKey} tidak ditemukan, santri tanpa kelas`);
-			}
-		}
-
-		let waliId: string | null = null;
-		try {
-			waliId = await findOrCreateWali(supabase, w);
-		} catch {
-			rowWarnings.push('Gagal mencatat wali santri, santri tanpa wali');
-		}
-
-		const payload: Record<string, unknown> = { ...s, custom: {} };
-		if (kamarId) payload.kamar_id = kamarId;
-		if (kelasId) payload.kelas_id = kelasId;
-		if (waliId) payload.wali_santri_id = waliId;
-
-		const { error } = await supabase.from('santri').insert(payload);
-		if (error) {
-			errors.push({ row: line, nama, reason: 'Gagal menyimpan ke database', kategori: 'database' });
-			gagal++;
-		} else {
-			berhasil++;
-			if (rowWarnings.length > 0) {
-				peringatan.push({ row: line, nama, warnings: rowWarnings });
-			}
-		}
-
-		processed++;
-		if (processed % BATCH_SIZE === 0 || processed === rows.length) {
-			await supabase.from('import_jobs').update({
-				processed_rows: processed,
-				berhasil,
-				gagal,
-				result: { errors, peringatan }
-			}).eq('id', jobId);
-		}
+	// Return jobId immediately, process in background via waitUntil
+	if (platform?.context?.waitUntil) {
+		platform.context.waitUntil(
+			processImportJob(supabase, jobId, rows, kamarIdByNomor, kelasIdByKey)
+		);
+	} else {
+		// Fallback for local dev (no waitUntil)
+		processImportJob(supabase, jobId, rows, kamarIdByNomor, kelasIdByKey).catch(console.error);
 	}
 
-	await supabase.from('import_jobs').update({
-		status: 'completed',
-		processed_rows: processed,
-		berhasil,
-		gagal,
-		result: { errors, peringatan }
-	}).eq('id', jobId);
-
-	await supabase.from('audit_logs').insert({
-		action: 'import',
-		entity: 'santri',
-		after: { rows: rows.length, berhasil, gagal: errors.length }
-	});
-
-	return json({
-		jobId,
-		total: rows.length,
-		berhasil,
-		gagal: errors.length,
-		errors,
-		peringatan
-	});
+	return json({ jobId, total: rows.length });
 };
