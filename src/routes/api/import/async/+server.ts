@@ -343,7 +343,7 @@ export const POST = async ({ request, locals, platform }) => {
 			user_id: profile.id,
 			file_name: file.name,
 			total_rows: rows.length,
-			status: 'running'
+			status: 'pending'
 		})
 		.select('id')
 		.single();
@@ -354,40 +354,35 @@ export const POST = async ({ request, locals, platform }) => {
 	}
 
 	const jobId = job.id;
-	console.log('[Import] Job created, processing synchronously', { jobId, totalRows: rows.length, userId: profile.id });
+	console.log('[Import] Job created, scheduling background processing', { jobId, totalRows: rows.length, userId: profile.id });
 
 	const supabaseAdmin = getSupabaseAdmin();
 	console.log('[Import] Admin client created', { supabaseAdminUrl: supabaseAdmin.rest.url });
 
-	// Process synchronously (waitUntil unreliable on Cloudflare Pages)
-	try {
-		console.log('[Import] Starting synchronous import', { jobId, totalRows: rows.length });
-		await processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey);
-		console.log('[Import] Synchronous import completed', { jobId });
-	} catch (err) {
-		console.error('[Import] Synchronous import failed:', err);
-		await (supabaseAdmin as any).from('import_jobs').update({
-			status: 'failed',
-			result: { error: String(err) }
-		}).eq('id', jobId);
-		throw err;
-	}
+	const importPromise = processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey)
+		.then(() => {
+			console.log('[Import] Background import completed', { jobId });
+		})
+		.catch((err) => {
+			console.error('[Import] Background import failed:', err);
+		});
 
-	// Return final result
-	const { data: finalJob } = await supabaseAdmin
-		.from('import_jobs')
-		.select('*')
-		.eq('id', jobId)
-		.single();
+	if (platform?.context?.waitUntil) {
+		platform.context.waitUntil(importPromise);
+		console.log('[Import] Scheduled via waitUntil');
+	} else {
+		console.warn('[Import] waitUntil not available, running fire-and-forget');
+		importPromise.catch(() => {});
+	}
 
 	return json({
 		jobId,
 		total: rows.length,
-		status: finalJob?.status ?? 'completed',
-		processed: finalJob?.processed_rows ?? rows.length,
-		berhasil: finalJob?.berhasil ?? 0,
-		gagal: finalJob?.gagal ?? 0,
-		percent: 100,
-		result: finalJob?.result ?? { errors: [], peringatan: [] }
+		status: 'pending',
+		processed: 0,
+		berhasil: 0,
+		gagal: 0,
+		percent: 0,
+		result: { errors: [], peringatan: [] }
 	});
 };
