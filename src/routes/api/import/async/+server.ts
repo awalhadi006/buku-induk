@@ -354,43 +354,40 @@ export const POST = async ({ request, locals, platform }) => {
 	}
 
 	const jobId = job.id;
-	console.log('[Import] Job created', { jobId, totalRows: rows.length, userId: profile.id });
+	console.log('[Import] Job created, processing synchronously', { jobId, totalRows: rows.length, userId: profile.id });
 
-	// Admin client untuk background job (bypass RLS)
 	const supabaseAdmin = getSupabaseAdmin();
-	console.log('[Import] Admin client created', { 
-		hasWaitUntil: !!platform?.context?.waitUntil,
-		supabaseAdminUrl: supabaseAdmin.rest.url
-	});
+	console.log('[Import] Admin client created', { supabaseAdminUrl: supabaseAdmin.rest.url });
 
-	// Return jobId immediately, process in background via waitUntil
-	if (platform?.context?.waitUntil) {
-		console.log('[Import] waitUntil available, starting background job', { jobId, totalRows: rows.length });
-		platform.context.waitUntil(
-			(async () => {
-				try {
-					console.log('[Import] Background job starting...', { jobId });
-					await processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey);
-					console.log('[Import] Background job completed', { jobId });
-				} catch (err) {
-					console.error('[Import] Background import job failed:', err);
-					await (supabaseAdmin as any).from('import_jobs').update({
-						status: 'failed',
-						result: { error: String(err) }
-					}).eq('id', jobId);
-				}
-			})()
-		);
-	} else {
-		console.warn('[Import] waitUntil NOT available, running fallback');
-		processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey).catch(async (err) => {
-			console.error('[Import] Fallback import job failed:', err);
-			await (supabaseAdmin as any).from('import_jobs').update({
-				status: 'failed',
-				result: { error: String(err) }
-			}).eq('id', jobId);
-		});
+	// Process synchronously (waitUntil unreliable on Cloudflare Pages)
+	try {
+		console.log('[Import] Starting synchronous import', { jobId, totalRows: rows.length });
+		await processImportJob(supabaseAdmin, jobId, rows, kamarIdByNomor, kelasIdByKey);
+		console.log('[Import] Synchronous import completed', { jobId });
+	} catch (err) {
+		console.error('[Import] Synchronous import failed:', err);
+		await (supabaseAdmin as any).from('import_jobs').update({
+			status: 'failed',
+			result: { error: String(err) }
+		}).eq('id', jobId);
+		throw err;
 	}
 
-	return json({ jobId, total: rows.length });
+	// Return final result
+	const { data: finalJob } = await supabaseAdmin
+		.from('import_jobs')
+		.select('*')
+		.eq('id', jobId)
+		.single();
+
+	return json({
+		jobId,
+		total: rows.length,
+		status: finalJob?.status ?? 'completed',
+		processed: finalJob?.processed_rows ?? rows.length,
+		berhasil: finalJob?.berhasil ?? 0,
+		gagal: finalJob?.gagal ?? 0,
+		percent: 100,
+		result: finalJob?.result ?? { errors: [], peringatan: [] }
+	});
 };
