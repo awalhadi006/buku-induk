@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 	import { importStore, type ImportSession, type ImportChunk } from '$lib/stores/import-store';
 	import { parseExcelFile, chunkRows, toBulkInsertPayload, type ParsedRow, type ParseResult } from '$lib/import/client-parser';
-	import { getSupabaseAdmin } from '$lib/supabase-admin';
 
 	type ImportError = { row: number; nama: string; reason: string; kategori: string };
 	type Warning = { row: number; nama: string; warnings: string[] };
