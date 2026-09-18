@@ -33,9 +33,11 @@
 		)
 	);
 
-	let currentSessionId: string | null = null;
+	let currentSessionId = $state<string | null>(null);
 	let error = $state<string | null>(null);
 	let filterKategori = $state('semua');
+	let selectedFile = $state<File | null>(null);
+	let isParsing = $state(false);
 
 	// Derived from store
 	const currentSession = $derived.by(() => {
@@ -133,25 +135,34 @@
 	async function handleFileSelect(event: Event) {
 		const input = event.target as HTMLInputElement;
 		const file = input.files?.[0];
-		if (!file) return;
+		if (!file) {
+			selectedFile = null;
+			return;
+		}
+		selectedFile = file;
+		error = null;
+		// Don't reset input.value so user sees selected file
+	}
 
+	async function startImport() {
+		if (!selectedFile || isParsing) return;
+
+		isParsing = true;
 		error = null;
 		currentSessionId = null;
 
-		// Reset file input
-		input.value = '';
-
 		try {
 			// Parse Excel in browser
-			const parseResult: ParseResult = await parseExcelFile(file);
+			const parseResult: ParseResult = await parseExcelFile(selectedFile);
 
 			if (parseResult.rows.length === 0 && parseResult.errors.length === 0) {
 				error = 'File tidak berisi data yang valid.';
+				isParsing = false;
 				return;
 			}
 
 			// Create session in store
-			const sessionId = importStore.createSession(file.name, parseResult.rows.length).id;
+			const sessionId = importStore.createSession(selectedFile.name, parseResult.rows.length).id;
 			currentSessionId = sessionId;
 
 			// Chunk the parsed rows
@@ -197,6 +208,8 @@
 			await processImport();
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Gagal memproses file';
+		} finally {
+			isParsing = false;
 		}
 	}
 
@@ -218,6 +231,7 @@
 			importStore.removeSession(currentSessionId);
 			currentSessionId = null;
 			error = null;
+			selectedFile = null;
 		}
 	}
 
@@ -427,5 +441,28 @@
 				accept=".xlsx,.xls"
 				onchange={handleFileSelect} />
 		</label>
+		{#if selectedFile}
+			<div class="mt-3 flex items-center justify-between p-3 rounded-lg bg-base-200/50">
+				<span class="text-sm font-medium flex items-center gap-2">
+					<IconFileDownload class="size-4" />
+					{selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+				</span>
+				<button
+					type="button"
+					class="btn btn-primary btn-sm gap-1"
+					onclick={startImport}
+					disabled={isParsing || currentSessionId}>
+					{#if isParsing}
+						<span class="loading loading-spinner loading-sm"></span>
+						Memparsing...
+					{:else if currentSessionId}
+						Sedang import...
+					{:else}
+						<IconFileImport class="size-4" />
+						Import
+					{/if}
+				</button>
+			</div>
+		{/if}
 	</div>
 </div>
