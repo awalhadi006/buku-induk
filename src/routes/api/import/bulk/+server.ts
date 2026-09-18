@@ -29,8 +29,6 @@ export const POST = async ({ request, locals }) => {
 	}
 
 	console.log('[Bulk API] Received rows:', rows.length);
-	console.log('[Bulk API] First row keys:', rows[0] ? Object.keys(rows[0]) : 'none');
-	console.log('[Bulk API] First row sample:', rows[0] ? JSON.stringify(rows[0]).slice(0, 500) : 'none');
 
 	const results: {
 		success: number;
@@ -48,46 +46,44 @@ export const POST = async ({ request, locals }) => {
 	for (let i = 0; i < rows.length; i += BATCH_SIZE) {
 		const batch = rows.slice(i, i + BATCH_SIZE);
 
-		// Prepare wali inserts first (to get IDs)
-		const waliToCreate: Record<string, unknown>[] = [];
-		const waliBatchIndices: number[] = [];
+		// Collect all unique walis from this batch
+		const waliMap = new Map<string, Record<string, unknown>>();
+		const waliRowIndices = new Map<string, number[]>();
 
 		for (let j = 0; j < batch.length; j++) {
 			const row = batch[j];
 			const wali = row._wali as Record<string, unknown> | undefined;
 			if (wali && (wali.nama_ayah || wali.nama_ibu || wali.nama_wali)) {
-				waliToCreate.push(wali);
-				waliBatchIndices.push(j);
+				const key = `${wali.nama_ayah ?? ''}|${wali.nama_ibu ?? ''}|${wali.nama_wali ?? ''}`;
+				if (!waliMap.has(key)) {
+					waliMap.set(key, wali);
+				}
+				const indices = waliRowIndices.get(key) || [];
+				indices.push(j);
+				waliRowIndices.set(key, indices);
 			}
 		}
 
-		// Bulk find/create wali
-		const waliIds: (string | null)[] = [];
-		if (waliToCreate.length > 0) {
-			for (const wali of waliToCreate) {
-				const { data: existing } = await supabaseAdmin
-					.from('wali_santri')
-					.select('id')
-					.eq('nama_ayah', wali.nama_ayah ?? null)
-					.eq('nama_ibu', wali.nama_ibu ?? null)
-					.eq('nama_wali', wali.nama_wali ?? null)
-					.limit(1)
-					.maybeSingle();
+		// Bulk upsert all unique walis at once (single subrequest)
+		const waliIds = new Map<string, string>();
+		if (waliMap.size > 0) {
+			const walisToUpsert = Array.from(waliMap.values());
+			console.log('[Bulk API] Upserting walis:', walisToUpsert.length);
 
-				if (existing) {
-					waliIds.push(existing.id);
-				} else {
-					const { data, error } = await supabaseAdmin
-						.from('wali_santri')
-						.insert(wali)
-						.select('id')
-						.single();
-					if (error) {
-						console.error('[Bulk API] Wali insert error:', error);
-						waliIds.push(null);
-					} else {
-						waliIds.push(data.id);
-					}
+			const { data: upsertedWali, error: waliError } = await supabaseAdmin
+				.from('wali_santri')
+				.upsert(walisToUpsert, {
+					onConflict: 'nama_ayah,nama_ibu,nama_wali',
+					ignoreDuplicates: false
+				})
+				.select('id,nama_ayah,nama_ibu,nama_wali');
+
+			if (waliError) {
+				console.error('[Bulk API] Wali upsert error:', waliError);
+			} else if (upsertedWali) {
+				for (const w of upsertedWali) {
+					const key = `${w.nama_ayah ?? ''}|${w.nama_ibu ?? ''}|${w.nama_wali ?? ''}`;
+					waliIds.set(key, w.id);
 				}
 			}
 		}
@@ -100,14 +96,17 @@ export const POST = async ({ request, locals }) => {
 			const row = batch[j];
 			const { _wali, ...santriData } = row;
 
-			const waliIdx = waliBatchIndices.indexOf(j);
-			const waliId = waliIdx >= 0 ? waliIds[waliIdx] : null;
+			let waliId: string | null = null;
+			const wali = _wali as Record<string, unknown> | undefined;
+			if (wali && (wali.nama_ayah || wali.nama_ibu || wali.nama_wali)) {
+				const key = `${wali.nama_ayah ?? ''}|${wali.nama_ibu ?? ''}|${wali.nama_wali ?? ''}`;
+				waliId = waliIds.get(key) || null;
+			}
 
 			const payload: Record<string, unknown> = { ...santriData, custom: {} };
 			if (waliId) payload.wali_santri_id = waliId;
 
 			// kamar_id and kelas_id are already resolved by client
-			// Just ensure they're strings (UUIDs)
 			if (payload.kamar_id && typeof payload.kamar_id !== 'string') {
 				delete payload.kamar_id;
 			}
@@ -120,9 +119,8 @@ export const POST = async ({ request, locals }) => {
 		}
 
 		console.log('[Bulk API] Santri payloads to insert:', santriPayloads.length);
-		console.log('[Bulk API] First payload:', santriPayloads[0] ? JSON.stringify(santriPayloads[0]).slice(0, 500) : 'none');
 
-		// Bulk insert santri
+		// Bulk insert santri (single subrequest)
 		const { data: inserted, error: insertError } = await supabaseAdmin
 			.from('santri')
 			.insert(santriPayloads)
