@@ -53,7 +53,7 @@ function createImportStore() {
 			});
 		}
 
-		return {
+		const session: ImportSession = {
 			id,
 			fileName,
 			totalRows,
@@ -66,6 +66,14 @@ function createImportStore() {
 			warnings: [],
 			startedAt: Date.now()
 		};
+
+		update((map) => {
+			const newMap = new Map(map);
+			newMap.set(id, session);
+			return newMap;
+		});
+
+		return session;
 	}
 
 	function setSessionData(sessionId: string, chunks: ImportChunk[]) {
