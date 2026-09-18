@@ -28,6 +28,10 @@ export const POST = async ({ request, locals }) => {
 		return json({ error: 'Tidak ada data untuk diimport' }, { status: 400 });
 	}
 
+	console.log('[Bulk API] Received rows:', rows.length);
+	console.log('[Bulk API] First row keys:', rows[0] ? Object.keys(rows[0]) : 'none');
+	console.log('[Bulk API] First row sample:', rows[0] ? JSON.stringify(rows[0]).slice(0, 500) : 'none');
+
 	const results: {
 		success: number;
 		failed: number;
@@ -79,6 +83,7 @@ export const POST = async ({ request, locals }) => {
 						.select('id')
 						.single();
 					if (error) {
+						console.error('[Bulk API] Wali insert error:', error);
 						waliIds.push(null);
 					} else {
 						waliIds.push(data.id);
@@ -114,13 +119,19 @@ export const POST = async ({ request, locals }) => {
 			validIndices.push(j);
 		}
 
+		console.log('[Bulk API] Santri payloads to insert:', santriPayloads.length);
+		console.log('[Bulk API] First payload:', santriPayloads[0] ? JSON.stringify(santriPayloads[0]).slice(0, 500) : 'none');
+
 		// Bulk insert santri
 		const { data: inserted, error: insertError } = await supabaseAdmin
 			.from('santri')
 			.insert(santriPayloads)
 			.select('id, nama_lengkap');
 
+		console.log('[Bulk API] Insert result:', { inserted: inserted?.length, error: insertError });
+
 		if (insertError) {
+			console.error('[Bulk API] Bulk insert error:', insertError);
 			// If bulk insert fails, try individual inserts to get better error info
 			for (let j = 0; j < santriPayloads.length; j++) {
 				const payload = santriPayloads[j];
@@ -151,6 +162,8 @@ export const POST = async ({ request, locals }) => {
 		entity: 'santri',
 		after: { rows: rows.length, berhasil: results.success, gagal: results.failed }
 	});
+
+	console.log('[Bulk API] Final results:', results);
 
 	return json(results);
 };
