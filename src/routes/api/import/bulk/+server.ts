@@ -129,7 +129,7 @@ export const POST = async ({ request, locals }) => {
 		console.log('[Bulk API] Insert result:', { inserted: inserted?.length, error: insertError });
 
 		if (insertError) {
-			console.error('[Bulk API] Bulk insert error:', insertError);
+			console.error('[Bulk API] Bulk insert error:', JSON.stringify(insertError, null, 2));
 			// If bulk insert fails, try individual inserts to get better error info
 			for (let j = 0; j < santriPayloads.length; j++) {
 				const payload = santriPayloads[j];
@@ -142,9 +142,10 @@ export const POST = async ({ request, locals }) => {
 					results.errors.push({
 						row: rowIdx + 1,
 						nama,
-						reason: 'Gagal menyimpan ke database',
+						reason: error.message || error.details || error.hint || 'Gagal menyimpan ke database',
 						kategori: 'database'
 					});
+					console.error(`[Bulk API] Row ${rowIdx + 1} (${nama}) error:`, JSON.stringify(error, null, 2));
 				} else {
 					results.success++;
 				}
