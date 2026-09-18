@@ -75,9 +75,11 @@
 	}
 
 	async function processImport() {
+		console.log('[Import] processImport called', { currentSessionId });
 		if (!currentSessionId) return;
 
 		const session = importStore.getSession(currentSessionId);
+		console.log('[Import] Session from store:', session);
 		if (!session) return;
 
 		const abortController = new AbortController();
@@ -89,6 +91,7 @@
 				if (abortController.signal.aborted) break;
 
 				const chunk = session.chunks[i];
+				console.log(`[Import] Processing chunk ${i + 1}/${session.chunks.length}`, { rows: chunk.data.length });
 				importStore.updateChunkStatus(currentSessionId, i, 'uploading');
 
 				const payload = toBulkInsertPayload(
@@ -96,6 +99,7 @@
 					kamarIdByNomor,
 					kelasIdByKey
 				);
+				console.log('[Import] Payload prepared', { payloadLength: payload.length });
 
 				const response = await fetch('/api/import/bulk', {
 					method: 'POST',
@@ -108,12 +112,15 @@
 					signal: abortController.signal
 				});
 
+				console.log('[Import] Response received', { status: response.status, ok: response.ok });
+
 				if (!response.ok) {
 					const errData = await response.json().catch(() => ({ error: 'Unknown error' }));
 					throw new Error(errData.error || `HTTP ${response.status}`);
 				}
 
 				const result = await response.json();
+				console.log('[Import] Chunk result', result);
 
 				importStore.updateChunkStatus(currentSessionId, i, 'completed');
 				importStore.addErrors(currentSessionId, result.errors || []);
@@ -124,6 +131,7 @@
 				importStore.completeSession(currentSessionId);
 			}
 		} catch (e) {
+			console.error('[Import] Error in processImport:', e);
 			if (!abortController.signal.aborted) {
 				const msg = e instanceof Error ? e.message : 'Terjadi kesalahan';
 				importStore.failSession(currentSessionId, msg);
@@ -145,6 +153,7 @@
 	}
 
 	async function startImport() {
+		console.log('[Import] startImport called', { selectedFile: selectedFile?.name, isParsing, currentSessionId });
 		if (!selectedFile || isParsing) return;
 
 		isParsing = true;
@@ -153,7 +162,9 @@
 
 		try {
 			// Parse Excel in browser
+			console.log('[Import] Parsing Excel file...');
 			const parseResult: ParseResult = await parseExcelFile(selectedFile);
+			console.log('[Import] Parse result', { rows: parseResult.rows.length, errors: parseResult.errors.length, warnings: parseResult.warnings.length });
 
 			if (parseResult.rows.length === 0 && parseResult.errors.length === 0) {
 				error = 'File tidak berisi data yang valid.';
@@ -164,6 +175,7 @@
 			// Create session in store
 			const sessionId = importStore.createSession(selectedFile.name, parseResult.rows.length).id;
 			currentSessionId = sessionId;
+			console.log('[Import] Session created', { sessionId });
 
 			// Chunk the parsed rows
 			const chunks = chunkRows(parseResult.rows, 100);
@@ -205,8 +217,11 @@
 			}
 
 			// Start processing
+			console.log('[Import] Starting processImport...');
 			await processImport();
+			console.log('[Import] processImport completed');
 		} catch (e) {
+			console.error('[Import] Error in startImport:', e);
 			error = e instanceof Error ? e.message : 'Gagal memproses file';
 		} finally {
 			isParsing = false;
@@ -433,35 +448,35 @@
 			File Excel (.xlsx atau .xls) yang sudah diisi. Minimal kolom Nama Lengkap wajib diisi.
 			Proses parsing dilakukan di browser, file tidak diunggah ke server.
 		</p>
-		<label class="mt-4 block">
-			<span class="mb-1.5 block text-sm font-medium">File Excel</span>
-			<input
-				class="file-input file-input-bordered w-full"
-				type="file"
-				accept=".xlsx,.xls"
-				onchange={handleFileSelect} />
-		</label>
+		<div class="mt-4 flex flex-col sm:flex-row gap-3">
+			<label class="flex-1">
+				<span class="mb-1.5 block text-sm font-medium">File Excel</span>
+				<input
+					class="file-input file-input-bordered w-full"
+					type="file"
+					accept=".xlsx,.xls"
+					onchange={handleFileSelect} />
+			</label>
+			<button
+				type="button"
+				class="btn btn-primary btn-sm gap-1 self-end sm:self-auto"
+				onclick={startImport}
+				disabled={isParsing || currentSessionId || !selectedFile}>
+				{#if isParsing}
+					<span class="loading loading-spinner loading-sm"></span>
+					Memparsing...
+				{:else if currentSessionId}
+					Sedang import...
+				{:else}
+					<IconFileImport class="size-4" />
+					Import
+				{/if}
+			</button>
+		</div>
 		{#if selectedFile}
-			<div class="mt-3 flex items-center justify-between p-3 rounded-lg bg-base-200/50">
-				<span class="text-sm font-medium flex items-center gap-2">
-					<IconFileDownload class="size-4" />
-					{selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
-				</span>
-				<button
-					type="button"
-					class="btn btn-primary btn-sm gap-1"
-					onclick={startImport}
-					disabled={isParsing || currentSessionId}>
-					{#if isParsing}
-						<span class="loading loading-spinner loading-sm"></span>
-						Memparsing...
-					{:else if currentSessionId}
-						Sedang import...
-					{:else}
-						<IconFileImport class="size-4" />
-						Import
-					{/if}
-				</button>
+			<div class="mt-3 text-sm text-base-content/60 flex items-center gap-2">
+				<IconFileDownload class="size-4" />
+				{selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
 			</div>
 		{/if}
 	</div>
