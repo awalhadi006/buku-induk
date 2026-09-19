@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX, IconPlayerPause, IconPlayerPlay, IconUpload } from '@tabler/icons-svelte';
+	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX, IconPlayerPause, IconPlayerPlay, IconUpload, IconArrowLoopLeft } from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
 	import { importStore, type ImportSession, type ImportChunk } from '$lib/stores/import-store';
 	import { parseExcelFile, chunkRows, toBulkInsertPayload, type ParsedRow, type ParseResult } from '$lib/import/client-parser';
@@ -38,6 +38,9 @@
 	let filterKategori = $state('semua');
 	let selectedFile = $state<File | null>(null);
 	let isParsing = $state(false);
+	let isUploading = $state(false);
+	let uploadProgress = $state(0);
+	let uploadAnimationFrame: number | null = null;
 
 	// Derived from store
 	const currentSession = $derived.by(() => {
@@ -73,6 +76,56 @@
 	const completedChunks = $derived(sessionChunks.filter((c) => c.status === 'completed').length);
 	const totalChunks = $derived(sessionChunks.length);
 
+	// Smooth progress animation
+	function startProgressAnimation() {
+		uploadProgress = 0;
+		isUploading = true;
+		animateProgress();
+	}
+
+	function animateProgress() {
+		if (!isUploading) return;
+		
+		// Smooth animation: ease towards 95% (leave 5% for completion)
+		uploadProgress += (95 - uploadProgress) * 0.15;
+		
+		if (uploadProgress < 95 && isUploading) {
+			uploadAnimationFrame = requestAnimationFrame(animateProgress);
+		}
+	}
+
+	function completeProgressAnimation() {
+		isUploading = false;
+		if (uploadAnimationFrame) {
+			cancelAnimationFrame(uploadAnimationFrame);
+			uploadAnimationFrame = null;
+		}
+		// Animate to 100%
+		const finishAnimation = () => {
+			uploadProgress += (100 - uploadProgress) * 0.3;
+			if (uploadProgress < 99.5) {
+				requestAnimationFrame(finishAnimation);
+			} else {
+				uploadProgress = 100;
+				// Reset after showing 100% briefly
+				setTimeout(() => {
+					uploadProgress = 0;
+					resetImportState();
+				}, 1500);
+			}
+		};
+		requestAnimationFrame(finishAnimation);
+	}
+
+	function resetImportState() {
+		currentSessionId = null;
+		selectedFile = null;
+		error = null;
+		// Reset file input
+		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+		if (fileInput) fileInput.value = '';
+	}
+
 	async function fetchKamarKelas() {
 		// Data already loaded via page server load
 	}
@@ -88,6 +141,9 @@
 		const abortController = new AbortController();
 		importStore.startSession(currentSessionId, abortController);
 
+		// Start smooth progress animation
+		startProgressAnimation();
+
 		try {
 			// Send chunks sequentially
 			for (let i = 0; i < session.chunks.length; i++) {
@@ -95,10 +151,6 @@
 
 				const chunk = session.chunks[i];
 				console.log(`[Import] Processing chunk ${i + 1}/${session.chunks.length}`, { rows: chunk.data.length });
-				
-				// Update progress for this chunk starting
-				const baseProgress = Math.round((i / session.chunks.length) * 100);
-				importStore.updateChunkStatus(currentSessionId, i, 'uploading', undefined, baseProgress);
 
 				const payload = toBulkInsertPayload(
 					chunk.data,
@@ -135,9 +187,17 @@
 
 			if (!abortController.signal.aborted) {
 				importStore.completeSession(currentSessionId);
+				// Trigger smooth completion animation
+				completeProgressAnimation();
 			}
 		} catch (e) {
 			console.error('[Import] Error in processImport:', e);
+			isUploading = false;
+			if (uploadAnimationFrame) {
+				cancelAnimationFrame(uploadAnimationFrame);
+				uploadAnimationFrame = null;
+			}
+			uploadProgress = 0;
 			if (!abortController.signal.aborted) {
 				const msg = e instanceof Error ? e.message : 'Terjadi kesalahan';
 				importStore.failSession(currentSessionId, msg);
@@ -229,6 +289,12 @@
 	function pauseImport() {
 		if (currentSessionId) {
 			importStore.abortSession(currentSessionId);
+			isUploading = false;
+			if (uploadAnimationFrame) {
+				cancelAnimationFrame(uploadAnimationFrame);
+				uploadAnimationFrame = null;
+			}
+			uploadProgress = 0;
 		}
 	}
 
@@ -242,9 +308,7 @@
 	function removeSession() {
 		if (currentSessionId) {
 			importStore.removeSession(currentSessionId);
-			currentSessionId = null;
-			error = null;
-			selectedFile = null;
+			resetImportState();
 		}
 	}
 
@@ -307,10 +371,10 @@
 						Menunggu...
 					{/if}
 				</span>
-				<span class="text-xs text-base-content/60">{sessionProgress}%</span>
+				<span class="text-xs text-base-content/60">{Math.round(uploadProgress)}%</span>
 			</div>
 			<div class="progress w-full h-3">
-				<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {sessionProgress}%"></div>
+				<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {uploadProgress}%"></div>
 			</div>
 			<p class="mt-1 text-xs text-base-content/60">
 				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
@@ -446,8 +510,8 @@
 			Proses parsing dilakukan di browser, file tidak diunggah ke server.
 		</p>
 		
-		<div class="mt-4 space-y-3">
-			<label class="block">
+		<div class="mt-4 flex flex-col sm:flex-row gap-3">
+			<label class="flex-1">
 				<span class="mb-1.5 block text-sm font-medium">File Excel</span>
 				<input
 					class="file-input file-input-bordered w-full"
@@ -455,34 +519,25 @@
 					accept=".xlsx,.xls"
 					onchange={handleFileSelect} />
 			</label>
-			
-			{#if selectedFile}
-				<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-base-200/50 border border-base-300">
-					<div class="flex items-center gap-3 min-w-0">
-						<IconFileDownload class="size-5 text-base-content/60 shrink-0" />
-						<div class="min-w-0">
-							<p class="text-sm font-medium truncate">{selectedFile.name}</p>
-							<p class="text-xs text-base-content/60">{(selectedFile.size / 1024).toFixed(1)} KB</p>
-						</div>
-					</div>
-					<button
-						type="button"
-						class="btn btn-primary gap-2 shrink-0 sm:w-auto w-full"
-						onclick={startImport}
-						disabled={isParsing || currentSessionId}>
-						{#if isParsing}
-							<span class="loading loading-spinner loading-sm"></span>
-							Memparsing...
-						{:else if currentSessionId}
-							<IconLoader2 class="size-4 animate-spin" />
-							Sedang import...
-						{:else}
-							<IconUpload class="size-4" />
-							Import Data
-						{/if}
-					</button>
-				</div>
-			{/if}
+			<button
+				type="button"
+				class="btn btn-primary gap-2 shrink-0 sm:w-auto w-full"
+				onclick={startImport}
+				disabled={isParsing || isUploading || !selectedFile || currentSessionId}>
+				{#if isParsing}
+					<span class="loading loading-spinner loading-sm"></span>
+					Memparsing...
+				{:else if isUploading}
+					<IconLoader2 class="size-4 animate-spin" />
+					Mengunggah...
+				{:else if currentSessionId}
+					<IconArrowLoopLeft class="size-4" />
+					Import Lagi
+				{:else}
+					<IconUpload class="size-4" />
+					Import
+				{/if}
+			</button>
 		</div>
 	</div>
 </div>
