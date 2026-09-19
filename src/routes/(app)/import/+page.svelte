@@ -107,20 +107,23 @@
 				requestAnimationFrame(finishAnimation);
 			} else {
 				uploadProgress = 100;
-				// Reset after showing 100% briefly
-				setTimeout(() => {
-					uploadProgress = 0;
-					resetImportState();
-				}, 1500);
+				// Keep at 100% - don't auto reset, let user decide
 			}
 		};
 		requestAnimationFrame(finishAnimation);
 	}
 
 	function resetImportState() {
+		// Clear upload state but keep session for results display
 		currentSessionId = null;
 		selectedFile = null;
 		error = null;
+		isUploading = false;
+		uploadProgress = 0;
+		if (uploadAnimationFrame) {
+			cancelAnimationFrame(uploadAnimationFrame);
+			uploadAnimationFrame = null;
+		}
 		// Reset file input
 		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 		if (fileInput) fileInput.value = '';
@@ -374,7 +377,7 @@
 				<span class="text-xs text-base-content/60">{Math.round(uploadProgress)}%</span>
 			</div>
 			<div class="progress w-full h-3">
-				<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {uploadProgress}%"></div>
+				<div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: {uploadProgress}%"></div>
 			</div>
 			<p class="mt-1 text-xs text-base-content/60">
 				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
@@ -383,7 +386,7 @@
 			</p>
 		</div>
 
-		<div class="flex items-center gap-2 mb-4">
+		<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
 			{#if sessionStatus === 'uploading'}
 				<button class="btn btn-ghost btn-sm" onclick={pauseImport}>
 					<IconPlayerPause class="size-4" />
@@ -395,7 +398,7 @@
 					Coba Lagi
 				</button>
 			{/if}
-			<button class="btn btn-ghost btn-sm ml-auto" onclick={removeSession}>
+			<button class="btn btn-ghost btn-sm" onclick={removeSession}>
 				<IconX class="size-4" />
 				Tutup
 			</button>
@@ -510,8 +513,8 @@
 			Proses parsing dilakukan di browser, file tidak diunggah ke server.
 		</p>
 		
-		<div class="mt-4 flex flex-col sm:flex-row gap-3">
-			<label class="flex-1">
+		<div class="mt-4 flex flex-col gap-3">
+			<label class="w-full">
 				<span class="mb-1.5 block text-sm font-medium">File Excel</span>
 				<input
 					class="file-input file-input-bordered w-full"
@@ -521,7 +524,7 @@
 			</label>
 			<button
 				type="button"
-				class="btn btn-primary gap-2 shrink-0 sm:w-auto w-full"
+				class="btn btn-primary gap-2 w-full justify-center"
 				onclick={startImport}
 				disabled={isParsing || isUploading || !selectedFile || currentSessionId}>
 				{#if isParsing}
