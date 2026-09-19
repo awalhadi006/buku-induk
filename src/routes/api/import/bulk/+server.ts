@@ -88,7 +88,7 @@ export const POST = async ({ request, locals }) => {
 			}
 		}
 
-		// Build santri payloads for bulk upsert
+		// Build santri payloads
 		const santriPayloads: Record<string, unknown>[] = [];
 		const validIndices: number[] = [];
 
@@ -118,64 +118,129 @@ export const POST = async ({ request, locals }) => {
 			validIndices.push(j);
 		}
 
-		console.log('[Bulk API] Santri payloads to upsert:', santriPayloads.length);
+		console.log('[Bulk API] Santri payloads to process:', santriPayloads.length);
 
-		// Bulk upsert santri on NIS (single subrequest) - handles duplicates
-		const { data: upserted, error: upsertError } = await supabaseAdmin
-			.from('santri')
-			.upsert(santriPayloads, {
-				onConflict: 'nis',
-				ignoreDuplicates: false
-			})
-			.select('id, nama_lengkap');
+		// Fetch existing NIS values from database (single subrequest)
+		const nisValues = santriPayloads
+			.map((p) => p.nis)
+			.filter((n) => n && typeof n === 'string' && n.trim() !== '');
 
-		console.log('[Bulk API] Upsert result:', { upserted: upserted?.length, error: upsertError });
+		let existingNisMap = new Map<string, string>(); // nis -> id
+		if (nisValues.length > 0) {
+			const { data: existingSantri, error: fetchError } = await supabaseAdmin
+				.from('santri')
+				.select('id, nis')
+				.in('nis', nisValues);
 
-		if (upsertError) {
-			console.error('[Bulk API] Bulk upsert error:', JSON.stringify(upsertError, null, 2));
-			// If bulk upsert fails, check each row individually but batch in smaller groups
-			const SUB_BATCH = 10;
-			for (let j = 0; j < santriPayloads.length; j += SUB_BATCH) {
-				const subBatch = santriPayloads.slice(j, j + SUB_BATCH);
-				const subIndices = validIndices.slice(j, j + SUB_BATCH);
-
-				const { data: subUpserted, error: subError } = await supabaseAdmin
-					.from('santri')
-					.upsert(subBatch, {
-						onConflict: 'nis',
-						ignoreDuplicates: false
-					})
-					.select('id, nama_lengkap');
-
-				if (subError) {
-					// Last resort: individual inserts
-					for (let k = 0; k < subBatch.length; k++) {
-						const payload = subBatch[k];
-						const rowIdx = i + subIndices[k];
-						const nama = String(payload.nama_lengkap ?? '');
-
-						const { error } = await supabaseAdmin.from('santri').upsert(payload, {
-							onConflict: 'nis'
-						});
-						if (error) {
-							results.failed++;
-							results.errors.push({
-								row: rowIdx + 1,
-								nama,
-								reason: error.message || error.details || error.hint || 'Gagal menyimpan ke database',
-								kategori: 'database'
-							});
-							console.error(`[Bulk API] Row ${rowIdx + 1} (${nama}) error:`, JSON.stringify(error, null, 2));
-						} else {
-							results.success++;
-						}
-					}
-				} else if (subUpserted) {
-					results.success += subUpserted.length;
+			if (fetchError) {
+				console.error('[Bulk API] Fetch existing NIS error:', fetchError);
+			} else if (existingSantri) {
+				for (const s of existingSantri) {
+					existingNisMap.set(s.nis, s.id);
 				}
 			}
-		} else if (upserted) {
-			results.success += upserted.length;
+		}
+
+		// Split into insert (new) and update (existing)
+		const toInsert: Record<string, unknown>[] = [];
+		const toUpdate: { payload: Record<string, unknown>; id: string; rowIdx: number }[] = [];
+
+		for (let j = 0; j < santriPayloads.length; j++) {
+			const payload = santriPayloads[j];
+			const nis = String(payload.nis ?? '').trim();
+			const rowIdx = i + validIndices[j];
+
+			if (nis && existingNisMap.has(nis)) {
+				toUpdate.push({ payload, id: existingNisMap.get(nis)!, rowIdx });
+			} else {
+				// Check for duplicates within this batch
+				const isDuplicateInBatch = toInsert.some((p) => String(p.nis ?? '').trim() === nis) ||
+					toUpdate.some((u) => String(u.payload.nis ?? '').trim() === nis);
+
+				if (isDuplicateInBatch) {
+					const nama = String(payload.nama_lengkap ?? '');
+					results.failed++;
+					results.errors.push({
+						row: rowIdx + 1,
+						nama,
+						reason: 'NIS duplikat dalam file import',
+						kategori: 'database'
+					});
+				} else {
+					toInsert.push(payload);
+				}
+			}
+		}
+
+		// Bulk insert new santri (single subrequest)
+		if (toInsert.length > 0) {
+			console.log('[Bulk API] Inserting new santri:', toInsert.length);
+			const { data: inserted, error: insertError } = await supabaseAdmin
+				.from('santri')
+				.insert(toInsert)
+				.select('id, nama_lengkap');
+
+			if (insertError) {
+				console.error('[Bulk API] Bulk insert error:', JSON.stringify(insertError, null, 2));
+				// Fallback: individual inserts
+				for (const payload of toInsert) {
+					const idx = santriPayloads.findIndex((p) => p === payload);
+					const rowIdx = idx >= 0 ? i + validIndices[idx] : i;
+					const nama = String(payload.nama_lengkap ?? '');
+					const { error } = await supabaseAdmin.from('santri').insert(payload);
+					if (error) {
+						results.failed++;
+						results.errors.push({
+							row: rowIdx + 1,
+							nama,
+							reason: error.message || error.details || error.hint || 'Gagal menyimpan ke database',
+							kategori: 'database'
+						});
+						console.error(`[Bulk API] Insert error for ${nama}:`, JSON.stringify(error, null, 2));
+					} else {
+						results.success++;
+					}
+				}
+			} else if (inserted) {
+				results.success += inserted.length;
+			}
+		}
+
+		// Bulk update existing santri (single subrequest using upsert on id)
+		if (toUpdate.length > 0) {
+			console.log('[Bulk API] Updating existing santri:', toUpdate.length);
+			const updatePayloads = toUpdate.map((u) => ({ ...u.payload, id: u.id }));
+
+			const { data: updated, error: updateError } = await supabaseAdmin
+				.from('santri')
+				.upsert(updatePayloads, {
+					onConflict: 'id',
+					ignoreDuplicates: false
+				})
+				.select('id, nama_lengkap');
+
+			if (updateError) {
+				console.error('[Bulk API] Bulk update error:', JSON.stringify(updateError, null, 2));
+				// Fallback: individual updates
+				for (const u of toUpdate) {
+					const nama = String(u.payload.nama_lengkap ?? '');
+					const { error } = await supabaseAdmin.from('santri').update(u.payload).eq('id', u.id);
+					if (error) {
+						results.failed++;
+						results.errors.push({
+							row: u.rowIdx + 1,
+							nama,
+							reason: error.message || error.details || error.hint || 'Gagal mengupdate database',
+							kategori: 'database'
+						});
+						console.error(`[Bulk API] Update error for ${nama}:`, JSON.stringify(error, null, 2));
+					} else {
+						results.success++;
+					}
+				}
+			} else if (updated) {
+				results.success += updated.length;
+			}
 		}
 	}
 
