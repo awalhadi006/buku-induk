@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX, IconPlayerPause, IconPlayerPlay } from '@tabler/icons-svelte';
+	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX, IconPlayerPause, IconPlayerPlay, IconUpload } from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
 	import { importStore, type ImportSession, type ImportChunk } from '$lib/stores/import-store';
 	import { parseExcelFile, chunkRows, toBulkInsertPayload, type ParsedRow, type ParseResult } from '$lib/import/client-parser';
@@ -70,6 +70,9 @@
 		return sessionErrors.filter((e) => e.kategori === filterKategori);
 	});
 
+	const completedChunks = $derived(sessionChunks.filter((c) => c.status === 'completed').length);
+	const totalChunks = $derived(sessionChunks.length);
+
 	async function fetchKamarKelas() {
 		// Data already loaded via page server load
 	}
@@ -92,7 +95,10 @@
 
 				const chunk = session.chunks[i];
 				console.log(`[Import] Processing chunk ${i + 1}/${session.chunks.length}`, { rows: chunk.data.length });
-				importStore.updateChunkStatus(currentSessionId, i, 'uploading');
+				
+				// Update progress for this chunk starting
+				const baseProgress = Math.round((i / session.chunks.length) * 100);
+				importStore.updateChunkStatus(currentSessionId, i, 'uploading', undefined, baseProgress);
 
 				const payload = toBulkInsertPayload(
 					chunk.data,
@@ -149,7 +155,6 @@
 		}
 		selectedFile = file;
 		error = null;
-		// Don't reset input.value so user sees selected file
 	}
 
 	async function startImport() {
@@ -161,7 +166,6 @@
 		currentSessionId = null;
 
 		try {
-			// Parse Excel in browser
 			console.log('[Import] Parsing Excel file...');
 			const parseResult: ParseResult = await parseExcelFile(selectedFile);
 			console.log('[Import] Parse result', { rows: parseResult.rows.length, errors: parseResult.errors.length, warnings: parseResult.warnings.length });
@@ -172,15 +176,12 @@
 				return;
 			}
 
-			// Create session in store
 			const sessionId = importStore.createSession(selectedFile.name, parseResult.rows.length).id;
 			currentSessionId = sessionId;
 			console.log('[Import] Session created', { sessionId });
 
-			// Chunk the parsed rows
 			const chunks = chunkRows(parseResult.rows, 100);
 
-			// Store chunk data
 			const importChunks = chunks.map((chunk, idx) => ({
 				index: idx,
 				startRow: idx * 100,
@@ -191,7 +192,6 @@
 
 			importStore.setSessionData(sessionId, importChunks);
 
-			// Add parse warnings as warnings
 			if (parseResult.warnings.length > 0) {
 				importStore.addWarnings(
 					sessionId,
@@ -203,7 +203,6 @@
 				);
 			}
 
-			// Add parse errors as errors
 			if (parseResult.errors.length > 0) {
 				importStore.addErrors(
 					sessionId,
@@ -216,7 +215,6 @@
 				);
 			}
 
-			// Start processing
 			console.log('[Import] Starting processImport...');
 			await processImport();
 			console.log('[Import] processImport completed');
@@ -294,50 +292,49 @@
 
 {#if currentSession}
 	<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-5">
-		<div class="mb-4 flex flex-wrap items-center gap-3">
-			<div class="flex-1">
-				<div class="flex items-center justify-between mb-1">
-					<span class="text-sm font-medium">
-						{#if sessionStatus === 'parsing'}
-							Memparsing file...
-						{:else if sessionStatus === 'uploading'}
-							Mengunggah data...
-						{:else if sessionStatus === 'completed'}
-							Import selesai!
-						{:else if sessionStatus === 'error'}
-							Import gagal
-						{:else}
-							Menunggu...
-						{/if}
-					</span>
-					<span class="text-xs text-base-content/60">{sessionProgress}%</span>
-				</div>
-				<div class="progress w-full h-3">
-					<div class="progress-bar" style="width: {sessionProgress}%"></div>
-				</div>
-				<p class="mt-1 text-xs text-base-content/60">
-					{sessionChunks.filter((c) => c.status === 'completed').length} / {sessionChunks.length} chunk &nbsp;•&nbsp;
-					{sessionErrors.length} error &nbsp;•&nbsp;
-					{sessionWarnings.length} peringatan
-				</p>
+		<div class="mb-4">
+			<div class="flex items-center justify-between mb-2">
+				<span class="text-sm font-medium">
+					{#if sessionStatus === 'parsing'}
+						Memparsing file...
+					{:else if sessionStatus === 'uploading'}
+						Mengunggah data... ({completedChunks}/{totalChunks} chunk)
+					{:else if sessionStatus === 'completed'}
+						Import selesai!
+					{:else if sessionStatus === 'error'}
+						Import gagal
+					{:else}
+						Menunggu...
+					{/if}
+				</span>
+				<span class="text-xs text-base-content/60">{sessionProgress}%</span>
 			</div>
-			<div class="flex items-center gap-2">
-				{#if sessionStatus === 'uploading'}
-					<button class="btn btn-ghost btn-sm" onclick={pauseImport}>
-						<IconPlayerPause class="size-4" />
-						Pause
-					</button>
-				{:else if sessionStatus === 'error'}
-					<button class="btn btn-primary btn-sm" onclick={retryImport}>
-						<IconPlayerPlay class="size-4" />
-						Coba Lagi
-					</button>
-				{/if}
-				<button class="btn btn-ghost btn-sm" onclick={removeSession}>
-					<IconX class="size-4" />
-					Tutup
+			<div class="progress w-full h-3">
+				<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {sessionProgress}%"></div>
+			</div>
+			<p class="mt-1 text-xs text-base-content/60">
+				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
+				{sessionErrors.length} error &nbsp;•&nbsp;
+				{sessionWarnings.length} peringatan
+			</p>
+		</div>
+
+		<div class="flex items-center gap-2 mb-4">
+			{#if sessionStatus === 'uploading'}
+				<button class="btn btn-ghost btn-sm" onclick={pauseImport}>
+					<IconPlayerPause class="size-4" />
+					Pause
 				</button>
-			</div>
+			{:else if sessionStatus === 'error'}
+				<button class="btn btn-primary btn-sm" onclick={retryImport}>
+					<IconPlayerPlay class="size-4" />
+					Coba Lagi
+				</button>
+			{/if}
+			<button class="btn btn-ghost btn-sm ml-auto" onclick={removeSession}>
+				<IconX class="size-4" />
+				Tutup
+			</button>
 		</div>
 
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
@@ -448,8 +445,9 @@
 			File Excel (.xlsx atau .xls) yang sudah diisi. Minimal kolom Nama Lengkap wajib diisi.
 			Proses parsing dilakukan di browser, file tidak diunggah ke server.
 		</p>
-		<div class="mt-4 flex flex-col sm:flex-row gap-3">
-			<label class="flex-1">
+		
+		<div class="mt-4 space-y-3">
+			<label class="block">
 				<span class="mb-1.5 block text-sm font-medium">File Excel</span>
 				<input
 					class="file-input file-input-bordered w-full"
@@ -457,27 +455,34 @@
 					accept=".xlsx,.xls"
 					onchange={handleFileSelect} />
 			</label>
-			<button
-				type="button"
-				class="btn btn-primary btn-sm gap-1 self-end sm:self-auto"
-				onclick={startImport}
-				disabled={isParsing || currentSessionId || !selectedFile}>
-				{#if isParsing}
-					<span class="loading loading-spinner loading-sm"></span>
-					Memparsing...
-				{:else if currentSessionId}
-					Sedang import...
-				{:else}
-					<IconFileImport class="size-4" />
-					Import
-				{/if}
-			</button>
+			
+			{#if selectedFile}
+				<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-base-200/50 border border-base-300">
+					<div class="flex items-center gap-3 min-w-0">
+						<IconFileDownload class="size-5 text-base-content/60 shrink-0" />
+						<div class="min-w-0">
+							<p class="text-sm font-medium truncate">{selectedFile.name}</p>
+							<p class="text-xs text-base-content/60">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+						</div>
+					</div>
+					<button
+						type="button"
+						class="btn btn-primary gap-2 shrink-0 sm:w-auto w-full"
+						onclick={startImport}
+						disabled={isParsing || currentSessionId}>
+						{#if isParsing}
+							<span class="loading loading-spinner loading-sm"></span>
+							Memparsing...
+						{:else if currentSessionId}
+							<IconLoader2 class="size-4 animate-spin" />
+							Sedang import...
+						{:else}
+							<IconUpload class="size-4" />
+							Import Data
+						{/if}
+					</button>
+				</div>
+			{/if}
 		</div>
-		{#if selectedFile}
-			<div class="mt-3 text-sm text-base-content/60 flex items-center gap-2">
-				<IconFileDownload class="size-4" />
-				{selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
-			</div>
-		{/if}
 	</div>
 </div>

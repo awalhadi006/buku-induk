@@ -106,7 +106,8 @@ function createImportStore() {
 		sessionId: string,
 		chunkIndex: number,
 		status: ImportChunk['status'],
-		error?: string
+		error?: string,
+		progressOverride?: number
 	) {
 		update((map) => {
 			const session = map.get(sessionId);
@@ -116,7 +117,7 @@ function createImportStore() {
 			newChunks[chunkIndex] = { ...newChunks[chunkIndex], status, error };
 
 			const completedChunks = newChunks.filter((c) => c.status === 'completed').length;
-			const progress = Math.round((completedChunks / newChunks.length) * 100);
+			const progress = progressOverride ?? Math.round((completedChunks / newChunks.length) * 100);
 
 			const newMap = new Map(map);
 			newMap.set(sessionId, {
