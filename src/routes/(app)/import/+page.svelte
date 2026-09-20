@@ -39,8 +39,6 @@
 	let selectedFile = $state<File | null>(null);
 	let isParsing = $state(false);
 	let isUploading = $state(false);
-	let uploadProgress = $state(0);
-	let uploadAnimationFrame: number | null = null;
 
 	// Derived from store
 	const currentSession = $derived.by(() => {
@@ -76,54 +74,16 @@
 	const completedChunks = $derived(sessionChunks.filter((c) => c.status === 'completed').length);
 	const totalChunks = $derived(sessionChunks.length);
 
-	// Smooth progress animation
-	function startProgressAnimation() {
-		uploadProgress = 0;
-		isUploading = true;
-		animateProgress();
-	}
-
-	function animateProgress() {
-		if (!isUploading) return;
-		
-		// Smooth animation: ease towards 95% (leave 5% for completion)
-		uploadProgress += (95 - uploadProgress) * 0.15;
-		
-		if (uploadProgress < 95 && isUploading) {
-			uploadAnimationFrame = requestAnimationFrame(animateProgress);
-		}
-	}
-
-	function completeProgressAnimation() {
-		isUploading = false;
-		if (uploadAnimationFrame) {
-			cancelAnimationFrame(uploadAnimationFrame);
-			uploadAnimationFrame = null;
-		}
-		// Animate to 100%
-		const finishAnimation = () => {
-			uploadProgress += (100 - uploadProgress) * 0.3;
-			if (uploadProgress < 99.5) {
-				requestAnimationFrame(finishAnimation);
-			} else {
-				uploadProgress = 100;
-				// Keep at 100% - don't auto reset, let user decide
-			}
-		};
-		requestAnimationFrame(finishAnimation);
-	}
+	// Progress: real chunk progress with CSS transition for smooth animation
+	const uploadProgress = $derived(
+		totalChunks > 0 ? Math.round((completedChunks / totalChunks) * 100) : 0
+	);
 
 	function resetImportState() {
-		// Clear upload state but keep session for results display
 		currentSessionId = null;
 		selectedFile = null;
 		error = null;
 		isUploading = false;
-		uploadProgress = 0;
-		if (uploadAnimationFrame) {
-			cancelAnimationFrame(uploadAnimationFrame);
-			uploadAnimationFrame = null;
-		}
 		// Reset file input
 		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 		if (fileInput) fileInput.value = '';
@@ -144,8 +104,7 @@
 		const abortController = new AbortController();
 		importStore.startSession(currentSessionId, abortController);
 
-		// Start smooth progress animation
-		startProgressAnimation();
+		isUploading = true;
 
 		try {
 			// Send chunks sequentially
@@ -190,22 +149,17 @@
 
 			if (!abortController.signal.aborted) {
 				importStore.completeSession(currentSessionId);
-				// Trigger smooth completion animation
-				completeProgressAnimation();
 			}
 		} catch (e) {
 			console.error('[Import] Error in processImport:', e);
 			isUploading = false;
-			if (uploadAnimationFrame) {
-				cancelAnimationFrame(uploadAnimationFrame);
-				uploadAnimationFrame = null;
-			}
-			uploadProgress = 0;
 			if (!abortController.signal.aborted) {
 				const msg = e instanceof Error ? e.message : 'Terjadi kesalahan';
 				importStore.failSession(currentSessionId, msg);
 				error = msg;
 			}
+		} finally {
+			isUploading = false;
 		}
 	}
 
@@ -293,11 +247,6 @@
 		if (currentSessionId) {
 			importStore.abortSession(currentSessionId);
 			isUploading = false;
-			if (uploadAnimationFrame) {
-				cancelAnimationFrame(uploadAnimationFrame);
-				uploadAnimationFrame = null;
-			}
-			uploadProgress = 0;
 		}
 	}
 
@@ -374,10 +323,11 @@
 						Menunggu...
 					{/if}
 				</span>
-				<span class="text-xs text-base-content/60">{Math.round(uploadProgress)}%</span>
+				<span class="text-xs text-base-content/60">{uploadProgress}%</span>
 			</div>
 			<div class="progress w-full h-3">
-				<div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: {uploadProgress}%"></div>
+				<div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+					 style="width: {uploadProgress}%; transition: width 0.5s ease-out;"></div>
 			</div>
 			<p class="mt-1 text-xs text-base-content/60">
 				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
