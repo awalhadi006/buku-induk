@@ -371,8 +371,7 @@
 				<span class="text-xs text-base-content/60">{uploadProgress}%</span>
 			</div>
 			<div class="progress w-full h-3">
-				<div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
-					 style="width: {uploadProgress}%; transition: width 0.5s ease-out;"></div>
+				<progress class="progress progress-primary" value={uploadProgress} max="100"></progress>
 			</div>
 			<p class="mt-1 text-xs text-base-content/60">
 				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
