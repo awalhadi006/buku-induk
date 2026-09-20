@@ -370,8 +370,8 @@
 				</span>
 				<span class="text-xs text-base-content/60">{uploadProgress}%</span>
 			</div>
-			<div class="progress w-full h-3">
-				<progress class="progress progress-primary" value={uploadProgress} max="100"></progress>
+			<div class="w-full h-3">
+				<progress class="progress progress-primary w-full h-3" value={uploadProgress} max="100"></progress>
 			</div>
 			<p class="mt-1 text-xs text-base-content/60">
 				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
