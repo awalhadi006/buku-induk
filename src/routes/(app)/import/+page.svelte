@@ -326,8 +326,17 @@
 	function removeSession() {
 		if (currentSessionId) {
 			importStore.removeSession(currentSessionId);
-			resetImportState();
+			currentSessionId = null;
+			resetProgressAnimation();
+			// Keep selectedFile for re-import
 		}
+	}
+
+	function clearAll() {
+		if (currentSessionId) {
+			importStore.removeSession(currentSessionId);
+		}
+		resetImportState();
 	}
 
 	function downloadCsv() {
@@ -420,7 +429,7 @@
 						Import Lagi
 					</button>
 				{/if}
-				<button class="btn btn-ghost btn-sm" onclick={removeSession}>
+				<button class="btn btn-ghost btn-sm" onclick={clearAll}>
 					<IconX class="size-4" />
 					Tutup
 				</button>
