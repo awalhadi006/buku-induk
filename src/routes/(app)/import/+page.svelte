@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX, IconPlayerPause, IconPlayerPlay, IconUpload, IconArrowLoopLeft } from '@tabler/icons-svelte';
+	import { IconFileDownload, IconFileImport, IconAlertTriangle, IconFilter, IconTable, IconLoader2, IconCheck, IconX, IconPlayerPlay, IconUpload, IconArrowLoopLeft } from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
 	import { importStore, type ImportSession, type ImportChunk } from '$lib/stores/import-store';
 	import { parseExcelFile, chunkRows, toBulkInsertPayload, type ParsedRow, type ParseResult } from '$lib/import/client-parser';
@@ -309,13 +309,6 @@
 		}
 	}
 
-	function pauseImport() {
-		if (currentSessionId) {
-			importStore.abortSession(currentSessionId);
-			isUploading = false;
-		}
-	}
-
 	function retryImport() {
 		if (currentSessionId) {
 			error = null;
@@ -411,29 +404,21 @@
 		</div>
 
 		<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-			{#if sessionStatus === 'uploading'}
-				<button class="btn btn-ghost btn-sm" onclick={pauseImport}>
-					<IconPlayerPause class="size-4" />
-					Pause
-				</button>
-			{:else if sessionStatus === 'error'}
+			{#if sessionStatus === 'error'}
 				<button class="btn btn-primary btn-sm" onclick={retryImport}>
 					<IconPlayerPlay class="size-4" />
 					Coba Lagi
 				</button>
-			{/if}
-			<div class="flex gap-2">
-				{#if sessionStatus === 'completed'}
-					<button class="btn btn-primary btn-sm" onclick={removeSession}>
-						<IconArrowLoopLeft class="size-4" />
-						Import Lagi
-					</button>
-				{/if}
-				<button class="btn btn-ghost btn-sm" onclick={clearAll}>
-					<IconX class="size-4" />
-					Tutup
+			{:else if sessionStatus === 'completed'}
+				<button class="btn btn-primary btn-sm" onclick={removeSession}>
+					<IconArrowLoopLeft class="size-4" />
+					Import Lagi
 				</button>
-			</div>
+			{/if}
+			<button class="btn btn-ghost btn-sm" onclick={clearAll}>
+				<IconX class="size-4" />
+				Tutup
+			</button>
 		</div>
 
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
