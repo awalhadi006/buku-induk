@@ -39,6 +39,8 @@
 	let selectedFile = $state<File | null>(null);
 	let isParsing = $state(false);
 	let isUploading = $state(false);
+	let uploadProgress = $state(0);
+	let progressAnimTimer: number | null = null;
 
 	// Derived from store
 	const currentSession = $derived.by(() => {
@@ -74,16 +76,56 @@
 	const completedChunks = $derived(sessionChunks.filter((c) => c.status === 'completed').length);
 	const totalChunks = $derived(sessionChunks.length);
 
-	// Progress: real chunk progress with CSS transition for smooth animation
-	const uploadProgress = $derived(
-		totalChunks > 0 ? Math.round((completedChunks / totalChunks) * 100) : 0
-	);
+	// Timer-based smooth progress animation (always 2.5s minimum)
+	function startProgressAnimation() {
+		uploadProgress = 0;
+		isUploading = true;
+		const startTime = Date.now();
+		const duration = 2500; // 2.5 seconds minimum animation
+		
+		const animate = () => {
+			const elapsed = Date.now() - startTime;
+			const progress = Math.min(elapsed / duration, 1);
+			
+			// Smooth easing: easeOutCubic
+			const eased = 1 - Math.pow(1 - progress, 3);
+			uploadProgress = Math.round(eased * 100);
+			
+			if (progress < 1) {
+				progressAnimTimer = requestAnimationFrame(animate);
+			} else {
+				uploadProgress = 100;
+				// Keep at 100% until user action
+			}
+		};
+		animate();
+	}
+
+	function completeProgressAnimation() {
+		if (progressAnimTimer) {
+			cancelAnimationFrame(progressAnimTimer);
+			progressAnimTimer = null;
+		}
+		// Ensure we hit 100%
+		uploadProgress = 100;
+		isUploading = false;
+	}
+
+	function resetProgressAnimation() {
+		if (progressAnimTimer) {
+			cancelAnimationFrame(progressAnimTimer);
+			progressAnimTimer = null;
+		}
+		uploadProgress = 0;
+		isUploading = false;
+	}
 
 	function resetImportState() {
 		currentSessionId = null;
 		selectedFile = null;
 		error = null;
 		isUploading = false;
+		resetProgressAnimation();
 		// Reset file input
 		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 		if (fileInput) fileInput.value = '';
@@ -104,7 +146,8 @@
 		const abortController = new AbortController();
 		importStore.startSession(currentSessionId, abortController);
 
-		isUploading = true;
+		// Start smooth timer-based progress animation (always runs ~2.5s)
+		startProgressAnimation();
 
 		try {
 			// Send chunks sequentially
@@ -149,10 +192,12 @@
 
 			if (!abortController.signal.aborted) {
 				importStore.completeSession(currentSessionId);
+				// Complete animation (ensure 100%)
+				completeProgressAnimation();
 			}
-		} catch (e) {
+} catch (e) {
 			console.error('[Import] Error in processImport:', e);
-			isUploading = false;
+			resetProgressAnimation();
 			if (!abortController.signal.aborted) {
 				const msg = e instanceof Error ? e.message : 'Terjadi kesalahan';
 				importStore.failSession(currentSessionId, msg);
