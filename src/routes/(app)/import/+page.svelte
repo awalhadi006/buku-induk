@@ -42,15 +42,22 @@
 	let uploadProgress = $state(0);
 	let progressAnimTimer: number | null = null;
 
-	// Derived from store
-	const currentSession = $derived.by(() => {
-		if (!currentSessionId) return null;
-		let session: ImportSession | null = null;
-		importStore.subscribe((sessions) => {
-			session = sessions.get(currentSessionId!) ?? null;
-		})();
-		return session;
+	// Reactive store sync - use effect to keep local state in sync
+	let _currentSession = $state<ImportSession | null>(null);
+
+	$effect(() => {
+		if (!currentSessionId) {
+			_currentSession = null;
+			return;
+		}
+		// Subscribe to store changes
+		const unsubscribe = importStore.subscribe((sessions) => {
+			_currentSession = sessions.get(currentSessionId!) ?? null;
+		});
+		return unsubscribe;
 	});
+
+	const currentSession = $derived(_currentSession);
 
 	const sessionChunks = $derived(currentSession?.chunks ?? []);
 	const sessionProgress = $derived(currentSession?.progress ?? 0);
