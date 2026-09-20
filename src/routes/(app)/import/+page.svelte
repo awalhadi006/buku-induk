@@ -373,14 +373,14 @@
 			<div class="w-full h-3">
 				<progress class="progress progress-primary w-full h-3" value={uploadProgress} max="100"></progress>
 			</div>
-			<p class="mt-1 text-xs text-base-content/60">
+			<p class="mt-3 text-xs text-base-content/60">
 				{completedChunks} / {totalChunks} chunk &nbsp;•&nbsp;
 				{sessionErrors.length} error &nbsp;•&nbsp;
 				{sessionWarnings.length} peringatan
 			</p>
 		</div>
 
-		<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+		<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
 			{#if sessionStatus === 'uploading'}
 				<button class="btn btn-ghost btn-sm" onclick={pauseImport}>
 					<IconPlayerPause class="size-4" />
@@ -392,10 +392,18 @@
 					Coba Lagi
 				</button>
 			{/if}
-			<button class="btn btn-ghost btn-sm" onclick={removeSession}>
-				<IconX class="size-4" />
-				Tutup
-			</button>
+			<div class="flex gap-2">
+				{#if sessionStatus === 'completed'}
+					<button class="btn btn-primary btn-sm" onclick={removeSession}>
+						<IconArrowLoopLeft class="size-4" />
+						Import Lagi
+					</button>
+				{/if}
+				<button class="btn btn-ghost btn-sm" onclick={removeSession}>
+					<IconX class="size-4" />
+					Tutup
+				</button>
+			</div>
 		</div>
 
 		<h2 class="flex items-center gap-2 text-sm font-semibold">
@@ -518,7 +526,7 @@
 			</label>
 			<button
 				type="button"
-				class="btn btn-primary gap-2 w-full justify-center"
+				class="btn btn-primary gap-2"
 				onclick={startImport}
 				disabled={isParsing || isUploading || !selectedFile || currentSessionId}>
 				{#if isParsing}
