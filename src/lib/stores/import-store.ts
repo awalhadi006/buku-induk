@@ -163,9 +163,16 @@ function createImportStore() {
 			const session = map.get(sessionId);
 			if (!session) return map;
 
+			const newChunks = session.chunks.map((chunk) => 
+				chunk.status === 'pending' || chunk.status === 'uploading'
+					? { ...chunk, status: 'completed' as const }
+					: chunk
+			);
+
 			const newMap = new Map(map);
 			newMap.set(sessionId, {
 				...session,
+				chunks: newChunks,
 				status: 'completed',
 				progress: 100,
 				completedAt: Date.now()

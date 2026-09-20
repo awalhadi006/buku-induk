@@ -215,8 +215,14 @@
 			selectedFile = null;
 			return;
 		}
+		// Reset session when new file selected
+		if (currentSessionId) {
+			importStore.removeSession(currentSessionId);
+			resetProgressAnimation();
+		}
 		selectedFile = file;
 		error = null;
+		currentSessionId = null;
 	}
 
 	async function startImport() {
@@ -532,7 +538,7 @@
 			</label>
 			<button
 				type="button"
-				class="btn btn-primary gap-2"
+				class="btn btn-primary gap-2 w-auto self-start"
 				onclick={startImport}
 				disabled={isParsing || isUploading || !selectedFile || sessionStatus === 'uploading'}>
 				{#if isParsing}
