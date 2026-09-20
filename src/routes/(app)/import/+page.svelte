@@ -254,12 +254,18 @@
 
 			importStore.setSessionData(sessionId, importChunks);
 
+			// Build row -> nama map from parsed rows for warnings/errors
+			const rowNamaMap = new Map<number, string>();
+			for (const row of parseResult.rows) {
+				rowNamaMap.set(row.rowNumber, row.santri.nama_lengkap as string || '');
+			}
+
 			if (parseResult.warnings.length > 0) {
 				importStore.addWarnings(
 					sessionId,
 					parseResult.warnings.map((w) => ({
 						row: w.row,
-						nama: '',
+						nama: rowNamaMap.get(w.row) || '',
 						warnings: w.warnings
 					}))
 				);
@@ -270,7 +276,7 @@
 					sessionId,
 					parseResult.errors.map((e) => ({
 						row: e.row,
-						nama: '',
+						nama: rowNamaMap.get(e.row) || '',
 						reason: e.reason,
 						kategori: 'format'
 					}))
@@ -528,14 +534,14 @@
 				type="button"
 				class="btn btn-primary gap-2"
 				onclick={startImport}
-				disabled={isParsing || isUploading || !selectedFile || currentSessionId}>
+				disabled={isParsing || isUploading || !selectedFile || sessionStatus === 'uploading'}>
 				{#if isParsing}
 					<span class="loading loading-spinner loading-sm"></span>
 					Memparsing...
 				{:else if isUploading}
 					<IconLoader2 class="size-4 animate-spin" />
 					Mengunggah...
-				{:else if currentSessionId}
+				{:else if sessionStatus === 'completed'}
 					<IconArrowLoopLeft class="size-4" />
 					Import Lagi
 				{:else}
