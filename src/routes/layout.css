@@ -197,9 +197,32 @@
 
 }
 
-/* Sidebar drawer — GPU-only transform transition */
-.sidebar-drawer {
-	transition: transform var(--duration-panel) var(--ease-drawer);
+/* Sidebar rail — hover expand (desktop) + pinned state */
+.sidebar-rail {
+	width: 16rem; /* 256px expanded */
+	transition: width var(--duration-panel) var(--ease-drawer);
+}
+
+/* Desktop (≥1024px): rail mode 76px, hover expands to 256px */
+@media (min-width: 1024px) {
+	.sidebar-rail.rail {
+		width: 4.75rem; /* 76px rail */
+	}
+
+	.sidebar-rail:not(.rail):hover,
+	html.rail-hover .sidebar-rail:not(.rail) {
+		width: 16rem; /* 256px hover expand */
+	}
+}
+
+/* Mobile (<1024px): drawer handles visibility, always full width when open */
+@media (max-width: 1023px) {
+	.sidebar-rail {
+		width: 16rem; /* 256px */
+	}
+	.sidebar-rail.rail {
+		width: 16rem; /* ignore rail class on mobile */
+	}
 }
 
 /* Indikator navigasi — hanya properti compositor */
