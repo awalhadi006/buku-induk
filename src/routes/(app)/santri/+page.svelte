@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-import { IconSearch, IconPlus, IconDownload, IconFilter, IconChevronLeft, IconChevronRight } from '@tabler/icons-svelte';
-import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
-import PageHeader from '$lib/components/PageHeader.svelte';
-import EmptyState from '$lib/components/EmptyState.svelte';
-import SkeletonTable from '$lib/components/Skeleton.svelte';
-import Collapse from '$lib/components/Collapse.svelte';
+	import { IconSearch, IconPlus, IconDownload, IconFilter, IconChevronLeft, IconChevronRight, IconEdit, IconTrash, IconEye, IconExternalLink, IconIdBadge } from '@tabler/icons-svelte';
+	import { STATUS_SANTRI_OPTIONS, STATUS_KELUARGA_OPTIONS, GENDER_OPTIONS } from '$lib/santri';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import SkeletonTable from '$lib/components/Skeleton.svelte';
+	import Collapse from '$lib/components/Collapse.svelte';
 
 let { data } = $props();
 
@@ -23,6 +22,8 @@ const pageSizeOptions = $derived(pagination.pageSizeOptions);
 
 const profile = $derived((page.data.profile as { peran: string } | null) ?? null);
 const canCreate = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
+const canEdit = $derived(profile ? ['superadmin', 'admin_tu', 'wali_kamar', 'wali_kelas'].includes(profile.peran) : false);
+const canDelete = $derived(profile ? ['superadmin', 'admin_tu'].includes(profile.peran) : false);
 
 const searchParam = $derived(page.url.searchParams.get('q')?.trim() ?? '');
 let query = $state('');
@@ -228,57 +229,92 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 </Collapse>
 
 {#if santri.length === 0 && data.santri !== undefined}
-	<div class="mt-6">
-		<EmptyState
-			title="Belum ada data santri"
-			desc="Data diisi lewat import Excel dari halaman Import, atau ditambahkan manual.">
-			<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
-			{#if canCreate}
-				<a class="btn btn-outline btn-sm" href="/santri/baru">Tambah manual</a>
-			{/if}
-		</EmptyState>
+	<div class="mt-6" role="status">
+		<div class="alert alert-soft alert-info">
+			<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+			<div>
+				<h3 class="font-bold">Belum ada data santri</h3>
+				<div class="text-xs">Data diisi lewat import Excel dari halaman Import, atau ditambahkan manual.</div>
+			</div>
+			<div class="flex flex-wrap gap-2 mt-4">
+				<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
+				{#if canCreate}
+					<a class="btn btn-outline btn-sm" href="/santri/baru">Tambah manual</a>
+				{/if}
+			</div>
+		</div>
 	</div>
 {:else if data.santri === undefined}
 	<div class="mt-6" role="status" aria-busy="true" aria-live="polite">
 		<SkeletonTable rows={5} cols={6} ariaLabel="Memuat daftar santri..." />
 	</div>
 {:else if filtered.length === 0}
-	<div class="mt-6">
-		<EmptyState title="Tidak ada hasil" desc="Tidak ada santri yang cocok dengan pencarian atau filter.">
-			<button class="btn btn-outline btn-sm" onclick={resetFilters}>Reset filter</button>
-		</EmptyState>
+	<div class="mt-6" role="status">
+		<div class="alert alert-soft alert-info">
+			<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+			<div>
+				<h3 class="font-bold">Tidak ada hasil</h3>
+				<div class="text-xs">Tidak ada santri yang cocok dengan pencarian atau filter.</div>
+			</div>
+			<div class="mt-4">
+				<button class="btn btn-outline btn-sm" onclick={resetFilters}>Reset filter</button>
+			</div>
+		</div>
 	</div>
 {:else}
-	<div class="mt-6 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
-		<table class="table">
-			<thead>
-				<tr class="text-xs uppercase tracking-wide text-base-content/60">
-					<th scope="col">Nama</th>
-					<th scope="col">NISN</th>
-					<th scope="col" class="hidden sm:table-cell">JK</th>
-					<th scope="col">Kamar</th>
-					<th scope="col" class="hidden md:table-cell">Kelas</th>
-					<th scope="col">Status</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each filtered as s, i (s.id)}
-					<tr class="hover:bg-base-200/50 santri-row" style="--stagger-index: {i};">
-						<td class="font-medium">
-							<a class="link link-hover" href="/santri/{s.id}">{s.nama_lengkap}</a>
-						</td>
-						<td class="font-mono">{s.nisn ?? '-'}</td>
-						<td class="hidden sm:table-cell">{s.jenis_kelamin ?? '-'}</td>
-						<td>{s.kamar ? `Kamar ${s.kamar.nomor}` : '-'}</td>
-						<td class="hidden md:table-cell">
-							{s.kelas ? `${s.kelas.tingkat} ${s.kelas.rombel}` : '-'}
-						</td>
-						<td>{STATUS_SANTRI_OPTIONS.find((o) => o.value === s.status_santri)?.label ?? s.status_santri}</td>
+<div class="mt-6 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
+			<table class="table table-zebra table-pin-rows">
+				<thead>
+					<tr class="text-xs uppercase tracking-wide text-base-content/60">
+						<th scope="col">Nama</th>
+						<th scope="col">NISN</th>
+						<th scope="col" class="hidden sm:table-cell">JK</th>
+						<th scope="col">Kamar</th>
+						<th scope="col" class="hidden md:table-cell">Kelas</th>
+						<th scope="col">Status</th>
+						<th scope="col" class="w-24 text-right">Aksi</th>
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
+				</thead>
+				<tbody>
+					{#each filtered as s, i (s.id)}
+						<tr class="hover:bg-base-200/50 santri-row" style="--stagger-index: {i};">
+							<td class="font-medium">
+								<a class="link link-hover" href="/santri/{s.id}">{s.nama_lengkap}</a>
+							</td>
+							<td class="font-mono">{s.nisn ?? '-'}</td>
+							<td class="hidden sm:table-cell">{s.jenis_kelamin ?? '-'}</td>
+							<td>{s.kamar ? `Kamar ${s.kamar.nomor}` : '-'}</td>
+							<td class="hidden md:table-cell">
+								{s.kelas ? `${s.kelas.tingkat} ${s.kelas.rombel}` : '-'}
+							</td>
+							<td>{STATUS_SANTRI_OPTIONS.find((o) => o.value === s.status_santri)?.label ?? s.status_santri}</td>
+							<td class="text-right">
+								<div class="dropdown dropdown-end">
+									<label tabindex="0" class="btn btn-ghost btn-square btn-sm" aria-label="Aksi untuk {s.nama_lengkap}">
+										<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+									</label>
+									<ul class="dropdown-content menu menu-sm p-2 shadow bg-base-100 rounded-box w-40">
+										<li><a class="flex items-center gap-2" href="/santri/{s.id}"><IconEye class="size-4" stroke-width={1.75} /> Detail</a></li>
+										<li><a class="flex items-center gap-2" href="/santri/{s.id}/cetak" target="_blank" rel="noopener"><IconExternalLink class="size-4" stroke-width={1.75} /> Cetak Buku Induk</a></li>
+										<li><a class="flex items-center gap-2" href="/santri/{s.id}/kartu" target="_blank" rel="noopener"><IconIdBadge class="size-4" stroke-width={1.75} /> Cetak Kartu</a></li>
+										{#if canEdit}
+											<li><a class="flex items-center gap-2" href="/santri/{s.id}?edit=1"><IconEdit class="size-4" stroke-width={1.75} /> Edit</a></li>
+										{/if}
+										{#if canDelete}
+											<li>
+												<form method="POST" action="?/delete" onsubmit={() => confirm('Yakin menghapus santri ini? Tindakan ini permanen.')}>
+													<button type="submit" class="flex w-full items-center gap-2 text-error"><IconTrash class="size-4" stroke-width={1.75} /> Hapus</button>
+												</form>
+											</li>
+										{/if}
+									</ul>
+								</div>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</div>
 
 	{#if totalPages > 1}
 		<div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -294,9 +330,9 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 				</select>
 			</div>
 
-			<div class="flex items-center gap-2">
+			<div class="join">
 				<button
-					class="btn btn-outline btn-sm"
+					class="join-item btn btn-outline btn-sm"
 					onclick={() => goToPage(currentPage - 1)}
 					disabled={currentPage === 1}
 					aria-label="Halaman sebelumnya">
@@ -306,19 +342,19 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 				{#each Array.from({ length: totalPages }, (_, i) => i + 1) as p}
 					{#if p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)}
 						<button
-							class="btn btn-sm {p === currentPage ? 'btn-primary' : 'btn-outline'}"
+							class="join-item btn btn-sm {p === currentPage ? 'btn-primary' : 'btn-outline'}"
 							onclick={() => goToPage(p)}
 							aria-label="Halaman {p}"
 							aria-current={p === currentPage ? 'page' : undefined}>
 							{p}
 						</button>
 					{:else if p === currentPage - 2 || p === currentPage + 2}
-						<span class="px-2 text-base-content/40">…</span>
+						<span class="join-item btn btn-ghost btn-sm px-2 text-base-content/40">…</span>
 					{/if}
 				{/each}
 
 				<button
-					class="btn btn-outline btn-sm"
+					class="join-item btn btn-outline btn-sm"
 					onclick={() => goToPage(currentPage + 1)}
 					disabled={currentPage === totalPages}
 					aria-label="Halaman selanjutnya">
