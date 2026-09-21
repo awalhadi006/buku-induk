@@ -179,12 +179,12 @@
 
 <FormShell {error} {submitting} {submitLabel} {cancelHref} {action} {onSubmit} {extra}>
 	{#each groups as g (g.label)}
-		<fieldset class="rounded-lg border border-base-300 bg-base-100 p-5">
-			<legend class="px-2 text-sm font-semibold">{g.label}</legend>
+		<fieldset class="fieldset">
+			<legend class="fieldset-legend">{g.label}</legend>
 			<div class="grid gap-4 sm:grid-cols-2">
 				{#each g.fields as f (f.key)}
-					<label class="block">
-						<span class="mb-1.5 block text-sm font-medium">
+					<label class="label">
+						<span class="label-text">
 							{f.label}{f.required ? ' *' : ''}
 						</span>
 						{#if f.type === 'select'}

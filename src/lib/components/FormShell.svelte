@@ -34,28 +34,32 @@
 	}
 </script>
 
-{#if formError}
-	<div class="alert alert-error mb-6 animate-in" role="alert">
-		<span>{formError}</span>
+<div class="card card-border">
+	<div class="card-body space-y-6">
+		{#if formError}
+			<div class="alert alert-error animate-in" role="alert">
+				<span>{formError}</span>
+			</div>
+		{/if}
+
+		<form
+			method="POST"
+			action={onSubmit ? undefined : action}
+			onsubmit={handleSubmit}
+			enctype="multipart/form-data"
+			class="space-y-6">
+			{@render children()}
+
+			{#if extra}
+				{@render extra()}
+			{/if}
+
+			<div class="flex items-center gap-3 mt-6">
+				<LoadingButton type="submit" loading={busy}>
+					{submitLabel}
+				</LoadingButton>
+				<a class="btn btn-ghost" href={cancelHref}>Batal</a>
+			</div>
+		</form>
 	</div>
-{/if}
-
-<form
-	method="POST"
-	action={onSubmit ? undefined : action}
-	onsubmit={handleSubmit}
-	enctype="multipart/form-data"
-	class="space-y-6">
-	{@render children()}
-
-	{#if extra}
-		{@render extra()}
-	{/if}
-
-	<div class="flex items-center gap-3 mt-6">
-		<LoadingButton type="submit" loading={busy}>
-			{submitLabel}
-		</LoadingButton>
-		<a class="btn btn-ghost" href={cancelHref}>Batal</a>
-	</div>
-</form>
+</div>
