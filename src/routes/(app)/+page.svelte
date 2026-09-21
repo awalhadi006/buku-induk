@@ -2,7 +2,6 @@
 	import { page } from '$app/state';
 	import { IconAward } from '@tabler/icons-svelte';
 	import BarList from '$lib/components/BarList.svelte';
-	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { PERAN_LABEL, type Profile, type Rekap, ALL_METRIC_KEYS } from '$lib/types';
 
 	let { data } = $props();
@@ -92,41 +91,46 @@
 
 {#if rekap}
 	{#if rekap.total === 0}
-		<div class="mt-6">
-			<EmptyState
-				title="Belum ada data santri"
-				desc="Rekapitulasi muncul setelah data santri diimpor atau ditambahkan.">
-				{#if canImport}
-					<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
-				{/if}
-				<a class="btn btn-outline btn-sm" href="/santri">Lihat santri</a>
-			</EmptyState>
+		<div class="mt-6" role="status">
+			<div class="alert alert-soft alert-info">
+				<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+				<div>
+					<h3 class="font-bold">Belum ada data santri</h3>
+					<div class="text-xs">Rekapitulasi muncul setelah data santri diimpor atau ditambahkan.</div>
+				</div>
+				<div class="flex flex-wrap gap-2 mt-4">
+					{#if canImport}
+						<a class="btn btn-primary btn-sm" href="/import">Import Excel</a>
+					{/if}
+					<a class="btn btn-outline btn-sm" href="/santri">Lihat santri</a>
+				</div>
+			</div>
 		</div>
 	{:else}
 		{#if enabledMetrics.includes('total')}
 			<section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Angka utama">
-				<div class="flex flex-col justify-between rounded-2xl border border-base-300 bg-base-100 p-5 lg:col-span-2">
-					<span class="text-sm text-base-content/70">Total santri</span>
-					<span class="mt-2 font-mono text-5xl">{rekap.total}</span>
+				<div class="card card-border bg-base-100 p-5 lg:col-span-2">
+					<div class="text-sm text-base-content/70">Total santri</div>
+					<div class="mt-2 font-mono text-5xl">{rekap.total}</div>
 				</div>
 				{#if rekap.tidak_lengkap != null && rekap.tidak_lengkap > 0}
 					<a
 						href="/santri?incomplete=true"
-						class="group flex flex-col justify-between rounded-2xl border border-warning/40 bg-warning/10 p-5 transition-colors hover:border-warning hover:bg-warning/20">
-						<span class="text-sm font-medium text-warning-content">Data belum lengkap</span>
+						class="card card-border bg-warning/10 border-warning/40 p-5 hover:border-warning hover:bg-warning/20 transition-colors">
+						<div class="text-sm font-medium text-warning-content">Data belum lengkap</div>
 						<div class="mt-2 flex items-baseline justify-between">
-							<span class="font-mono text-3xl font-bold text-warning-content">{rekap.tidak_lengkap}</span>
-							<span class="text-xs text-warning-content/80 group-hover:underline">Lengkapi &rarr;</span>
+							<div class="font-mono text-3xl font-bold text-warning-content">{rekap.tidak_lengkap}</div>
+							<span class="text-xs text-warning-content/80 underline">Lengkapi &rarr;</span>
 						</div>
 					</a>
 				{/if}
-				<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-					<span class="text-sm text-base-content/70">Laki-laki</span>
-					<span class="mt-2 block font-mono text-3xl">{laki}</span>
+				<div class="card card-border bg-base-100 p-5">
+					<div class="text-sm text-base-content/70">Laki-laki</div>
+					<div class="mt-2 font-mono text-3xl">{laki}</div>
 				</div>
-				<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
-					<span class="text-sm text-base-content/70">Perempuan</span>
-					<span class="mt-2 block font-mono text-3xl">{perempuan}</span>
+				<div class="card card-border bg-base-100 p-5">
+					<div class="text-sm text-base-content/70">Perempuan</div>
+					<div class="mt-2 font-mono text-3xl">{perempuan}</div>
 				</div>
 			</section>
 		{/if}
@@ -134,7 +138,7 @@
 		{#if enabledMetrics.includes('status') || enabledMetrics.includes('gender')}
 			<section class="mt-4 grid gap-4 lg:grid-cols-2" aria-label="Perbandingan">
 				{#if enabledMetrics.includes('status')}
-					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+					<div class="card card-border bg-base-100 p-5">
 						<h2 class="text-sm font-semibold">Status santri</h2>
 						<div class="mt-2">
 							<BarList rows={statusRows} max={rekap.total} />
@@ -142,7 +146,7 @@
 					</div>
 				{/if}
 				{#if enabledMetrics.includes('gender')}
-					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+					<div class="card card-border bg-base-100 p-5">
 						<h2 class="text-sm font-semibold">Jenis kelamin</h2>
 						<div class="mt-2">
 							<BarList rows={genderRows} max={genderMax} />
@@ -155,7 +159,7 @@
 		{#if enabledMetrics.includes('kamar') || enabledMetrics.includes('kelas')}
 			<section class="mt-4 grid gap-4 lg:grid-cols-2" aria-label="Kelompok">
 				{#if enabledMetrics.includes('kamar')}
-					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+					<div class="card card-border bg-base-100 p-5">
 						<h2 class="text-sm font-semibold">Per kamar</h2>
 						<div class="mt-2">
 							<BarList rows={kamarRows} max={Math.max(0, ...kamarRows.map((r) => r.value))} />
@@ -163,7 +167,7 @@
 					</div>
 				{/if}
 				{#if enabledMetrics.includes('kelas')}
-					<div class="rounded-2xl border border-base-300 bg-base-100 p-5">
+					<div class="card card-border bg-base-100 p-5">
 						<h2 class="text-sm font-semibold">Per kelas</h2>
 						<div class="mt-2">
 							<BarList rows={kelasRows} max={Math.max(0, ...kelasRows.map((r) => r.value))} />
@@ -174,7 +178,7 @@
 		{/if}
 
 		{#if enabledMetrics.includes('daerah')}
-			<section class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5" aria-label="Asal daerah">
+			<section class="mt-4 card card-border bg-base-100 p-5" aria-label="Asal daerah">
 				<h2 class="text-sm font-semibold">Per daerah asal</h2>
 				<div class="mt-2">
 					<BarList rows={daerahRows} max={Math.max(0, ...daerahRows.map((r) => r.value))} />
@@ -183,7 +187,7 @@
 		{/if}
 
 		{#if enabledMetrics.includes('alumni') && alumniRows.length > 0}
-			<section class="mt-4 rounded-2xl border border-base-300 bg-base-100 p-5" aria-label="Statistik alumni">
+			<section class="mt-4 card card-border bg-base-100 p-5" aria-label="Statistik alumni">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						<IconAward class="size-4 text-primary" stroke-width={1.75} />
@@ -199,19 +203,22 @@
 		{/if}
 	{/if}
 {:else}
-		<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-6">
-			<p class="text-base-content/70">
-				Rekapitulasi tidak dapat ditampilkan untuk akun ini.
-			</p>
-			{#if rekapError}
-				<p class="mt-2 text-sm text-error" role="alert">Penyebab teknis: {rekapError}</p>
-			{:else}
-				<p class="mt-2 max-w-[65ch] text-sm text-base-content/60">
-					Pastikan peran Anda memiliki izin <span class="font-medium">Dashboard rekap</span> (Rekapitulasi hanya bisa
-					dilihat oleh Superadmin, Admin TU, atau Asatidz). Jika Anda Superadmin/Admin, periksa pada
-					Pengaturan → Peran & Izin bahwa kemampuan <em>Dashboard rekap</em> aktif.
-				</p>
-				<a href="/pengaturan?tab=permissions" class="btn btn-outline btn-sm mt-4">Buka Peran & Izin</a>
-			{/if}
+		<div class="mt-6" role="alert">
+			<div class="alert alert-soft alert-error">
+				<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+				<div>
+					<h3 class="font-bold">Rekapitulasi tidak tersedia</h3>
+					{#if rekapError}
+						<div class="text-xs mt-1">Penyebab teknis: {rekapError}</div>
+					{:else}
+						<div class="text-xs mt-1 max-w-[65ch]">
+							Pastikan peran Anda memiliki izin <span class="font-medium">Dashboard rekap</span> (Rekapitulasi hanya bisa
+							dilihat oleh Superadmin, Admin TU, atau Asatidz). Jika Anda Superadmin/Admin, periksa pada
+							Pengaturan → Peran & Izin bahwa kemampuan <em>Dashboard rekap</em> aktif.
+						</div>
+						<a href="/pengaturan?tab=permissions" class="btn btn-outline btn-sm mt-4">Buka Peran & Izin</a>
+					{/if}
+				</div>
+			</div>
 		</div>
 	{/if}
