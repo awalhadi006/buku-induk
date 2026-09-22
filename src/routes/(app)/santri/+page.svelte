@@ -106,6 +106,13 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 	<title>Santri | Buku Induk</title>
 </svelte:head>
 
+<!-- Skip link: first focusable element -->
+<a
+	href="#main-content"
+	class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none">
+	Lewati ke konten utama
+</a>
+
 <PageHeader title="Santri" desc="Daftar santri pesantren. Menampilkan {santri.length} dari {total} santri total (halaman {currentPage} dari {totalPages}){searchParam ? ` · Hasil untuk: "${searchParam}"` : ''}.">
 	{#snippet actions()}
 		<label class="relative flex-1 sm:w-72 sm:flex-none">
@@ -125,7 +132,7 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 			<IconFilter class="size-4" stroke-width={1.75} />
 			Filter
 			{#if activeFilterCount > 0}
-				<span class="badge badge-primary badge-sm ml-1">{activeFilterCount}</span>
+				<span class="badge badge-primary badge-sm ml-1" data-visual-test-mask>{activeFilterCount}</span>
 			{/if}
 		</button>
 
@@ -141,6 +148,8 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 		{/if}
 	{/snippet}
 </PageHeader>
+
+<main id="main-content" class="mt-6">
 
 <!-- PANEL FILTER LANJUTAN -->
 <Collapse open={showFilters} duration={250}>
@@ -290,9 +299,9 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 							<td>{STATUS_SANTRI_OPTIONS.find((o) => o.value === s.status_santri)?.label ?? s.status_santri}</td>
 							<td class="text-right">
 								<div class="dropdown dropdown-end">
-									<label tabindex="0" class="btn btn-ghost btn-square btn-sm" aria-label="Aksi untuk {s.nama_lengkap}">
-										<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
-									</label>
+									<button class="btn btn-ghost btn-square btn-sm" aria-label="Aksi untuk {s.nama_lengkap}" aria-haspopup="true" aria-expanded="false">
+										<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+									</button>
 									<ul class="dropdown-content menu menu-sm p-2 shadow bg-base-100 rounded-box w-40">
 										<li><a class="flex items-center gap-2" href="/santri/{s.id}"><IconEye class="size-4" stroke-width={1.75} /> Detail</a></li>
 										<li><a class="flex items-center gap-2" href="/santri/{s.id}/cetak" target="_blank" rel="noopener"><IconExternalLink class="size-4" stroke-width={1.75} /> Cetak Buku Induk</a></li>
@@ -363,8 +372,10 @@ const filterIncomplete = $derived(page.url.searchParams.get('incomplete') === 't
 			</div>
 
 			<div class="text-sm text-base-content/60">
-				Halaman {currentPage} dari {totalPages} · Total {total} santri
+Halaman {currentPage} dari {totalPages} · Total <span data-visual-test-mask>{total}</span> santri
 			</div>
 		</div>
 	{/if}
-{/if}
+	{/if}
+
+</main>
