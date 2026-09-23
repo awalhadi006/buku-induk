@@ -70,6 +70,13 @@
 	<title>Rekapitulasi | Buku Induk</title>
 </svelte:head>
 
+<!-- Skip link: first focusable element -->
+<a
+	href="#main-content"
+	class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none">
+	Lewati ke konten utama
+</a>
+
 <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight">Rekapitulasi</h1>
@@ -89,13 +96,15 @@
 	{/if}
 </header>
 
+<main id="main-content" class="mt-6">
+
 {#if rekap}
 	{#if rekap.total === 0}
 		<div class="mt-6" role="status">
 			<div class="alert alert-soft alert-info">
 				<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
 				<div>
-					<h3 class="font-bold">Belum ada data santri</h3>
+					<h2 class="font-bold">Belum ada data santri</h2>
 					<div class="text-xs">Rekapitulasi muncul setelah data santri diimpor atau ditambahkan.</div>
 				</div>
 				<div class="flex flex-wrap gap-2 mt-4">
@@ -111,7 +120,7 @@
 			<section class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Angka utama">
 				<div class="card card-border bg-base-100 p-5 lg:col-span-2">
 					<div class="text-sm text-base-content/70">Total santri</div>
-					<div class="mt-2 font-mono text-5xl">{rekap.total}</div>
+					<div class="mt-2 font-mono text-5xl" data-visual-test-mask>{rekap.total}</div>
 				</div>
 				{#if rekap.tidak_lengkap != null && rekap.tidak_lengkap > 0}
 					<a
@@ -119,18 +128,18 @@
 						class="card card-border bg-warning/10 border-warning/40 p-5 hover:border-warning hover:bg-warning/20 transition-colors">
 						<div class="text-sm font-medium text-warning-content">Data belum lengkap</div>
 						<div class="mt-2 flex items-baseline justify-between">
-							<div class="font-mono text-3xl font-bold text-warning-content">{rekap.tidak_lengkap}</div>
+							<div class="font-mono text-3xl font-bold text-warning-content" data-visual-test-mask>{rekap.tidak_lengkap}</div>
 							<span class="text-xs text-warning-content/80 underline">Lengkapi &rarr;</span>
 						</div>
 					</a>
 				{/if}
 				<div class="card card-border bg-base-100 p-5">
 					<div class="text-sm text-base-content/70">Laki-laki</div>
-					<div class="mt-2 font-mono text-3xl">{laki}</div>
+					<div class="mt-2 font-mono text-3xl" data-visual-test-mask>{laki}</div>
 				</div>
 				<div class="card card-border bg-base-100 p-5">
 					<div class="text-sm text-base-content/70">Perempuan</div>
-					<div class="mt-2 font-mono text-3xl">{perempuan}</div>
+					<div class="mt-2 font-mono text-3xl" data-visual-test-mask>{perempuan}</div>
 				</div>
 			</section>
 		{/if}
@@ -195,7 +204,7 @@
 					</div>
 					<a href="/santri/alumni" class="text-xs text-primary hover:underline">Lihat semua &rarr;</a>
 				</div>
-				<p class="mt-1 text-xs text-base-content/60">Total {totalAlumni} alumni tercatat.</p>
+				<p class="mt-1 text-xs text-base-content/60">Total <span data-visual-test-mask>{totalAlumni}</span> alumni tercatat.</p>
 				<div class="mt-3">
 					<BarList rows={alumniRows} max={Math.max(0, ...alumniRows.map((r) => r.value))} />
 				</div>
@@ -218,7 +227,9 @@
 						</div>
 						<a href="/pengaturan?tab=permissions" class="btn btn-outline btn-sm mt-4">Buka Peran & Izin</a>
 					{/if}
-				</div>
-			</div>
+</div>
 		</div>
+	</div>
 	{/if}
+
+</main>

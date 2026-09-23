@@ -213,6 +213,7 @@
 						aria-label="Menu pengguna">
 						<span
 							class="flex size-8 items-center justify-center rounded-full bg-primary font-medium text-primary-content"
+							data-visual-test-mask
 							>{initial}</span
 						>
 						{#if !userMenuOpen}
@@ -225,8 +226,8 @@
 					<div
 						class="dropdown-content z-50 mt-2 w-56 rounded-lg border border-base-300 bg-base-100 p-2 shadow-lg">
 						<div class="border-b border-base-200 px-2 pb-2 pt-1">
-							<p class="truncate text-sm font-medium">{profile?.nama ?? 'Pengguna'}</p>
-							<p class="truncate text-xs text-base-content/60">{peranLabel}</p>
+							<p class="truncate text-sm font-medium" data-visual-test-mask>{profile?.nama ?? 'Pengguna'}</p>
+							<p class="truncate text-xs text-base-content/60" data-visual-test-mask>{peranLabel}</p>
 						</div>
 						<a
 							href="/pengaturan/ganti-password"

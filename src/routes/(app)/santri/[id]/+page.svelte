@@ -250,6 +250,13 @@
 	<title>{s.nama_lengkap} | Buku Induk</title>
 </svelte:head>
 
+<!-- Skip link: first focusable element -->
+<a
+	href="#main-content"
+	class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none">
+	Lewati ke konten utama
+</a>
+
 <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 	<div class="flex items-center gap-3">
 		<a class="btn btn-ghost btn-sm" href="/santri" aria-label="Kembali ke daftar santri">
@@ -257,7 +264,7 @@
 		</a>
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight">{s.nama_lengkap}</h1>
-			<p class="mt-0.5 font-mono text-sm text-base-content/60">{s.nisn || s.nis || s.nik || '—'}</p>
+			<p class="mt-0.5 font-mono text-sm text-base-content/60" data-visual-test-mask>{s.nisn || s.nis || s.nik || '—'}</p>
 		</div>
 	</div>
 
@@ -283,6 +290,8 @@
 		</div>
 	{/if}
 </header>
+
+<main id="main-content" class="mt-6">
 
 {#if data.gdrive && !editing}
 	<div class="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-base-300 bg-base-100 p-5">
@@ -373,7 +382,7 @@
 								aria-hidden="true"></span>
 							<p class="text-sm font-medium capitalize">{h.jenis.replace(/_/g, ' ')}</p>
 							<p class="text-xs text-base-content/60">
-								<span class="font-mono">{d(h.tanggal_efektif)}</span>
+								<span class="font-mono" data-visual-test-mask>{d(h.tanggal_efektif)}</span>
 								&middot; {histVal(h.jenis, h.nilai_lama)} <span class="px-1 text-base-content/40">&rarr;</span> {histVal(h.jenis, h.nilai_baru)}
 							</p>
 						</li>
@@ -501,9 +510,11 @@
 						<span class="mb-1.5 block text-xs font-medium text-base-content/70">Nilai baru</span>
 						<input name="new_value" type="text" class="input input-bordered input-sm w-full" required />
 					</label>
-					<button type="submit" class="btn btn-primary btn-sm sm:col-span-2">Kirim permintaan</button>
+<button type="submit" class="btn btn-primary btn-sm sm:col-span-2">Kirim permintaan</button>
 				</form>
 			</section>
 		{/if}
 	</div>
-{/if}
+	{/if}
+
+</main>

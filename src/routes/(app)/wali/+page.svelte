@@ -24,6 +24,13 @@
 	<title>Wali Santri | Buku Induk</title>
 </svelte:head>
 
+<!-- Skip link: first focusable element -->
+<a
+	href="#main-content"
+	class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none">
+	Lewati ke konten utama
+</a>
+
 <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight">Wali Santri</h1>
@@ -49,6 +56,8 @@
 	</div>
 </header>
 
+<main id="main-content" class="mt-6">
+
 {#if data.wali === undefined}
 	<div class="mt-8" role="status" aria-busy="true" aria-live="polite">
 		<SkeletonTable rows={5} cols={4} ariaLabel="Memuat daftar wali santri..." />
@@ -58,7 +67,7 @@
 		<div class="alert alert-soft alert-info">
 			<IconUserHeart class="mx-auto size-10 text-info" stroke-width={1.5} />
 			<div>
-				<h3 class="font-bold">Belum ada data wali santri</h3>
+				<h2 class="font-bold">Belum ada data wali santri</h2>
 				<div class="text-xs">Tambahkan wali santri secara manual, atau isi lewat import Excel dari halaman Import.</div>
 			</div>
 			<div class="flex flex-wrap gap-2 mt-4">
@@ -72,7 +81,7 @@
 		<div class="alert alert-soft alert-info">
 			<IconSearch class="mx-auto size-10 text-info" stroke-width={1.5} />
 			<div>
-				<h3 class="font-bold">Tidak ada hasil</h3>
+				<h2 class="font-bold">Tidak ada hasil</h2>
 				<div class="text-xs">Tidak ada wali santri yang cocok dengan pencarian.</div>
 			</div>
 		</div>
@@ -99,11 +108,13 @@
 							{w.alamat ?? '-'}
 						</td>
 						<td>
-							<span class="badge badge-ghost badge-sm">{w.jumlah_santri}</span>
+							<span class="badge badge-ghost badge-sm" data-visual-test-mask>{w.jumlah_santri}</span>
 						</td>
 					</tr>
 				{/each}
 			</tbody>
-		</table>
+</table>
 	</div>
-{/if}
+	{/if}
+
+</main>

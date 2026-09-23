@@ -117,7 +117,7 @@
 						<a href="/kamar/{k.id}" class="font-medium hover:underline">Kamar {k.nomor}</a>
 						<p class="text-sm text-base-content/60">
 							{k.asrama ?? 'Tanpa asrama'}
-							· {k.jumlah_santri} santri
+							· <span data-visual-test-mask>{k.jumlah_santri}</span> santri
 						</p>
 					</div>
 					<span class={`badge badge-sm ${k.aktif ? 'badge-success' : 'badge-neutral'}`}>

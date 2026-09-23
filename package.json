@@ -18,14 +18,15 @@
     "changelog": "node scripts/gen-changelog.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e:visual": "playwright test --config=playwright.visual.config.ts",
+    "test:e2e:visual:update": "playwright test --config=playwright.visual.config.ts --update-snapshots"
   },
   "devDependencies": {
     "@chialab/vitest-axe": "^0.19.2",
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/source-serif-4": "^5.3.0",
     "@playwright/experimental-ct-svelte": "^1.58.2",
-    "@playwright/test": "^1.63.0",
     "@sveltejs/adapter-cloudflare": "^7.2.8",
     "@sveltejs/kit": "^2.63.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
@@ -45,6 +46,7 @@
     "wrangler": "^4.97.0"
   },
   "dependencies": {
+    "@playwright/test": "^1.63.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.2",
     "@tabler/icons-svelte": "^3.46.0",

@@ -11,6 +11,6 @@
 </script>
 
 <div class="collapse collapse-arrow">
-	<input type="checkbox" bind:checked={open} />
+	<input type="checkbox" bind:checked={open} aria-hidden="true" />
 	<div class="collapse-content">{@render children()}</div>
 </div>
