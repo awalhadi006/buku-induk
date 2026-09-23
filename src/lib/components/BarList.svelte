@@ -34,7 +34,7 @@
 				class="bar-grow h-full rounded-full bg-primary"
 				style="width:{max > 0 ? Math.round((r.value / max) * 100) : 0}%"></div>
 		</div>
-		<span class="w-10 text-right font-mono text-sm">{r.value}</span>
+		<span class="w-10 text-right font-mono text-sm" data-visual-test-mask>{r.value}</span>
 	</div>
 {/each}
 

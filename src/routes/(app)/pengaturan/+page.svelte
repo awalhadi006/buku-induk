@@ -730,7 +730,7 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 					<p class="text-xs text-base-content/60">
 						{gdrive?.refresh_token ? 'Terhubung' : 'Belum terhubung'}
 						{#if gdrive?.connected_at}
-							· {d(gdrive.connected_at)}
+							· <span data-visual-test-mask>{d(gdrive.connected_at)}</span>
 						{/if}
 					</p>
 				</div>
@@ -870,8 +870,8 @@ import { PERAN_LABEL, DASHBOARD_METRICS } from '$lib/types';
 				<tbody>
 					{#each auditLogs as log (log.id)}
 						<tr class="hover:bg-base-200/50">
-							<td class="whitespace-nowrap font-mono text-xs">{d(log.created_at)}</td>
-							<td class="font-mono text-xs">{log.actor_id ? actorName[log.actor_id] ?? log.actor_id.slice(0, 8) : '(sistem)'}</td>
+							<td class="whitespace-nowrap font-mono text-xs" data-visual-test-mask>{d(log.created_at)}</td>
+							<td class="font-mono text-xs" data-visual-test-mask>{log.actor_id ? actorName[log.actor_id] ?? log.actor_id.slice(0, 8) : '(sistem)'}</td>
 							<td>
 								<span class="badge badge-ghost badge-sm">{log.action}</span>
 							</td>
