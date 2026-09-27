@@ -3,6 +3,29 @@
 </script>
 
 <style>
+	.bar-row {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity var(--duration-fast) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
+		transition-delay: calc(var(--index) * var(--animate-stagger));
+	}
+
+	@starting-style {
+		.bar-row {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bar-row {
+			transition-duration: 0.01ms !important;
+			transition-delay: 0ms !important;
+		}
+	}
+
 	.bar-grow {
 		transform-origin: left center;
 		transform: scaleX(1);
@@ -14,7 +37,7 @@
 
 	@starting-style {
 		.bar-grow {
-			transform: scaleX(0.95);
+			transform: scaleX(0);
 			opacity: 0;
 		}
 	}
@@ -26,15 +49,24 @@
 	}
 </style>
 
-{#each rows as r}
-	<div class="flex items-center gap-3 py-1.5">
+{#each rows as r, i}
+	<div class="bar-row flex items-center gap-3 py-1.5 relative" style="--index: {i};">
 		<span class="w-32 truncate text-sm">{r.label}</span>
-		<div class="h-2 flex-1 overflow-hidden rounded-full bg-base-200" aria-hidden="true">
+		<div class="h-3 flex-1 overflow-hidden rounded-full bg-base-200 relative" aria-hidden="true">
 			<div
-				class="bar-grow h-full rounded-full bg-primary"
-				style="width:{max > 0 ? Math.round((r.value / max) * 100) : 0}%"></div>
+				class="bar-grow h-full rounded-full"
+				style="
+					width: {max > 0 ? Math.round((r.value / max) * 100) : 0}%;
+					background: linear-gradient(to right, var(--color-primary), var(--color-accent));
+				"
+			></div>
+			<span class="absolute right-0 top-0 -translate-y-full text-xs font-mono text-base-content/70" data-visual-test-mask>
+				{r.value}
+			</span>
+			<span class="absolute left-3 top-1/2 -translate-y-full text-sm font-medium text-base-content/90">
+				{r.label}
+			</span>
 		</div>
-		<span class="w-10 text-right font-mono text-sm" data-visual-test-mask>{r.value}</span>
 	</div>
 {/each}
 
