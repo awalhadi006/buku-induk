@@ -1,0 +1,30 @@
+# Cloudflare Pages configuration
+# This file controls branch deployment behavior
+
+[build]
+command = "npm run build"
+destination = ".svelte-kit/cloudflare"
+root = ""
+
+# Branch deployment configuration
+[deployment]
+# The redesign branch will deploy as a PREVIEW environment (not production)
+# Preview URLs: https://<branch>.<project>.pages.dev
+# Production URL: https://<project>.pages.dev (only for production branch)
+
+[[deployment.branch]]
+name = "redesign"
+environment = "preview"
+# This ensures the redesign branch gets a preview URL like:
+# https://redesign.buku-induk.pages.dev
+
+# Production branch (main/master) - already configured in dashboard
+# [[deployment.branch]]
+# name = "main"
+# environment = "production"
+
+# Optional: Alias for the redesign branch
+# This creates an additional easy-to-remember URL
+# [[deployment.alias]]
+# name = "redesign"
+# branch = "redesign"

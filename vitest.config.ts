@@ -1,18 +1,20 @@
 import path from 'path';
-import { defineConfig } from 'vitest/config';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import viteConfig from './vite.config.ts';
 
-export default defineConfig({
-  plugins: [svelte()],
+export default mergeConfig(viteConfig, defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     exclude: ['**/node_modules/**', '**/error/**', '**/dist/**', 'tests-e2e/**'],
+    setupFiles: ['src/test/setup.ts'],
+    testTimeout: 10000,
+    hookTimeout: 5000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       include: ['src/lib/**/*.{ts,js}'],
-      exclude: ['src/lib/types.ts', 'src/lib/changelog.ts', 'src/lib/index.ts', 'src/lib/supabase.ts'],
+      exclude: ['src/lib/types.ts', 'src/lib/changelog.ts', 'src/lib/index.ts', 'src/lib/supabase.ts', 'src/lib/components/**/*.test.ts'],
     },
   },
   resolve: {
@@ -21,4 +23,4 @@ export default defineConfig({
       '$app': path.resolve('src/app'),
     },
   },
-});
+}));

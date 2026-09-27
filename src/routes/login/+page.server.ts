@@ -2,6 +2,18 @@ import { fail, redirect } from '@sveltejs/kit';
 
 export async function load({ locals }) {
 	if (locals.user) throw redirect(303, '/');
+
+	const { data: settings } = await locals.supabase
+		.from('settings')
+		.select('key,value')
+		.in('key', ['school_name', 'school_logo_url']);
+
+	const settingsMap = Object.fromEntries((settings ?? []).map((s) => [s.key, s.value]));
+
+	return {
+		schoolName: settingsMap.school_name ?? null,
+		schoolLogoUrl: settingsMap.school_logo_url ?? null
+	};
 }
 
 export const actions = {

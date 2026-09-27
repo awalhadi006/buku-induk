@@ -1,27 +1,36 @@
 import { createServerClient } from '@supabase/ssr';
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { env as publicEnv } from '$env/dynamic/public';
 import type { Handle } from '@sveltejs/kit';
 
-export const handle: Handle = async ({ event, resolve }) => {
-	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
-		cookies: {
-			getAll: () => event.cookies.getAll(),
-			setAll: (cookiesToSet) => {
-				cookiesToSet.forEach(({ name, value, options }) => {
-					event.cookies.set(name, value, {
-						...options,
-						path: '/',
-						secure: event.url.protocol === 'https:'
-					});
-				});
-			}
-		}
-	});
+const PUBLIC_SUPABASE_URL = publicEnv.PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co';
+const PUBLIC_SUPABASE_ANON_KEY = publicEnv.PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-anon-key';
+const isPlaceholder = PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co';
 
-	const {
-		data: { user }
-	} = await event.locals.supabase.auth.getUser();
-	event.locals.user = user ?? null;
+export const handle: Handle = async ({ event, resolve }) => {
+	if (!isPlaceholder) {
+		event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+			cookies: {
+				getAll: () => event.cookies.getAll(),
+				setAll: (cookiesToSet) => {
+					cookiesToSet.forEach(({ name, value, options }) => {
+						event.cookies.set(name, value, {
+							...options,
+							path: '/',
+							secure: event.url.protocol === 'https:'
+						});
+					});
+				}
+			}
+		});
+
+		const {
+			data: { user }
+		} = await event.locals.supabase.auth.getUser();
+		event.locals.user = user ?? null;
+	} else {
+		event.locals.supabase = null;
+		event.locals.user = null;
+	}
 
 	const response = await resolve(event);
 

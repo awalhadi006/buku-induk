@@ -24,6 +24,13 @@
 	<title>Wali Santri | Buku Induk</title>
 </svelte:head>
 
+<!-- Skip link: first focusable element -->
+<a
+	href="#main-content"
+	class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none">
+	Lewati ke konten utama
+</a>
+
 <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight">Wali Santri</h1>
@@ -49,29 +56,39 @@
 	</div>
 </header>
 
+<main id="main-content" class="mt-6">
+
 {#if data.wali === undefined}
 	<div class="mt-8" role="status" aria-busy="true" aria-live="polite">
 		<SkeletonTable rows={5} cols={4} ariaLabel="Memuat daftar wali santri..." />
 	</div>
 {:else if wali.length === 0}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<IconUserHeart class="mx-auto size-10 text-base-content/40" stroke-width={1.5} />
-		<h2 class="mt-4 text-lg font-semibold">Belum ada data wali santri</h2>
-		<p class="mx-auto mt-1 max-w-[55ch] text-sm text-base-content/60">
-			Tambahkan wali santri secara manual, atau isi lewat import Excel dari halaman Import.
-		</p>
-		<div class="mt-5">
-			<a class="btn btn-primary btn-sm" href="/wali/baru">Tambah wali</a>
-			<a class="btn btn-outline btn-sm" href="/import">Import Excel</a>
+	<div class="mt-8" role="status">
+		<div class="alert alert-soft alert-info">
+			<IconUserHeart class="mx-auto size-10 text-info" stroke-width={1.5} />
+			<div>
+				<h2 class="font-bold">Belum ada data wali santri</h2>
+				<div class="text-xs">Tambahkan wali santri secara manual, atau isi lewat import Excel dari halaman Import.</div>
+			</div>
+			<div class="flex flex-wrap gap-2 mt-4">
+				<a class="btn btn-primary btn-sm" href="/wali/baru">Tambah wali</a>
+				<a class="btn btn-outline btn-sm" href="/import">Import Excel</a>
+			</div>
 		</div>
 	</div>
 {:else if filtered.length === 0}
-	<div class="mt-8 rounded-2xl border border-dashed border-base-300 bg-base-100 p-10 text-center">
-		<p class="text-base-content/60">Tidak ada wali santri yang cocok dengan pencarian.</p>
+	<div class="mt-8" role="status">
+		<div class="alert alert-soft alert-info">
+			<IconSearch class="mx-auto size-10 text-info" stroke-width={1.5} />
+			<div>
+				<h2 class="font-bold">Tidak ada hasil</h2>
+				<div class="text-xs">Tidak ada wali santri yang cocok dengan pencarian.</div>
+			</div>
+		</div>
 	</div>
 {:else}
-	<div class="mt-8 overflow-x-auto rounded-2xl border border-base-300 bg-base-100">
-		<table class="table">
+	<div class="mt-8 overflow-x-auto rounded-lg border border-base-300 bg-base-100">
+		<table class="table table-zebra table-pin-rows">
 			<thead>
 				<tr class="text-xs uppercase tracking-wide text-base-content/60">
 					<th>Nama</th>
@@ -91,11 +108,13 @@
 							{w.alamat ?? '-'}
 						</td>
 						<td>
-							<span class="badge badge-ghost badge-sm">{w.jumlah_santri}</span>
+							<span class="badge badge-ghost badge-sm" data-visual-test-mask>{w.jumlah_santri}</span>
 						</td>
 					</tr>
 				{/each}
 			</tbody>
-		</table>
+</table>
 	</div>
-{/if}
+	{/if}
+
+</main>

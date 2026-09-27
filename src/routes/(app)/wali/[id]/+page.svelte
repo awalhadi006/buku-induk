@@ -28,6 +28,13 @@
 	<title>{label} | Buku Induk</title>
 </svelte:head>
 
+<!-- Skip link: first focusable element -->
+<a
+	href="#main-content"
+	class="btn btn-primary btn-sm fixed left-4 top-4 z-50 -translate-y-20 focus-visible:translate-y-0 motion-reduce:transition-none">
+	Lewati ke konten utama
+</a>
+
 <header class="flex items-center gap-3">
 	<a class="btn btn-ghost btn-sm" href="/wali" aria-label="Kembali ke daftar wali">&larr;</a>
 	<span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -46,6 +53,8 @@
 		</form>
 	{/if}
 </header>
+
+<main id="main-content" class="mt-6">
 
 {#if actionError}
 	<div class="alert alert-error mt-6" role="alert">
@@ -131,3 +140,5 @@
 		{/if}
 	</div>
 </div>
+
+</main>
