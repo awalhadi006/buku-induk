@@ -23,12 +23,11 @@ export default defineConfig({
   ],
   
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || (process.env.CI ? 'https://bukuinduk.smpallathifah.my.id' : 'http://localhost:4173'),
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || (process.env.CI ? 'https://bukuinduk.smpallathifah.my.id' : 'http://localhost:5173'),
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     browserName: 'chromium',
-    channel: 'chrome',
   },
 
   // Visual regression specific settings
@@ -139,8 +138,8 @@ export default defineConfig({
   webServer: process.env.CI
     ? undefined
     : {
-        command: 'npm run preview',
-        url: 'http://localhost:4173',
+        command: 'npm run dev -- --port 5173',
+        url: 'http://localhost:5173',
         reuseExistingServer: true,
         timeout: 300000,
       },
@@ -151,4 +150,6 @@ export default defineConfig({
   // Snapshot directory
   snapshotDir: path.join(__dirname, 'tests-e2e', 'visual', 'snapshots'),
   
-  });
+  // Use TypeScript test files
+  testMatch: '**/*.spec.ts',
+});

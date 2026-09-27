@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { gotoAndWait } from './utils';
+import { gotoAndWait } from './visual-utils';
 
 test.describe('Visual Regression: Login Page', () => {
   test('login page', async ({ page }) => {
