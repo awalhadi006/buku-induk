@@ -1,37 +1,64 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
+	interface BreadcrumbItem {
+		label: string;
+		href?: string;
+	}
+
 	let {
 		title,
 		desc,
 		backHref,
-		actions
-	}: { title: string; desc?: string; backHref?: string; actions?: Snippet } = $props();
+		actions,
+		breadcrumb
+	}: {
+		title: string;
+		desc?: string;
+		backHref?: string;
+		actions?: Snippet;
+		breadcrumb?: BreadcrumbItem[];
+	} = $props();
+
+	// Map backHref to breadcrumb for backward compatibility
+	const breadcrumbItems = $derived(
+		backHref && !breadcrumb
+			? [{ label: 'Kembali', href: backHref }]
+			: (breadcrumb ?? [])
+	);
 </script>
 
-<div class="card card-border sm:card-side">
-	<div class="card-body">
-		<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-			<div class="flex min-w-0 items-start gap-2">
-				{#if backHref}
-					<a class="btn btn-ghost btn-square btn-sm shrink-0" href={backHref} aria-label="Kembali">
-						<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-						</svg>
-					</a>
-				{/if}
-				<div class="min-w-0">
-					<h1 class="text-2xl leading-tight font-semibold tracking-tight">{title}</h1>
-					{#if desc}
-						<p class="mt-1 max-w-[65ch] text-sm text-base-content/70">{desc}</p>
-					{/if}
-				</div>
-			</div>
-			{#if actions}
-				<div class="flex flex-wrap items-center gap-3 sm:justify-end">
-					{@render actions()}
-				</div>
+<header class="mb-6">
+	{#if breadcrumbItems.length > 0}
+		<nav class="flex items-center gap-1 text-sm text-base-content/60 mb-2" aria-label="Breadcrumb">
+			<ol class="flex items-center gap-1">
+				{#each breadcrumbItems as item, i (item.label)}
+					<li class="flex items-center gap-1">
+						{#if i > 0}
+							<div class="divider divider-horizontal"></div>
+						{/if}
+						{#if item.href}
+							<a href={item.href} class="hover:text-base-content transition-colors">{item.label}</a>
+						{:else}
+							<span aria-current="page">{item.label}</span>
+						{/if}
+					</li>
+				{/each}
+			</ol>
+		</nav>
+	{/if}
+
+	<div class="flex items-start justify-between gap-4">
+		<div class="min-w-0">
+			<h1 class="text-2xl font-semibold text-base-content">{title}</h1>
+			{#if desc}
+				<p class="mt-1 max-w-[65ch] text-base-content/70">{desc}</p>
 			{/if}
 		</div>
+		{#if actions}
+			<div class="flex flex-wrap items-center gap-3 shrink-0">
+				{@render actions()}
+			</div>
+		{/if}
 	</div>
-</div>
+</header>
