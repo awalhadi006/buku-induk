@@ -168,19 +168,17 @@
 							<label for="username" class="label">
 								<span class="label-text">Username atau Email</span>
 							</label>
-							<div class="relative">
-								<IconMail
-									class="pointer-events-none absolute inset-y-0 left-3 my-auto size-5 text-base-content/50"
-									aria-hidden="true" />
+							<label class="input input-bordered flex items-center gap-2 w-full" for="username">
+								<IconMail class="size-5 shrink-0 opacity-50" aria-hidden="true" />
 								<input
 									id="username"
 									name="username"
 									type="text"
 									required
 									autocomplete="username"
-									class="input input-bordered w-full pl-10 h-10"
+									class="grow bg-transparent focus:outline-none"
 									placeholder="username atau email" />
-							</div>
+							</label>
 						</div>
 
 						<!-- Password Field -->
@@ -188,21 +186,19 @@
 							<label for="password" class="label">
 								<span class="label-text">Kata sandi</span>
 							</label>
-							<div class="relative">
-								<IconLock
-									class="pointer-events-none absolute inset-y-0 left-3 my-auto size-5 text-base-content/50"
-									aria-hidden="true" />
+							<label class="input input-bordered flex items-center gap-2 w-full" for="password">
+								<IconLock class="size-5 shrink-0 opacity-50" aria-hidden="true" />
 								<input
 									id="password"
 									name="password"
 									type={show ? 'text' : 'password'}
 									required
 									autocomplete="current-password"
-									class="input input-bordered w-full pl-10 pr-11 h-10"
+									class="grow bg-transparent focus:outline-none"
 									placeholder="••••••••" />
 								<button
 									type="button"
-									class="btn btn-ghost btn-square btn-xs absolute right-2 top-1/2 -translate-y-1/2"
+									class="btn btn-ghost btn-square btn-xs shrink-0"
 									aria-label={show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
 									onclick={() => (show = !show)}>
 									{#if show}
@@ -211,7 +207,7 @@
 										<IconEye class="size-4" stroke-width={1.75} />
 									{/if}
 								</button>
-							</div>
+							</label>
 						</div>
 
 						<!-- Error Alert -->
