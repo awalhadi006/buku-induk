@@ -178,7 +178,7 @@
 									type="text"
 									required
 									autocomplete="username"
-									class="input input-bordered w-full pl-10"
+									class="input input-bordered w-full pl-10 h-10"
 									placeholder="username atau email" />
 							</div>
 						</div>
@@ -198,7 +198,7 @@
 									type={show ? 'text' : 'password'}
 									required
 									autocomplete="current-password"
-									class="input input-bordered w-full pl-10 pr-11"
+									class="input input-bordered w-full pl-10 pr-11 h-10"
 									placeholder="••••••••" />
 								<button
 									type="button"
@@ -234,7 +234,7 @@
 						{/if}
 
 						<!-- Submit Button -->
-						<LoadingButton loading={submitting} class="w-full">Masuk</LoadingButton>
+						<LoadingButton loading={submitting} size="sm" class="w-full">Masuk</LoadingButton>
 					</form>
 
 					<!-- Footer note -->
