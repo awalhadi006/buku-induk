@@ -48,6 +48,12 @@
 		pointer-events: none;
 	}
 
+	.btn-spinner svg {
+		width: 1em;
+		height: 1em;
+		max-height: 100%;
+	}
+
 	.loading-btn.loading .btn-text {
 		opacity: 0;
 	}
@@ -74,6 +80,6 @@
 	onclick={onclick}>
 	<span class="btn-text">{@render children()}</span>
 	<span class="btn-spinner" aria-hidden="true">
-		<svg class="loading loading-spinner loading-sm"><circle /><circle /></svg>
+		<svg class="loading loading-spinner"><circle /><circle /></svg>
 	</span>
 </button>
