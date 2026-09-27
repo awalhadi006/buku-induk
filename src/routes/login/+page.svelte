@@ -1,26 +1,15 @@
 <script lang="ts">
-	import { IconCheck, IconEye, IconEyeOff, IconUser, IconMail, IconLock, IconShield } from '@tabler/icons-svelte';
+	import { IconCheck, IconEye, IconEyeOff, IconMail, IconLock, IconShield } from '@tabler/icons-svelte';
 	import LoadingButton from '$lib/components/LoadingButton.svelte';
+	import { enhance } from '$app/forms';
+	import { photoUrl } from '$lib/gdrive-url';
 
-	let { form } = $props();
+	let { form, schoolName, schoolLogoUrl } = $props();
 	let show = $state(false);
 	let submitting = $state(false);
 
-	async function handleSubmit(event: Event) {
-		event.preventDefault();
-		submitting = true;
-		const formData = new FormData(event.currentTarget as HTMLFormElement);
-		const res = await fetch('?/submit', {
-			method: 'POST',
-			body: formData
-		});
-		const data = await res.json() as { type?: string; location?: string };
-		if (res.ok && data.type === 'redirect') {
-			window.location.href = data.location ?? '/';
-		} else {
-			submitting = false;
-		}
-	}
+	const logoUrl = $derived(photoUrl(schoolLogoUrl) ?? '/placeholder-santri.jpg');
+	const displayName = $derived(schoolName ?? 'Buku Induk');
 </script>
 
 <svelte:head>
@@ -94,11 +83,13 @@
 	<!-- Sidebar ilustrasi - Desktop only -->
 	<aside class="login-sidebar hidden lg:flex lg:flex-col justify-between bg-gradient-to-b from-primary/10 via-primary/5 to-transparent p-10 lg:p-14">
 		<div class="flex items-center gap-3">
-			<span
-				class="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-xl font-bold text-primary"
-				aria-hidden="true">BI</span
-			>
-			<span class="text-lg font-semibold tracking-tight">Buku Induk</span>
+			<img
+				src={logoUrl}
+				alt=""
+				class="size-9 rounded-xl object-cover"
+				aria-hidden="true"
+			/>
+			<span class="text-lg font-semibold tracking-tight">{displayName}</span>
 		</div>
 
 		<div>
@@ -130,11 +121,13 @@
 		<div class="w-full max-w-sm">
 			<!-- Mobile logo -->
 			<div class="mb-6 flex items-center gap-3 lg:hidden">
-				<span
-					class="flex size-9 items-center justify-center rounded-xl bg-primary/15 text-xl font-bold text-primary"
-					aria-hidden="true">BI</span
-				>
-				<span class="text-lg font-semibold tracking-tight">Buku Induk</span>
+				<img
+					src={logoUrl}
+					alt=""
+					class="size-9 rounded-xl object-cover"
+					aria-hidden="true"
+				/>
+				<span class="text-lg font-semibold tracking-tight">{displayName}</span>
 			</div>
 
 			<!-- Card form dengan animasi entrance -->
@@ -150,7 +143,8 @@
 						method="POST"
 						class="mt-8 space-y-5"
 						action="?/submit"
-						onsubmit={handleSubmit}>
+						use:enhance
+						onsubmit={() => { submitting = true; }}>
 
 						<!-- Username/Email Field -->
 						<div class="form-control">
@@ -235,24 +229,9 @@
 
 			<!-- Footer dengan theme controller -->
 			<footer class="mt-8 flex flex-col items-center justify-center gap-4 text-sm text-base-content/60 lg:flex-row">
-				<p>Buku Induk Santri</p>
-				<!-- daisyUI theme-controller -->
+				<p>{displayName}</p>
 				<div class="theme-controller" data-themes="bi-light,bi-dark">
-					<button class="btn btn-ghost btn-square btn-sm" aria-label="Pilih tema">
-						<svg
-							class="size-5"
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="1.5"
-							stroke="currentColor"
-							aria-hidden="true">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-						</svg>
-					</button>
+					<button class="btn btn-ghost btn-square btn-sm" aria-label="Ganti tema"></button>
 				</div>
 			</footer>
 		</div>
