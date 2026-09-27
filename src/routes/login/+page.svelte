@@ -169,9 +169,9 @@
 								<span class="label-text">Username atau Email</span>
 							</label>
 							<div class="relative">
-								<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" aria-hidden="true">
-									<IconMail class="size-5" />
-								</span>
+								<IconMail
+									class="pointer-events-none absolute inset-y-0 left-3 my-auto size-5 text-base-content/50"
+									aria-hidden="true" />
 								<input
 									id="username"
 									name="username"
@@ -189,9 +189,9 @@
 								<span class="label-text">Kata sandi</span>
 							</label>
 							<div class="relative">
-								<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" aria-hidden="true">
-									<IconLock class="size-5" />
-								</span>
+								<IconLock
+									class="pointer-events-none absolute inset-y-0 left-3 my-auto size-5 text-base-content/50"
+									aria-hidden="true" />
 								<input
 									id="password"
 									name="password"
