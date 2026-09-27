@@ -1,15 +1,32 @@
 <script lang="ts">
-	import { IconCheck, IconEye, IconEyeOff, IconMail, IconLock, IconShield } from '@tabler/icons-svelte';
+	import { IconCheck, IconEye, IconEyeOff, IconMail, IconLock, IconMoon, IconShield, IconSun } from '@tabler/icons-svelte';
 	import LoadingButton from '$lib/components/LoadingButton.svelte';
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
 	import { photoUrl } from '$lib/gdrive-url';
 
 	let { form, schoolName, schoolLogoUrl } = $props();
 	let show = $state(false);
 	let submitting = $state(false);
+	let dark = $state(false);
 
 	const logoUrl = $derived(photoUrl(schoolLogoUrl) ?? '/placeholder-santri.jpg');
 	const displayName = $derived(schoolName ?? 'Buku Induk');
+
+	onMount(() => {
+		const attr = document.documentElement.getAttribute('data-theme');
+		dark = attr === 'bi-dark' || (attr === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+	});
+
+	function setDark(value: boolean) {
+		dark = value;
+		document.documentElement.setAttribute('data-theme', value ? 'bi-dark' : 'bi-light');
+		localStorage.setItem('theme', value ? 'bi-dark' : 'bi-light');
+	}
+
+	function toggleTheme() {
+		setDark(!dark);
+	}
 </script>
 
 <svelte:head>
@@ -152,9 +169,9 @@
 								<span class="label-text">Username atau Email</span>
 							</label>
 							<div class="relative">
-								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-									<IconMail class="size-5 text-base-content/50" aria-hidden="true" />
-								</div>
+								<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" aria-hidden="true">
+									<IconMail class="size-5" />
+								</span>
 								<input
 									id="username"
 									name="username"
@@ -172,9 +189,9 @@
 								<span class="label-text">Kata sandi</span>
 							</label>
 							<div class="relative">
-								<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-									<IconLock class="size-5 text-base-content/50" aria-hidden="true" />
-								</div>
+								<span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" aria-hidden="true">
+									<IconLock class="size-5" />
+								</span>
 								<input
 									id="password"
 									name="password"
@@ -185,7 +202,7 @@
 									placeholder="••••••••" />
 								<button
 									type="button"
-									class="btn btn-ghost btn-square btn-sm absolute inset-y-0 right-0"
+									class="btn btn-ghost btn-square btn-xs absolute right-2 top-1/2 -translate-y-1/2"
 									aria-label={show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
 									onclick={() => (show = !show)}>
 									{#if show}
@@ -227,12 +244,19 @@
 				</div>
 			</div>
 
-			<!-- Footer dengan theme controller -->
+			<!-- Footer dengan theme toggle -->
 			<footer class="mt-8 flex flex-col items-center justify-center gap-4 text-sm text-base-content/60 lg:flex-row">
 				<p>{displayName}</p>
-				<div class="theme-controller" data-themes="bi-light,bi-dark">
-					<button class="btn btn-ghost btn-square btn-sm" aria-label="Ganti tema"></button>
-				</div>
+				<button
+					class="btn btn-ghost btn-square btn-sm"
+					aria-label={dark ? 'Beralih ke mode terang' : 'Beralih ke mode gelap'}
+					onclick={toggleTheme}>
+					{#if dark}
+						<IconSun class="size-5" stroke-width={2} />
+					{:else}
+						<IconMoon class="size-5" stroke-width={2} />
+					{/if}
+				</button>
 			</footer>
 		</div>
 	</main>
